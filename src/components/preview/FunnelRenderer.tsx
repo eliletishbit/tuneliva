@@ -129,6 +129,7 @@ function CardReorderToolbar({
   onMoveUp,
   onMoveDown,
   onDelete,
+  onDragCardStart,
   isSectionSelected,
   isEditable,
 }: {
@@ -139,6 +140,7 @@ function CardReorderToolbar({
   onMoveUp?: () => void;
   onMoveDown?: () => void;
   onDelete?: () => void;
+  onDragCardStart?: (e: React.DragEvent) => void;
   isSectionSelected?: boolean;
   isEditable?: boolean;
 }) {
@@ -153,6 +155,15 @@ function CardReorderToolbar({
           : "opacity-0 group-hover/card:opacity-100"
       }`}
     >
+      <div
+        draggable={isEditable}
+        onDragStart={onDragCardStart}
+        className="cursor-grab active:cursor-grabbing p-0.5 text-indigo-400 hover:text-white rounded hover:bg-white/10"
+        title="Glisser pour déplacer cette colonne"
+      >
+        <GripVertical className="w-3.5 h-3.5" />
+      </div>
+
       <span className="text-[10px] text-indigo-400 font-mono font-bold mr-0.5">#{idx + 1}</span>
 
       {onMoveLeft && (
@@ -470,12 +481,58 @@ export function FunnelRenderer({
           }
 
           const customPaddingStyle: React.CSSProperties = {
-            paddingTop: section.paddingVerticalPx !== undefined ? `${section.paddingVerticalPx}px` : "36px",
-            paddingBottom: section.paddingVerticalPx !== undefined ? `${section.paddingVerticalPx}px` : "36px",
-            paddingLeft: section.paddingHorizontalPx !== undefined ? `${section.paddingHorizontalPx}px` : (isMobile ? "16px" : "24px"),
-            paddingRight: section.paddingHorizontalPx !== undefined ? `${section.paddingHorizontalPx}px` : (isMobile ? "16px" : "24px"),
-            marginTop: section.marginVerticalPx !== undefined ? `${section.marginVerticalPx}px` : undefined,
-            marginBottom: section.marginVerticalPx !== undefined ? `${section.marginVerticalPx}px` : undefined,
+            paddingTop:
+              section.paddingTopPx !== undefined
+                ? `${section.paddingTopPx}px`
+                : section.paddingVerticalPx !== undefined
+                ? `${section.paddingVerticalPx}px`
+                : "36px",
+            paddingBottom:
+              section.paddingBottomPx !== undefined
+                ? `${section.paddingBottomPx}px`
+                : section.paddingVerticalPx !== undefined
+                ? `${section.paddingVerticalPx}px`
+                : "36px",
+            paddingLeft:
+              section.paddingLeftPx !== undefined
+                ? `${section.paddingLeftPx}px`
+                : section.paddingHorizontalPx !== undefined
+                ? `${section.paddingHorizontalPx}px`
+                : isMobile
+                ? "16px"
+                : "24px",
+            paddingRight:
+              section.paddingRightPx !== undefined
+                ? `${section.paddingRightPx}px`
+                : section.paddingHorizontalPx !== undefined
+                ? `${section.paddingHorizontalPx}px`
+                : isMobile
+                ? "16px"
+                : "24px",
+            marginTop:
+              section.marginTopPx !== undefined
+                ? `${section.marginTopPx}px`
+                : section.marginVerticalPx !== undefined
+                ? `${section.marginVerticalPx}px`
+                : undefined,
+            marginBottom:
+              section.marginBottomPx !== undefined
+                ? `${section.marginBottomPx}px`
+                : section.marginVerticalPx !== undefined
+                ? `${section.marginVerticalPx}px`
+                : undefined,
+            marginLeft:
+              section.marginLeftPx !== undefined
+                ? `${section.marginLeftPx}px`
+                : section.marginHorizontalPx !== undefined
+                ? `${section.marginHorizontalPx}px`
+                : undefined,
+            marginRight:
+              section.marginRightPx !== undefined
+                ? `${section.marginRightPx}px`
+                : section.marginHorizontalPx !== undefined
+                ? `${section.marginHorizontalPx}px`
+                : undefined,
             borderRadius: section.borderRadiusPx !== undefined ? `${section.borderRadiusPx}px` : undefined,
             backgroundColor:
               section.customBgColor ||
@@ -492,23 +549,27 @@ export function FunnelRenderer({
             <div
               key={section.id}
               onClick={() => onSelectSection?.(section.id)}
-              draggable={isEditable}
-              onDragStart={(e) => {
-                if (!isEditable) return;
-                setDraggedSectionIdx(idx);
-                e.dataTransfer.setData("text/plain", `${idx}`);
-              }}
               onDragOver={(e) => {
                 if (!isEditable) return;
-                e.preventDefault();
-                setDragOverSectionIdx(idx);
+                if (e.dataTransfer.types.includes("text/plain")) {
+                  e.preventDefault();
+                  e.dataTransfer.dropEffect = "move";
+                  if (dragOverSectionIdx !== idx) setDragOverSectionIdx(idx);
+                }
+              }}
+              onDragLeave={() => {
+                if (dragOverSectionIdx === idx) setDragOverSectionIdx(null);
               }}
               onDrop={(e) => {
                 if (!isEditable) return;
-                e.preventDefault();
-                const fromIdx = Number(e.dataTransfer.getData("text/plain"));
-                if (!isNaN(fromIdx) && fromIdx !== idx && onReorderSections) {
-                  onReorderSections(fromIdx, idx);
+                const rawIdx = e.dataTransfer.getData("text/plain");
+                if (rawIdx !== "") {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  const fromIdx = Number(rawIdx);
+                  if (!isNaN(fromIdx) && fromIdx !== idx && onReorderSections) {
+                    onReorderSections(fromIdx, idx);
+                  }
                 }
                 setDraggedSectionIdx(null);
                 setDragOverSectionIdx(null);
@@ -518,7 +579,9 @@ export function FunnelRenderer({
               } mx-auto ${surfaceClass} ${
                 isBeingDragged ? "opacity-30 scale-95" : ""
               } ${
-                isDragOver ? "ring-4 ring-indigo-500 ring-offset-4 ring-offset-black" : ""
+                isDragOver
+                  ? "border-t-4 border-indigo-500 shadow-2xl shadow-indigo-500/50 -translate-y-1 ring-2 ring-indigo-500/40"
+                  : ""
               } ${
                 isSelected
                   ? "ring-2 ring-indigo-500 shadow-2xl bg-indigo-500/[0.02]"
@@ -533,12 +596,20 @@ export function FunnelRenderer({
                     isSelected ? "opacity-100 ring-2 ring-indigo-500" : "opacity-0 group-hover/section:opacity-100"
                   }`}
                 >
-                  <span
-                    className="p-1 text-slate-400 hover:text-white cursor-grab active:cursor-grabbing"
-                    title="Glisser pour déplacer cette section"
+                  <div
+                    draggable={isEditable}
+                    onDragStart={(e) => {
+                      if (!isEditable) return;
+                      e.stopPropagation();
+                      setDraggedSectionIdx(idx);
+                      e.dataTransfer.effectAllowed = "move";
+                      e.dataTransfer.setData("text/plain", `${idx}`);
+                    }}
+                    className="p-1 text-indigo-400 hover:text-white cursor-grab active:cursor-grabbing rounded hover:bg-white/10"
+                    title="Attraper pour déplacer cette section par glisser-déposer"
                   >
                     <GripVertical className="w-3.5 h-3.5" />
-                  </span>
+                  </div>
 
                   <span className="text-[10px] font-bold text-slate-300 px-1.5 uppercase">
                     {section.type.replace("_", " ")}

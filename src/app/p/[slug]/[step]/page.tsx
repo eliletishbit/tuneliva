@@ -6,12 +6,14 @@ import { FunnelPageData, FunnelStep } from "@/types/page";
 import { FunnelRenderer } from "@/components/preview/FunnelRenderer";
 import { Loader2 } from "lucide-react";
 
-export default function PublicFunnelPage() {
+export default function PublicFunnelStepPage() {
   const params = useParams();
   const router = useRouter();
   const slug = params?.slug as string;
+  const stepSlug = params?.step as string;
+
   const [funnelData, setFunnelData] = useState<FunnelPageData | null>(null);
-  const [activeStep, setActiveStep] = useState<FunnelStep | null>(null);
+  const [currentStep, setCurrentStep] = useState<FunnelStep | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
@@ -29,28 +31,38 @@ export default function PublicFunnelPage() {
 
         if (data) {
           setFunnelData(data);
-          // Si le tunnel contient des étapes, on sélectionne la première étape active
-          if (data.steps && data.steps.length > 0) {
-            const step = data.activeStepId
-              ? data.steps.find((s) => s.id === data.activeStepId) || data.steps[0]
-              : data.steps[0];
-            setActiveStep(step);
+          // Recherche de l'étape correspondante au stepSlug
+          const matchedStep = data.steps?.find(
+            (st) => st.slug === stepSlug || st.id === stepSlug
+          );
+
+          if (matchedStep) {
+            setCurrentStep(matchedStep);
+          } else {
+            // Si pas de step correspondant, on affiche les sections principales
+            setCurrentStep({
+              id: `step-${stepSlug}`,
+              name: data.projectName,
+              slug: stepSlug,
+              pageType: data.pageType,
+              sections: data.sections,
+            });
           }
         } else {
           setNotFound(true);
         }
       } catch (e) {
-        console.error("Erreur chargement tunnel public:", e);
+        console.error("Erreur chargement étape tunnel:", e);
         setNotFound(true);
       } finally {
         setLoading(false);
       }
     }
 
-    if (slug) {
+    if (slug && stepSlug) {
       loadFunnel();
     }
-  }, [slug]);
+  }, [slug, stepSlug]);
 
   const handleOrderSuccess = async (orderDetails: any) => {
     try {
@@ -70,10 +82,10 @@ export default function PublicFunnelPage() {
         }),
       });
 
-      // Si l'étape active a une étape suivante (ex: confirmation/merci)
-      if (activeStep?.nextStepSlug) {
+      // Redirection automatique vers l'étape suivante (Merci / Confirmation)
+      if (currentStep?.nextStepSlug) {
         setTimeout(() => {
-          router.push(`/p/${slug}/${activeStep.nextStepSlug}`);
+          router.push(`/p/${slug}/${currentStep.nextStepSlug}`);
         }, 1200);
       }
     } catch (e) {
@@ -85,44 +97,42 @@ export default function PublicFunnelPage() {
     return (
       <div className="min-h-screen bg-[#07080D] flex flex-col items-center justify-center text-white space-y-3">
         <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
-        <p className="text-sm font-semibold text-slate-400">Chargement de votre page officielle...</p>
+        <p className="text-sm font-semibold text-slate-400">Chargement de votre étape...</p>
       </div>
     );
   }
 
-  if (notFound || !funnelData) {
+  if (notFound || !funnelData || !currentStep) {
     return (
       <div className="min-h-screen bg-[#07080D] flex flex-col items-center justify-center text-white p-6 text-center space-y-4">
         <div className="w-16 h-16 rounded-3xl bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center text-2xl font-bold">
           404
         </div>
-        <h1 className="text-2xl font-black">Page ou Offre Introuvable</h1>
+        <h1 className="text-2xl font-black">Étape Introuvable</h1>
         <p className="text-sm text-slate-400 max-w-md">
-          Cette page de vente n'existe pas encore ou a été déplacée par son créateur.
+          Cette étape du tunnel n'existe pas ou a été modifiée.
         </p>
         <a
-          href="/"
+          href={`/p/${slug}`}
           className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition-all shadow-lg"
         >
-          Créer mon propre tunnel sur Tuneliva →
+          Retourner au début du tunnel →
         </a>
       </div>
     );
   }
 
-  // Si on est dans un tunnel multi-étapes, on affiche les sections de l'étape active
-  const displayData: FunnelPageData = activeStep
-    ? {
-        ...funnelData,
-        pageType: activeStep.pageType,
-        sections: activeStep.sections,
-      }
-    : funnelData;
+  // Fusion des données de l'étape avec le thème global du tunnel
+  const stepData: FunnelPageData = {
+    ...funnelData,
+    pageType: currentStep.pageType,
+    sections: currentStep.sections,
+  };
 
   return (
     <div className="min-h-screen bg-black">
       <FunnelRenderer
-        data={displayData}
+        data={stepData}
         isEditable={false}
         deviceMode="desktop"
         onOrderSuccess={handleOrderSuccess}

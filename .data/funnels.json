@@ -1,0 +1,236 @@
+[
+  {
+    "projectName": "Des robes de soirés pour jeunes ...",
+    "slug": "des-robes-de-soires-pour-jeunes",
+    "pageType": "sales",
+    "metaTitle": "Des robes de soirés pour jeunes ... | Édition Officielle 2026",
+    "metaDescription": "Des robes de soirés pour jeunes ... – Performance & Qualité Supérieure. Livraison express à Cotonou et paiement sécurisé à la livraison.",
+    "branding": {
+      "businessName": "Des robes de soirés pour jeunes ...",
+      "tagline": "Qualité Certifiée & Service d'Excellence",
+      "whatsappNumber": "+22997000000",
+      "phone": "+229 01 53 29 52 82",
+      "socialLinks": {
+        "whatsapp": "https://wa.me/22997000000",
+        "facebook": "https://facebook.com",
+        "instagram": "https://instagram.com"
+      },
+      "address": {
+        "city": "Cotonou",
+        "country": "Bénin",
+        "fullAddress": "Centre Commercial, Haie Vive, Cotonou",
+        "serviceZone": "Zone d'intervention : Cotonou, Calavi, Porto-Novo et environs"
+      }
+    },
+    "theme": {
+      "preset": "saas_indigo",
+      "primaryColor": "#6366F1",
+      "accentColor": "#FACC15",
+      "pageBackground": "#070B16",
+      "cardBackground": "#0F172A",
+      "cardBorderColor": "rgba(99, 102, 241, 0.20)",
+      "textColor": "#F8FAFC",
+      "textMutedColor": "#94A3B8",
+      "fontFamily": "Plus Jakarta Sans",
+      "isDarkTheme": true,
+      "bannerUrgencyText": "⭐ DÉJÀ ADOPTÉ PAR PLUS DE 1 200 CLIENTS SATISFAITS CETTE SEMAINE !",
+      "countdownMinutes": 140
+    },
+    "sections": [
+      {
+        "id": "hero-1",
+        "type": "hero",
+        "badgeText": "⭐ ARRIVAGE & SÉLECTION OFFICIELLE 2026",
+        "title": "Des robes de soirés pour jeunes ...  Performance & Qualité Supérieure",
+        "subtitle": "Commandez dès maintenant et bénéficiez de notre garantie satisfaction totale avec paiement sécurisé à la livraison.",
+        "ctaText": "COMMANDER MAINTENANT",
+        "ctaSubtext": "📦 Livraison express sous 24h à Cotonou • Vérification avant paiement",
+        "secondaryCtaText": "WhatsApp",
+        "imageUrl": "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=800&auto=format&fit=crop&q=80",
+        "trustPoints": [
+          "Paiement 100% à la livraison",
+          "Garantie satisfait ou remboursé 30j",
+          "Assistance WhatsApp 7j/7"
+        ]
+      },
+      {
+        "id": "floating-1",
+        "type": "floating_cards",
+        "cards": [
+          {
+            "id": "c-2",
+            "icon": "check",
+            "title": "Contrôle à la Réception",
+            "description": "Vous ouvrez et inspectez votre colis avant de régler au coursier."
+          },
+          {
+            "id": "c-1",
+            "icon": "timer",
+            "title": "Livraison Express 24h",
+            "description": "Nous vous livrons rapidement où que vous soyez à Cotonou et ses environs."
+          },
+          {
+            "id": "c-3",
+            "icon": "shield",
+            "title": "Produit 100% Garanti",
+            "description": "Matériaux certifiés conformes avec garantie d'échange sans discussion."
+          }
+        ],
+        "marginVerticalPx": 28
+      },
+      {
+        "id": "showcase-1",
+        "type": "product_showcase",
+        "badgeText": "⭐ NOS OFFRES EN VEDETTE",
+        "title": "Sélectionnez votre formule idéale",
+        "subtitle": "Choisissez l'exemplaire adapté à votre besoin avec réduction immédiate à Cotonou :",
+        "items": [
+          {
+            "id": "prod-1",
+            "name": "Pack Découverte (1 Exemplaire)",
+            "price": 10000,
+            "regularPrice": 15000,
+            "badge": "Économique",
+            "imageUrl": "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=800&auto=format&fit=crop&q=80",
+            "description": "Idéal pour essayer et tester la qualité supérieure sans risque.",
+            "features": [
+              "1 Produit certifié",
+              "Garantie 30 jours",
+              "Livraison 24h"
+            ]
+          },
+          {
+            "id": "prod-2",
+            "name": "Pack Duo Privilège (2 Exemplaires)",
+            "price": 17000,
+            "regularPrice": 30000,
+            "badge": "Meilleur Choix",
+            "imageUrl": "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=800&auto=format&fit=crop&q=80",
+            "description": "Le choix préféré de 78% de nos clients. Économie maximale !",
+            "features": [
+              "2 Produits certifiés",
+              "Cadeau offert",
+              "Livraison gratuite express"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "stats-1",
+        "type": "stats",
+        "badgeText": "IMPACT RÉEL",
+        "items": [
+          {
+            "id": "st-1",
+            "value": "1 400+",
+            "label": "Clients livrés"
+          },
+          {
+            "id": "st-2",
+            "value": "98.7%",
+            "label": "Satisfaction client"
+          },
+          {
+            "id": "st-3",
+            "value": "24h",
+            "label": "Délai moyen d'expédition"
+          }
+        ]
+      },
+      {
+        "id": "steps-1",
+        "type": "steps",
+        "badgeText": "PROCESSUS SIMPLE",
+        "title": "Comment ça marche ?",
+        "subtitle": "3 étapes rapides pour recevoir votre colis en toute sérénité :",
+        "items": [
+          {
+            "id": "step-1",
+            "stepNumber": 1,
+            "title": "Commande ou WhatsApp",
+            "description": "Remplissez le formulaire en 30 secondes ou cliquez pour échanger sur WhatsApp."
+          },
+          {
+            "id": "step-2",
+            "stepNumber": 2,
+            "title": "Confirmation & Expédition",
+            "description": "Notre équipe vous appelle pour valider le lieu et l'heure exacte de livraison."
+          },
+          {
+            "id": "step-3",
+            "stepNumber": 3,
+            "title": "Contrôle & Règlement en Espèces",
+            "description": "Vous recevez votre produit, vous vérifiez et vous payez en toute sécurité."
+          }
+        ]
+      },
+      {
+        "id": "area-1",
+        "type": "service_area",
+        "title": "Notre zone de livraison & d'intervention",
+        "subtitle": "Zone de couverture garantie avec expédition suivie",
+        "zoneText": "Cotonou, Calavi, Porto-Novo et communes environnantes",
+        "mapImageUrl": "https://images.unsplash.com/photo-1524661135-423995f22d0b?w=1000&auto=format&fit=crop&q=80"
+      },
+      {
+        "id": "reviews-1",
+        "type": "social_proof",
+        "badgeText": "💬 TÉMOIGNAGES VÉRIFIÉS",
+        "title": "Ce que disent nos clients",
+        "ratingAverage": 5,
+        "totalReviewsText": "5/5 étoiles sur plus de 320 avis",
+        "items": [
+          {
+            "id": "r-1",
+            "authorName": "Amina K.",
+            "authorLocation": "Cotonou",
+            "rating": 5,
+            "comment": "Commandé hier à 14h, reçu ce matin à 10h. Le produit est magnifique et conforme aux photos !"
+          },
+          {
+            "id": "r-2",
+            "authorName": "Marc D.",
+            "authorLocation": "Cotonou",
+            "rating": 5,
+            "comment": "J'ai apprécié de pouvoir vérifier l'article avant de donner l'argent au livreur. Très sérieux !"
+          }
+        ]
+      },
+      {
+        "id": "order-1",
+        "type": "order_form",
+        "title": "Formulaire de Commande Express",
+        "subtitle": "Remplissez ce formulaire court pour recevoir votre colis sous 24h :",
+        "whatsappEnabled": true,
+        "whatsappNumber": "+22997000000",
+        "codEnabled": true,
+        "onlinePaymentEnabled": true,
+        "cities": [
+          "Cotonou",
+          "Calavi",
+          "Porto-Novo",
+          "Autre"
+        ]
+      },
+      {
+        "id": "faq-1",
+        "type": "faq",
+        "badgeText": "❓ FAQ",
+        "title": "Questions Fréquentes",
+        "subtitle": "Toutes les réponses à vos questions en toute transparence :",
+        "items": [
+          {
+            "id": "q-1",
+            "question": "Quand et comment puis-je payer ?",
+            "answer": "Vous ne payez rien à l'avance ! Vous payez en espèces directement au livreur une fois que vous avez reçu et contrôlé votre produit."
+          },
+          {
+            "id": "q-2",
+            "question": "Quel est le délai de livraison ?",
+            "answer": "La livraison prend entre 12h et 24h à Cotonou et ses environs. Notre livreur vous appelle avant de passer."
+          }
+        ]
+      }
+    ]
+  }
+]

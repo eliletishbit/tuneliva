@@ -4,7 +4,12 @@
 
 export type CurrencyCode = "XOF" | "XAF" | "GNF" | "GHS" | "NGN" | "EUR" | "USD";
 
-export type FunnelPageType = "sales" | "capture" | "thank_you";
+export type FunnelPageType =
+  | "sales"
+  | "capture"
+  | "checkout"
+  | "confirmation"
+  | "thank_you";
 
 export type SectionPadding = "compact" | "normal" | "spacious" | "extra";
 
@@ -25,9 +30,22 @@ export type DesignPreset =
 
 export interface BaseSectionProps {
   id: string;
-  paddingVerticalPx?: number; // Marge interne verticale (10 à 140px)
-  paddingHorizontalPx?: number; // Marge interne horizontale (12 à 60px)
-  marginVerticalPx?: number; // Marge externe verticale (0 à 80px)
+  // Marges Internes (Padding)
+  paddingVerticalPx?: number; // Haut & Bas (10 à 140px)
+  paddingHorizontalPx?: number; // Gauche & Droite (8 à 80px)
+  paddingTopPx?: number;
+  paddingBottomPx?: number;
+  paddingLeftPx?: number;
+  paddingRightPx?: number;
+
+  // Marges Externes (Margin)
+  marginVerticalPx?: number; // Haut & Bas (0 à 80px)
+  marginHorizontalPx?: number; // Gauche & Droite (0 à 80px)
+  marginTopPx?: number;
+  marginBottomPx?: number;
+  marginLeftPx?: number;
+  marginRightPx?: number;
+
   borderRadiusPx?: number; // Arrondi des angles (0 à 44px)
   maxWidthClass?: "max-w-2xl" | "max-w-3xl" | "max-w-4xl" | "max-w-5xl" | "max-w-full";
   titleSize?: "sm" | "base" | "lg" | "xl";
@@ -293,6 +311,15 @@ export interface ThemeConfig {
   countdownMinutes?: number;
 }
 
+export interface FunnelStep {
+  id: string;
+  name: string; // Ex: "1. Capture", "2. Vente", "3. Commande", "4. Remerciement"
+  slug: string; // Ex: "capture", "offre", "commande", "merci"
+  pageType: FunnelPageType;
+  sections: FunnelSection[];
+  nextStepSlug?: string;
+}
+
 export interface FunnelPageData {
   projectName: string;
   slug: string;
@@ -302,4 +329,6 @@ export interface FunnelPageData {
   branding: BrandingConfig;
   theme: ThemeConfig;
   sections: FunnelSection[];
+  steps?: FunnelStep[];
+  activeStepId?: string;
 }

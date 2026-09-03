@@ -18,8 +18,11 @@ import {
   SectionPadding,
   SectionSurfaceVariant,
   DesignPreset,
+  FunnelStep,
+  FunnelPageType,
 } from "@/types/page";
 import { DESIGN_PRESETS } from "@/lib/design/presets";
+import { createDefaultStepSections } from "@/lib/templates/funnel-steps";
 import { FunnelRenderer } from "@/components/preview/FunnelRenderer";
 import { ImagePickerModal } from "@/components/media/ImagePickerModal";
 import {
@@ -85,6 +88,99 @@ export function FunnelEditor({
   const [publishedUrl, setPublishedUrl] = useState<string | null>(null);
   const [showPublishModal, setShowPublishModal] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [detailedMargins, setDetailedMargins] = useState(false);
+
+  // INITIALISATION DU PIPELINE MULTI-ÉTAPES DU TUNNEL
+  const defaultHeroImage =
+    initialData.sections.find((s) => s.type === "hero")?.imageUrl ||
+    "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&auto=format&fit=crop&q=80";
+
+  const initialSteps: FunnelStep[] = initialData.steps || [
+    {
+      id: "step-1-capture",
+      name: "1. 🧲 Page de Capture",
+      slug: "capture",
+      pageType: "capture",
+      sections: createDefaultStepSections("capture", initialData.projectName, defaultHeroImage),
+      nextStepSlug: "offre",
+    },
+    {
+      id: "step-2-sales",
+      name: "2. 🚀 Page de Vente",
+      slug: "offre",
+      pageType: "sales",
+      sections: initialData.sections,
+      nextStepSlug: "commande",
+    },
+    {
+      id: "step-3-checkout",
+      name: "3. 🛒 Commande & Checkout",
+      slug: "commande",
+      pageType: "checkout",
+      sections: createDefaultStepSections("checkout", initialData.projectName, defaultHeroImage),
+      nextStepSlug: "merci",
+    },
+    {
+      id: "step-4-thankyou",
+      name: "4. 🎉 Confirmation & Merci",
+      slug: "merci",
+      pageType: "thank_you",
+      sections: createDefaultStepSections("thank_you", initialData.projectName, defaultHeroImage),
+    },
+  ];
+
+  const [steps, setSteps] = useState<FunnelStep[]>(initialSteps);
+  const [activeStepId, setActiveStepId] = useState<string>(
+    initialData.activeStepId || "step-2-sales"
+  );
+  const [showAddStepModal, setShowAddStepModal] = useState(false);
+
+  const handleSwitchStep = (targetStepId: string) => {
+    const updatedSteps = steps.map((st) =>
+      st.id === activeStepId ? { ...st, sections: funnelData.sections } : st
+    );
+    setSteps(updatedSteps);
+
+    const targetStep = updatedSteps.find((st) => st.id === targetStepId);
+    if (targetStep) {
+      setActiveStepId(targetStepId);
+      setFunnelData((prev) => ({
+        ...prev,
+        pageType: targetStep.pageType,
+        sections: targetStep.sections,
+        steps: updatedSteps,
+        activeStepId: targetStepId,
+      }));
+      setSelectedSectionId(targetStep.sections[0]?.id || null);
+    }
+  };
+
+  const handleAddStep = (pageType: FunnelPageType, stepName: string) => {
+    const randId = Math.random().toString(36).substring(2, 6);
+    const slug = stepName.toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/^-+|-+$/g, "");
+    const heroImg =
+      funnelData.sections.find((s) => s.type === "hero")?.imageUrl || defaultHeroImage;
+    const newSections = createDefaultStepSections(pageType, funnelData.projectName, heroImg);
+    const newStep: FunnelStep = {
+      id: `step-${randId}`,
+      name: stepName,
+      slug: slug || `step-${randId}`,
+      pageType,
+      sections: newSections,
+    };
+    const updatedSteps = [...steps, newStep];
+    setSteps(updatedSteps);
+    setFunnelData((prev) => ({
+      ...prev,
+      pageType: newStep.pageType,
+      sections: newStep.sections,
+      steps: updatedSteps,
+      activeStepId: newStep.id,
+    }));
+    setActiveStepId(newStep.id);
+    setSelectedSectionId(newSections[0]?.id || null);
+    setShowAddStepModal(false);
+  };
 
   // ÉTAT DU GLISSER-DÉPOSER DES SECTIONS DANS LA SIDEBAR
   const [draggedSidebarIdx, setDraggedSidebarIdx] = useState<number | null>(null);
@@ -744,72 +840,229 @@ export function FunnelEditor({
                         </button>
 
                         {openInspectorAccordions.margins && (
-                          <div className="p-3 pt-0 space-y-3 border-t border-white/5">
-                            {/* Hauteur / Padding Vertical */}
-                            <div className="space-y-1 pt-2">
-                              <div className="flex items-center justify-between text-[11px] font-semibold">
-                                <span className="text-slate-300">Padding Haut & Bas</span>
-                                <span className="text-indigo-400 font-mono text-xs">
-                                  {selectedSection.paddingVerticalPx ?? 36}px
-                                </span>
-                              </div>
-                              <input
-                                type="range"
-                                min="10"
-                                max="140"
-                                step="5"
-                                value={selectedSection.paddingVerticalPx ?? 36}
-                                onChange={(e) =>
-                                  updateSelectedSection({ paddingVerticalPx: Number(e.target.value) })
-                                }
-                                className="w-full accent-indigo-500 cursor-pointer h-1.5 bg-slate-800 rounded-lg"
-                              />
+                          <div className="p-3 pt-0 space-y-3.5 border-t border-white/5">
+                            {/* BASCULE SIMPLE / AVANCÉ */}
+                            <div className="flex items-center justify-between pt-1">
+                              <span className="text-[10px] text-slate-400 font-bold uppercase">
+                                Mode d'espacement
+                              </span>
+                              <button
+                                onClick={() => setDetailedMargins(!detailedMargins)}
+                                className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-indigo-600/20 text-indigo-300 border border-indigo-500/30 hover:bg-indigo-600 hover:text-white transition-all cursor-pointer"
+                              >
+                                {detailedMargins ? "Basculer en Mode Paires" : "Détailler les 4 côtés"}
+                              </button>
                             </div>
 
-                            {/* Padding Horizontal */}
-                            <div className="space-y-1">
-                              <div className="flex items-center justify-between text-[11px] font-semibold">
-                                <span className="text-slate-300">Padding Gauche & Droite</span>
-                                <span className="text-cyan-400 font-mono text-xs">
-                                  {selectedSection.paddingHorizontalPx ?? (device === "mobile" ? 16 : 24)}px
-                                </span>
-                              </div>
-                              <input
-                                type="range"
-                                min="8"
-                                max="60"
-                                step="2"
-                                value={selectedSection.paddingHorizontalPx ?? (device === "mobile" ? 16 : 24)}
-                                onChange={(e) =>
-                                  updateSelectedSection({ paddingHorizontalPx: Number(e.target.value) })
-                                }
-                                className="w-full accent-cyan-500 cursor-pointer h-1.5 bg-slate-800 rounded-lg"
-                              />
-                            </div>
+                            {!detailedMargins ? (
+                              <>
+                                {/* 1. PADDING VERTICAL (HAUT & BAS) */}
+                                <div className="space-y-1">
+                                  <div className="flex items-center justify-between text-[11px] font-semibold">
+                                    <span className="text-slate-300">↕️ Padding Haut & Bas</span>
+                                    <span className="text-indigo-400 font-mono text-xs">
+                                      {selectedSection.paddingVerticalPx ?? 36}px
+                                    </span>
+                                  </div>
+                                  <input
+                                    type="range"
+                                    min="10"
+                                    max="140"
+                                    step="5"
+                                    value={selectedSection.paddingVerticalPx ?? 36}
+                                    onChange={(e) =>
+                                      updateSelectedSection({
+                                        paddingVerticalPx: Number(e.target.value),
+                                        paddingTopPx: undefined,
+                                        paddingBottomPx: undefined,
+                                      })
+                                    }
+                                    className="w-full accent-indigo-500 cursor-pointer h-1.5 bg-slate-800 rounded-lg"
+                                  />
+                                </div>
 
-                            {/* Marge Externe Verticale */}
-                            <div className="space-y-1">
-                              <div className="flex items-center justify-between text-[11px] font-semibold">
-                                <span className="text-slate-300">Espacement Extérieur (Margin)</span>
-                                <span className="text-amber-400 font-mono text-xs">
-                                  {selectedSection.marginVerticalPx ?? 0}px
+                                {/* 2. PADDING HORIZONTAL (GAUCHE & DROITE) */}
+                                <div className="space-y-1">
+                                  <div className="flex items-center justify-between text-[11px] font-semibold">
+                                    <span className="text-slate-300">↔️ Padding Gauche & Droite</span>
+                                    <span className="text-cyan-400 font-mono text-xs">
+                                      {selectedSection.paddingHorizontalPx ?? (device === "mobile" ? 16 : 24)}px
+                                    </span>
+                                  </div>
+                                  <input
+                                    type="range"
+                                    min="8"
+                                    max="80"
+                                    step="2"
+                                    value={selectedSection.paddingHorizontalPx ?? (device === "mobile" ? 16 : 24)}
+                                    onChange={(e) =>
+                                      updateSelectedSection({
+                                        paddingHorizontalPx: Number(e.target.value),
+                                        paddingLeftPx: undefined,
+                                        paddingRightPx: undefined,
+                                      })
+                                    }
+                                    className="w-full accent-cyan-500 cursor-pointer h-1.5 bg-slate-800 rounded-lg"
+                                  />
+                                </div>
+
+                                {/* 3. MARGE EXTERNE VERTICALE (HAUT & BAS) */}
+                                <div className="space-y-1">
+                                  <div className="flex items-center justify-between text-[11px] font-semibold">
+                                    <span className="text-slate-300">↕️ Marge Externe Haut & Bas</span>
+                                    <span className="text-amber-400 font-mono text-xs">
+                                      {selectedSection.marginVerticalPx ?? 0}px
+                                    </span>
+                                  </div>
+                                  <input
+                                    type="range"
+                                    min="0"
+                                    max="80"
+                                    step="4"
+                                    value={selectedSection.marginVerticalPx ?? 0}
+                                    onChange={(e) =>
+                                      updateSelectedSection({
+                                        marginVerticalPx: Number(e.target.value),
+                                        marginTopPx: undefined,
+                                        marginBottomPx: undefined,
+                                      })
+                                    }
+                                    className="w-full accent-amber-500 cursor-pointer h-1.5 bg-slate-800 rounded-lg"
+                                  />
+                                </div>
+
+                                {/* 4. MARGE EXTERNE HORIZONTALE (GAUCHE & DROITE) */}
+                                <div className="space-y-1">
+                                  <div className="flex items-center justify-between text-[11px] font-semibold">
+                                    <span className="text-slate-300">↔️ Marge Externe Gauche & Droite</span>
+                                    <span className="text-amber-300 font-mono text-xs">
+                                      {selectedSection.marginHorizontalPx ?? 0}px
+                                    </span>
+                                  </div>
+                                  <input
+                                    type="range"
+                                    min="0"
+                                    max="80"
+                                    step="4"
+                                    value={selectedSection.marginHorizontalPx ?? 0}
+                                    onChange={(e) =>
+                                      updateSelectedSection({
+                                        marginHorizontalPx: Number(e.target.value),
+                                        marginLeftPx: undefined,
+                                        marginRightPx: undefined,
+                                      })
+                                    }
+                                    className="w-full accent-amber-300 cursor-pointer h-1.5 bg-slate-800 rounded-lg"
+                                  />
+                                </div>
+                              </>
+                            ) : (
+                              /* MODE AVANCÉ : CONTRÔLE INDIVIDUEL DES 4 CÔTÉS */
+                              <div className="space-y-3 pt-1">
+                                <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider block">
+                                  Marges Internes Côté par Côté (Padding)
                                 </span>
+                                <div className="grid grid-cols-2 gap-2">
+                                  <div>
+                                    <label className="text-[10px] text-slate-400 block">Haut (Top)</label>
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      max="200"
+                                      value={selectedSection.paddingTopPx ?? selectedSection.paddingVerticalPx ?? 36}
+                                      onChange={(e) => updateSelectedSection({ paddingTopPx: Number(e.target.value) })}
+                                      className="w-full px-2 py-1 rounded bg-slate-900 border border-white/10 text-white text-xs"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="text-[10px] text-slate-400 block">Bas (Bottom)</label>
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      max="200"
+                                      value={selectedSection.paddingBottomPx ?? selectedSection.paddingVerticalPx ?? 36}
+                                      onChange={(e) => updateSelectedSection({ paddingBottomPx: Number(e.target.value) })}
+                                      className="w-full px-2 py-1 rounded bg-slate-900 border border-white/10 text-white text-xs"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="text-[10px] text-slate-400 block">Gauche (Left)</label>
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      max="120"
+                                      value={selectedSection.paddingLeftPx ?? selectedSection.paddingHorizontalPx ?? 24}
+                                      onChange={(e) => updateSelectedSection({ paddingLeftPx: Number(e.target.value) })}
+                                      className="w-full px-2 py-1 rounded bg-slate-900 border border-white/10 text-white text-xs"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="text-[10px] text-slate-400 block">Droite (Right)</label>
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      max="120"
+                                      value={selectedSection.paddingRightPx ?? selectedSection.paddingHorizontalPx ?? 24}
+                                      onChange={(e) => updateSelectedSection({ paddingRightPx: Number(e.target.value) })}
+                                      className="w-full px-2 py-1 rounded bg-slate-900 border border-white/10 text-white text-xs"
+                                    />
+                                  </div>
+                                </div>
+
+                                <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider block pt-2">
+                                  Marges Externes Côté par Côté (Margin)
+                                </span>
+                                <div className="grid grid-cols-2 gap-2">
+                                  <div>
+                                    <label className="text-[10px] text-slate-400 block">Haut (Margin Top)</label>
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      max="150"
+                                      value={selectedSection.marginTopPx ?? selectedSection.marginVerticalPx ?? 0}
+                                      onChange={(e) => updateSelectedSection({ marginTopPx: Number(e.target.value) })}
+                                      className="w-full px-2 py-1 rounded bg-slate-900 border border-white/10 text-white text-xs"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="text-[10px] text-slate-400 block">Bas (Margin Bottom)</label>
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      max="150"
+                                      value={selectedSection.marginBottomPx ?? selectedSection.marginVerticalPx ?? 0}
+                                      onChange={(e) => updateSelectedSection({ marginBottomPx: Number(e.target.value) })}
+                                      className="w-full px-2 py-1 rounded bg-slate-900 border border-white/10 text-white text-xs"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="text-[10px] text-slate-400 block">Gauche (Margin Left)</label>
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      max="100"
+                                      value={selectedSection.marginLeftPx ?? selectedSection.marginHorizontalPx ?? 0}
+                                      onChange={(e) => updateSelectedSection({ marginLeftPx: Number(e.target.value) })}
+                                      className="w-full px-2 py-1 rounded bg-slate-900 border border-white/10 text-white text-xs"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="text-[10px] text-slate-400 block">Droite (Margin Right)</label>
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      max="100"
+                                      value={selectedSection.marginRightPx ?? selectedSection.marginHorizontalPx ?? 0}
+                                      onChange={(e) => updateSelectedSection({ marginRightPx: Number(e.target.value) })}
+                                      className="w-full px-2 py-1 rounded bg-slate-900 border border-white/10 text-white text-xs"
+                                    />
+                                  </div>
+                                </div>
                               </div>
-                              <input
-                                type="range"
-                                min="0"
-                                max="80"
-                                step="4"
-                                value={selectedSection.marginVerticalPx ?? 0}
-                                onChange={(e) =>
-                                  updateSelectedSection({ marginVerticalPx: Number(e.target.value) })
-                                }
-                                className="w-full accent-amber-500 cursor-pointer h-1.5 bg-slate-800 rounded-lg"
-                              />
-                            </div>
+                            )}
 
                             {/* Arrondi des Angles */}
-                            <div className="space-y-1">
+                            <div className="space-y-1 pt-1">
                               <div className="flex items-center justify-between text-[11px] font-semibold">
                                 <span className="text-slate-300">Arrondi des Coins</span>
                                 <span className="text-emerald-400 font-mono text-xs">
@@ -819,7 +1072,7 @@ export function FunnelEditor({
                               <input
                                 type="range"
                                 min="0"
-                                max="44"
+                                max="50"
                                 step="2"
                                 value={selectedSection.borderRadiusPx ?? 24}
                                 onChange={(e) =>
@@ -1408,8 +1661,46 @@ export function FunnelEditor({
           title="Sélectionner ou Téléverser une Photo"
         />
 
-        {/* 3. CANEVAS DE PRÉVISUALISATION AVEC DRAG & DROP DES SECTIONS */}
-        <div className="flex-1 bg-[#040407] p-2 sm:p-6 flex items-start justify-center overflow-hidden relative">
+        {/* 3. CANEVAS DE PRÉVISUALISATION AVEC GESTIONNAIRE D'ÉTAPES DU TUNNEL */}
+        <div className="flex-1 bg-[#040407] p-2 sm:p-6 flex flex-col items-center justify-start overflow-hidden relative">
+          
+          {/* BARRE DE PIPELINE DES ÉTAPES DU TUNNEL (CAPTURE -> VENTE -> CHECKOUT -> MERCI) */}
+          <div className="w-full max-w-5xl mb-3.5 p-2 rounded-2xl bg-slate-900/90 border border-white/10 backdrop-blur-md flex flex-wrap items-center justify-between gap-2 shadow-xl shrink-0">
+            <div className="flex items-center gap-1.5 overflow-x-auto py-0.5">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-2 hidden sm:inline">
+                Pipeline :
+              </span>
+              {steps.map((st, i) => {
+                const isActive = st.id === activeStepId;
+                return (
+                  <div key={st.id} className="flex items-center gap-1">
+                    <button
+                      onClick={() => handleSwitchStep(st.id)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shadow-sm ${
+                        isActive
+                          ? "bg-indigo-600 text-white ring-2 ring-indigo-500/50 shadow-indigo-600/30"
+                          : "bg-slate-950 border border-white/5 text-slate-400 hover:text-white hover:border-white/20"
+                      }`}
+                    >
+                      <span>{st.name}</span>
+                    </button>
+                    {i < steps.length - 1 && (
+                      <span className="text-slate-600 font-extrabold text-xs px-0.5">→</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            <button
+              onClick={() => setShowAddStepModal(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600/20 hover:bg-indigo-600 text-indigo-300 hover:text-white border border-indigo-500/30 text-xs font-bold transition-all cursor-pointer whitespace-nowrap shadow-sm"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>+ Ajouter une Page</span>
+            </button>
+          </div>
+
           <div className="absolute right-4 bottom-6 z-30 flex flex-col gap-2">
             <button
               onClick={() => scrollTo("top")}
@@ -1429,7 +1720,7 @@ export function FunnelEditor({
 
           <div
             ref={scrollContainerRef}
-            className={`w-full transition-all duration-300 rounded-3xl overflow-y-auto shadow-2xl border border-white/10 max-h-[calc(100vh-90px)] ${
+            className={`w-full transition-all duration-300 rounded-3xl overflow-y-auto shadow-2xl border border-white/10 max-h-[calc(100vh-140px)] ${
               device === "mobile"
                 ? "max-w-[390px] ring-8 ring-slate-900"
                 : device === "tablet"
@@ -1468,6 +1759,64 @@ export function FunnelEditor({
           </div>
         </div>
       </div>
+
+      {/* MODAL D'AJOUT D'UNE ÉTAPE AU TUNNEL */}
+      {showAddStepModal && (
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-white/10 rounded-3xl max-w-md w-full p-5 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <h3 className="font-bold text-sm text-white">Ajouter une Page au Tunnel</h3>
+              <button
+                onClick={() => setShowAddStepModal(false)}
+                className="text-slate-400 hover:text-white cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 gap-2.5">
+              {[
+                {
+                  type: "capture" as FunnelPageType,
+                  icon: "🧲",
+                  title: "Page de Capture (Opt-in)",
+                  desc: "Récoltez des emails & numéros WhatsApp avec un cadeau/guide offert.",
+                },
+                {
+                  type: "sales" as FunnelPageType,
+                  icon: "🚀",
+                  title: "Page de Vente (Landing Page)",
+                  desc: "Présentez l'offre complète avec preuves sociales, vidéo et packs.",
+                },
+                {
+                  type: "checkout" as FunnelPageType,
+                  icon: "🛒",
+                  title: "Page de Commande / Checkout",
+                  desc: "Formulaire express de livraison avec choix du pack et paiement COD / MoMo.",
+                },
+                {
+                  type: "thank_you" as FunnelPageType,
+                  icon: "🎉",
+                  title: "Page de Confirmation & Remerciement",
+                  desc: "Rassurez l'acheteur avec les consignes du coursier et WhatsApp.",
+                },
+              ].map((item) => (
+                <button
+                  key={item.type}
+                  onClick={() => handleAddStep(item.type, `${item.icon} ${item.title}`)}
+                  className="p-3.5 rounded-2xl bg-slate-950 border border-white/5 hover:border-indigo-500 text-left space-y-1 transition-all cursor-pointer group"
+                >
+                  <div className="flex items-center gap-2 font-bold text-xs text-white group-hover:text-indigo-300">
+                    <span className="text-base">{item.icon}</span>
+                    <span>{item.title}</span>
+                  </div>
+                  <p className="text-[10px] text-slate-400 pl-6">{item.desc}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* MODAL DE SUCCÈS DE PUBLICATION */}
       {showPublishModal && publishedUrl && (

@@ -1,0 +1,44 @@
+[
+  {
+    "id": "cmd-101",
+    "funnelSlug": "offre-speciale",
+    "productName": "Pack Découverte",
+    "customerName": "Amina Diallo",
+    "customerPhone": "+22997123456",
+    "customerCity": "Cotonou",
+    "customerAddress": "Haie Vive, face Pharmacie",
+    "totalAmount": 18000,
+    "currency": "XOF",
+    "paymentMethod": "cod",
+    "orderStatus": "confirmed",
+    "createdAt": "2026-09-03T19:10:13.349Z"
+  },
+  {
+    "id": "cmd-102",
+    "funnelSlug": "offre-speciale",
+    "productName": "Pack Duo Privilège",
+    "customerName": "Koffi Mensah",
+    "customerPhone": "+22901532952",
+    "customerCity": "Calavi",
+    "customerAddress": "KPOTA, près du carrefour",
+    "totalAmount": 29000,
+    "currency": "XOF",
+    "paymentMethod": "cod",
+    "orderStatus": "confirmed",
+    "createdAt": "2026-09-03T17:45:13.350Z"
+  },
+  {
+    "id": "cmd-103",
+    "funnelSlug": "offre-speciale",
+    "productName": "Pack Découverte",
+    "customerName": "Fatou Sow",
+    "customerPhone": "+221776543210",
+    "customerCity": "Dakar",
+    "customerAddress": "Plateau, Rue Carnot",
+    "totalAmount": 18000,
+    "currency": "XOF",
+    "paymentMethod": "whatsapp",
+    "orderStatus": "delivered",
+    "createdAt": "2026-09-02T19:45:13.350Z"
+  }
+]
