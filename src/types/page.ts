@@ -85,7 +85,11 @@ export interface HeroSection extends BaseSectionProps {
   subtitle: string;
   ctaText: string;
   ctaSubtext?: string;
+  ctaLink?: string;
+  ctaTargetStepSlug?: string;
   secondaryCtaText?: string;
+  secondaryCtaLink?: string;
+  secondaryCtaTargetStepSlug?: string;
   imageUrl: string;
   trustPoints: string[];
 }
@@ -267,6 +271,7 @@ export interface CaptureFormSection extends BaseSectionProps {
   collectName: boolean;
   collectEmail: boolean;
   redirectUrl?: string;
+  targetStepSlug?: string;
 }
 
 export interface ThankYouSection extends BaseSectionProps {
@@ -277,6 +282,7 @@ export interface ThankYouSection extends BaseSectionProps {
   whatsappSupportNumber?: string;
   nextActionText?: string;
   nextActionUrl?: string;
+  nextActionTargetStepSlug?: string;
 }
 
 export type FunnelSection =

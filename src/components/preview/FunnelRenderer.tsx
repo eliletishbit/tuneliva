@@ -62,6 +62,7 @@ interface FunnelRendererProps {
   onOrderSuccess?: (orderDetails: any) => void;
   onOpenSettings?: () => void;
   onOpenImagePicker?: (targetSectionId: string, itemIndex?: number) => void;
+  onSwitchStep?: (targetStepIdOrSlug: string) => void;
 }
 
 // Convertisseur intelligent d'URLs vidéo
@@ -236,6 +237,7 @@ export function FunnelRenderer({
   onOrderSuccess,
   onOpenSettings,
   onOpenImagePicker,
+  onSwitchStep,
 }: FunnelRendererProps) {
   const { theme, branding, sections } = data;
   const isDark = theme.isDarkTheme;
@@ -373,15 +375,15 @@ export function FunnelRenderer({
 
       {/* 2. TOP BAR SERVICES & PAIEMENTS */}
       <div
-        className={`px-4 sm:px-8 py-2 border-b text-xs flex flex-wrap items-center justify-between gap-2 max-w-5xl mx-auto w-full ${
+        className={`px-3 sm:px-8 py-1.5 sm:py-2 border-b text-[11px] sm:text-xs flex flex-wrap items-center justify-between gap-2 max-w-6xl mx-auto w-full ${
           isDark
             ? "border-white/10 text-slate-400 bg-slate-950/40"
             : "border-slate-200 text-slate-600 bg-slate-100/70"
         }`}
       >
-        <div className="flex items-center gap-2 font-medium">
-          <Clock className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
-          <span>Intervention & Livraison 24/7j • MoMo & Cartes Bancaires acceptés</span>
+        <div className="flex items-center gap-1.5 sm:gap-2 font-medium">
+          <Clock className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-indigo-500 shrink-0" />
+          <span className="truncate">Livraison 24h • Paiement à la réception ou MoMo</span>
         </div>
         {branding?.phone && (
           <a
@@ -389,7 +391,7 @@ export function FunnelRenderer({
             className="flex items-center gap-1.5 font-bold hover:underline"
             style={{ color: theme.primaryColor }}
           >
-            <Phone className="w-3.5 h-3.5" />
+            <Phone className="w-3 sm:w-3.5 h-3 sm:h-3.5" />
             <span>{branding.phone}</span>
           </a>
         )}
@@ -397,31 +399,31 @@ export function FunnelRenderer({
 
       {/* 3. HEADER DE MARQUE */}
       <header
-        className={`border-b backdrop-blur-md px-4 sm:px-8 py-3.5 flex items-center justify-between max-w-5xl mx-auto w-full ${
+        className={`border-b backdrop-blur-md px-3 sm:px-8 py-2.5 sm:py-3.5 flex items-center justify-between max-w-6xl mx-auto w-full ${
           isDark ? "border-white/10 bg-[#07080D]/80" : "border-slate-200/80 bg-white/90 shadow-sm"
         }`}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5 sm:gap-3">
           {branding?.logoUrl ? (
             <img
               src={branding.logoUrl}
               alt={branding.businessName}
-              className="h-10 w-auto object-contain rounded-lg shadow-sm"
+              className="h-8 sm:h-10 w-auto object-contain rounded-lg shadow-sm"
             />
           ) : (
             <div
-              className="w-10 h-10 rounded-2xl flex items-center justify-center text-white font-extrabold text-sm shadow-md shrink-0"
+              className="w-8 sm:w-10 h-8 sm:h-10 rounded-xl sm:rounded-2xl flex items-center justify-center text-white font-extrabold text-xs sm:text-sm shadow-md shrink-0"
               style={{ backgroundColor: theme.primaryColor }}
             >
               {(branding?.businessName || data.projectName || "T").slice(0, 2).toUpperCase()}
             </div>
           )}
           <div className="truncate">
-            <span className={`font-extrabold text-sm sm:text-base tracking-tight block truncate ${headingClass}`}>
+            <span className={`font-extrabold text-xs sm:text-base tracking-tight block truncate ${headingClass}`}>
               {branding?.businessName || data.projectName}
             </span>
             {branding?.tagline && (
-              <span className={`text-[10px] sm:text-xs block -mt-0.5 truncate ${mutedTextClass}`}>
+              <span className={`text-[9px] sm:text-xs block -mt-0.5 truncate ${mutedTextClass}`}>
                 {branding.tagline}
               </span>
             )}
@@ -431,9 +433,9 @@ export function FunnelRenderer({
         {branding?.whatsappNumber && (
           <button
             onClick={() => handleWhatsAppClick(branding.whatsappNumber!)}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-[#25D366] hover:bg-[#20ba59] text-white text-xs font-bold shadow-md shadow-emerald-900/20 transition-all shrink-0 cursor-pointer"
+            className="flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-full bg-[#25D366] hover:bg-[#20ba59] text-white text-[11px] sm:text-xs font-bold shadow-md shadow-emerald-900/20 transition-all shrink-0 cursor-pointer"
           >
-            <MessageCircle className="w-4 h-4 fill-white" />
+            <MessageCircle className="w-3.5 sm:w-4 h-3.5 sm:h-4 fill-white" />
             <span className={isMobile ? "hidden" : "inline"}>WhatsApp Direct</span>
           </button>
         )}
@@ -687,6 +689,7 @@ export function FunnelRenderer({
                 onOpenImagePicker,
                 secondsLeft,
                 formatCountdown,
+                onSwitchStep,
                 isEditable,
                 isSectionSelected: isSelected,
               })}
@@ -697,7 +700,7 @@ export function FunnelRenderer({
 
       {/* 5. PIED DE PAGE */}
       <footer
-        className={`border-t mt-16 py-12 px-6 text-xs ${
+        className={`border-t mt-16 py-8 sm:py-12 px-4 sm:px-6 text-[11px] sm:text-xs ${
           branding?.footerBgColor
             ? ""
             : isDark
@@ -706,7 +709,7 @@ export function FunnelRenderer({
         }`}
         style={{ backgroundColor: branding?.footerBgColor || undefined }}
       >
-        <div className={`max-w-5xl mx-auto grid ${grid3Cols} gap-8 text-left`}>
+        <div className={`max-w-6xl mx-auto grid ${grid3Cols} gap-6 sm:gap-8 text-left`}>
           <div className="space-y-3">
             <h3 className="font-extrabold text-white text-sm sm:text-base">
               {branding?.businessName || data.projectName}
@@ -850,10 +853,21 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
             />
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2 max-w-md mx-auto w-full px-4">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 pt-2 max-w-lg mx-auto w-full px-4">
+            {/* BOUTON PRINCIPAL 1 */}
             <a
-              href="#commander"
-              className="w-full sm:w-auto flex-1 py-4 px-6 rounded-2xl font-bold text-white text-sm sm:text-base shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
+              href={
+                s.ctaTargetStepSlug
+                  ? (isEditable ? `#step-${s.ctaTargetStepSlug}` : `/p/${data.slug}/${s.ctaTargetStepSlug}`)
+                  : (s.ctaLink || "#commander")
+              }
+              onClick={(e) => {
+                if (isEditable && s.ctaTargetStepSlug && ctx.onSwitchStep) {
+                  e.preventDefault();
+                  ctx.onSwitchStep(s.ctaTargetStepSlug);
+                }
+              }}
+              className="w-full sm:flex-1 py-3.5 px-6 rounded-2xl font-black text-white text-xs sm:text-sm uppercase tracking-wide shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer text-center"
               style={{ backgroundColor: theme.primaryColor }}
             >
               <PhoneCall className="w-4 h-4 shrink-0" />
@@ -863,15 +877,38 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                 isEditable={isEditable}
               />
             </a>
-            {ctx.branding?.whatsappNumber && (
+
+            {/* BOUTON SECONDAIRE 2 (WHATSAPP OU PAGE DU TUNNEL) */}
+            {ctx.branding?.whatsappNumber ? (
               <button
                 onClick={() => handleWhatsAppClick(ctx.branding.whatsappNumber)}
-                className="w-full sm:w-auto flex-1 py-4 px-6 rounded-2xl font-bold text-white text-sm sm:text-base bg-[#25D366] hover:bg-[#20ba59] shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full sm:flex-1 py-3.5 px-6 rounded-2xl font-black text-white text-xs sm:text-sm uppercase tracking-wide bg-[#25D366] hover:bg-[#20ba59] shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer text-center"
               >
                 <MessageCircle className="w-4 h-4 fill-white shrink-0" />
-                <span>WhatsApp</span>
+                <span>
+                  <InlineText
+                    value={s.secondaryCtaText || "WhatsApp Direct"}
+                    onSave={(val) => updateField("secondaryCtaText", val)}
+                    isEditable={isEditable}
+                  />
+                </span>
               </button>
-            )}
+            ) : s.secondaryCtaText ? (
+              <a
+                href={
+                  s.secondaryCtaTargetStepSlug
+                    ? (isEditable ? `#step-${s.secondaryCtaTargetStepSlug}` : `/p/${data.slug}/${s.secondaryCtaTargetStepSlug}`)
+                    : (s.secondaryCtaLink || "#commander")
+                }
+                className="w-full sm:flex-1 py-3.5 px-6 rounded-2xl font-bold border-2 border-white/20 hover:border-white/40 text-white text-xs sm:text-sm uppercase tracking-wide bg-slate-900/60 hover:bg-slate-800 shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer text-center"
+              >
+                <InlineText
+                  value={s.secondaryCtaText}
+                  onSave={(val) => updateField("secondaryCtaText", val)}
+                  isEditable={isEditable}
+                />
+              </a>
+            ) : null}
           </div>
 
           {s.ctaSubtext && (
@@ -1221,6 +1258,62 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                     isEditable={isEditable}
                   />
                 </p>
+              </div>
+            ))}
+          </div>
+        </section>
+      );
+    }
+
+    // ==========================================
+    // STATISTIQUES SOCIALES (100% RESPONSIVE MOBILE)
+    // ==========================================
+    case "stats": {
+      const s = section as StatsSection;
+      return (
+        <section className="space-y-4 text-center w-full max-w-4xl mx-auto px-2">
+          {s.badgeText && (
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+              <Sparkles className="w-3.5 h-3.5" />
+              <InlineText
+                value={s.badgeText}
+                onSave={(val) => updateField("badgeText", val)}
+                isEditable={isEditable}
+              />
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 w-full">
+            {(s.items || []).map((item, idx) => (
+              <div
+                key={item.id || idx}
+                className={`p-4 sm:p-6 rounded-2xl border text-center transition-all ${cardBgClass}`}
+              >
+                <span
+                  className="text-3xl sm:text-4xl font-black font-mono tracking-tight block"
+                  style={{ color: theme.primaryColor }}
+                >
+                  <InlineText
+                    value={item.value}
+                    onSave={(val) => {
+                      const updated = [...(s.items || [])];
+                      updated[idx] = { ...updated[idx], value: val };
+                      updateField("items", updated);
+                    }}
+                    isEditable={isEditable}
+                  />
+                </span>
+                <span className={`text-xs sm:text-sm font-semibold block mt-1 ${mutedTextClass}`}>
+                  <InlineText
+                    value={item.label}
+                    onSave={(val) => {
+                      const updated = [...(s.items || [])];
+                      updated[idx] = { ...updated[idx], label: val };
+                      updateField("items", updated);
+                    }}
+                    isEditable={isEditable}
+                  />
+                </span>
               </div>
             ))}
           </div>
