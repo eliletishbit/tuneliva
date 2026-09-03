@@ -138,6 +138,29 @@ export default function HomePage() {
   // Index du slider de créatives
   const [activeCreativeIndex, setActiveCreativeIndex] = useState(0);
 
+  // CHARGEMENT DIRECT D'UN PROJET EXISTANT DEPUIS LE DASHBOARD (?edit=mon-slug)
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search);
+      const editSlug = urlParams.get("edit");
+      if (editSlug) {
+        setIsLoading(true);
+        fetch(`/api/funnels?slug=${encodeURIComponent(editSlug)}`)
+          .then((res) => {
+            if (res.ok) return res.json();
+            throw new Error("Introuvable");
+          })
+          .then((data) => {
+            if (data && data.projectName) {
+              setGeneratedFunnel(data);
+            }
+          })
+          .catch((err) => console.warn("Erreur chargement projet à éditer:", err))
+          .finally(() => setIsLoading(false));
+      }
+    }
+  }, []);
+
   const handleGenerate = async (targetPrompt?: string) => {
     const textToUse = targetPrompt || prompt;
     if (!textToUse.trim()) {

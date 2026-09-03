@@ -440,26 +440,7 @@ export function FunnelRenderer({
       </header>
 
       {/* 4. CORPS DU TUNNEL (AVEC DRAG & DROP DES SECTIONS) */}
-      <main className="max-w-4xl mx-auto px-2 sm:px-4 md:px-6 py-6 sm:py-10 space-y-10 sm:space-y-14 overflow-x-clip w-full box-border">
-        {/* COMPTE À REBOURS PILL */}
-        <div className="text-center">
-          <div
-            className={`inline-flex flex-col sm:flex-row items-center gap-2 px-5 py-2.5 rounded-2xl border font-bold text-xs sm:text-sm shadow-sm ${
-              isDark
-                ? "bg-rose-500/10 border-rose-500/25 text-rose-400"
-                : "bg-rose-50 border-rose-200 text-rose-700"
-            }`}
-          >
-            <div className="flex items-center gap-1.5">
-              <span>⚠️</span>
-              <span>Plus que 3 pièces / créneaux disponibles pour ce soir</span>
-            </div>
-            <div className="flex items-center gap-1 px-3 py-1 rounded-xl bg-rose-600 text-white font-mono font-extrabold text-sm shadow-inner">
-              <Timer className="w-3.5 h-3.5" />
-              <span>{formatCountdown(secondsLeft)}</span>
-            </div>
-          </div>
-        </div>
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-6 sm:py-10 space-y-10 sm:space-y-14 overflow-x-clip w-full box-border">
 
         {sections.map((section, idx) => {
           const isSelected = selectedSectionId === section.id;
@@ -704,6 +685,8 @@ export function FunnelRenderer({
                 data,
                 onUpdateSection,
                 onOpenImagePicker,
+                secondsLeft,
+                formatCountdown,
                 isEditable,
                 isSectionSelected: isSelected,
               })}
@@ -1766,6 +1749,15 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
           id="commander"
           className={`rounded-3xl p-6 sm:p-8 border space-y-6 shadow-2xl text-center ${cardBgClass}`}
         >
+          {/* COMPTE À REBOURS D'URGENCE INTÉGRÉ AU FORMULAIRE DE COMMANDE */}
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border text-xs font-bold shadow-sm bg-rose-500/10 border-rose-500/30 text-rose-400 mx-auto">
+            <span>⚡ Offre limitée : plus que 3 pièces en stock !</span>
+            <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-600 text-white font-mono text-[11px] shadow-inner">
+              <Timer className="w-3 h-3" />
+              <span>{ctx.formatCountdown ? ctx.formatCountdown(ctx.secondsLeft || 7200) : "01:45:20"}</span>
+            </div>
+          </div>
+
           <div className="space-y-2">
             <h2 className={`text-2xl sm:text-3xl font-extrabold ${headingClass}`}>
               <InlineText

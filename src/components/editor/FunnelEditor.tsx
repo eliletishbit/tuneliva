@@ -1665,7 +1665,7 @@ export function FunnelEditor({
         <div className="flex-1 bg-[#040407] p-2 sm:p-6 flex flex-col items-center justify-start overflow-hidden relative">
           
           {/* BARRE DE PIPELINE DES ÉTAPES DU TUNNEL (CAPTURE -> VENTE -> CHECKOUT -> MERCI) */}
-          <div className="w-full max-w-5xl mb-3.5 p-2 rounded-2xl bg-slate-900/90 border border-white/10 backdrop-blur-md flex flex-wrap items-center justify-between gap-2 shadow-xl shrink-0">
+          <div className="w-full max-w-6xl mb-3.5 p-2 rounded-2xl bg-slate-900/90 border border-white/10 backdrop-blur-md flex flex-wrap items-center justify-between gap-2 shadow-xl shrink-0">
             <div className="flex items-center gap-1.5 overflow-x-auto py-0.5">
               <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-2 hidden sm:inline">
                 Pipeline :
@@ -1725,7 +1725,7 @@ export function FunnelEditor({
                 ? "max-w-[390px] ring-8 ring-slate-900"
                 : device === "tablet"
                 ? "max-w-[768px] ring-8 ring-slate-900"
-                : "max-w-5xl"
+                : "max-w-6xl"
             }`}
           >
             {device === "mobile" && (

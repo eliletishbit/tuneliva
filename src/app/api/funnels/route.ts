@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAllFunnels, getFunnelBySlug, saveFunnel } from "@/lib/storage/funnels";
+import { getAllFunnels, getFunnelBySlug, saveFunnel, deleteFunnel } from "@/lib/storage/funnels";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -30,4 +30,15 @@ export async function POST(req: NextRequest) {
     console.error("Erreur enregistrement tunnel:", error);
     return NextResponse.json({ error: "Erreur serveur lors de la sauvegarde" }, { status: 500 });
   }
+}
+
+export async function DELETE(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const slug = searchParams.get("slug");
+  if (!slug) {
+    return NextResponse.json({ error: "Slug requis" }, { status: 400 });
+  }
+
+  const success = deleteFunnel(slug);
+  return NextResponse.json({ success });
 }

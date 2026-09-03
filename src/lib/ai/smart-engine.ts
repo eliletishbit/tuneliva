@@ -175,90 +175,76 @@ export async function generateSmartFunnel(
   const detectedPreset = detectPresetFromPrompt(prompt);
   const presetConfig = DESIGN_PRESETS[detectedPreset].theme;
 
-  // 1. TENTATIVE OPENROUTER
-  const openRouterKey = process.env.OPENROUTER_API_KEY;
-  if (openRouterKey) {
-    try {
-      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${openRouterKey}`,
-          "Content-Type": "application/json",
-          "HTTP-Referer": "https://tuneliva.app",
-          "X-Title": "Tuneliva AI Funnel Builder",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-2.0-flash-001",
-          messages: [
-            {
-              role: "system",
-              content: `Tu es un directeur marketing élite. Tu génères un tunnel de vente JSON d'exception. Rédige un titre de Hero épique et percutant (pas le texte brut du prompt). Réponds UNIQUEMENT par le JSON brut.`,
-            },
-            {
-              role: "user",
-              content: `Génère le tunnel complet pour ce prompt : "${prompt}". Devise : ${currency}. Crée un titre ultra vendeur.`,
-            },
-          ],
-          temperature: 0.7,
-        }),
-      });
-
-      if (response.ok) {
-        const json = await response.json();
-        const content = json.choices?.[0]?.message?.content?.trim() || "";
-        const cleanJson = extractJsonFromString(content);
-        if (cleanJson?.sections?.length) {
-          const hero = cleanJson.sections.find((s: any) => s.type === "hero");
-          if (hero) hero.imageUrl = hero.imageUrl || stockImage;
-          cleanJson.theme = { preset: detectedPreset, ...presetConfig };
-          return cleanJson;
-        }
-      }
-    } catch (e) {
-      console.warn("OpenRouter fallback:", e);
-    }
-  }
-
-  // 2. TENTATIVE GROQ
+  // 1. TENTATIVE GROQ AVEC MODÈLES ULTRA-RAPIDES & VALIDÉS (openai/gpt-oss-120b & qwen/qwen3.8-27b)
   const groqKey = process.env.GROQ_API_KEY;
   if (groqKey) {
-    try {
-      const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${groqKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "llama-3.3-70b-versatile",
-          messages: [
-            {
-              role: "system",
-              content: "Tu es un expert copywriting. Génère un JSON brut de tunnel de vente avec un titre accrocheur professionnel.",
-            },
-            { role: "user", content: `Prompt : "${prompt}". Devise : ${currency}.` },
-          ],
-          temperature: 0.6,
-        }),
-      });
+    const groqModels = ["openai/gpt-oss-120b", "qwen/qwen3.8-27b", "openai/gpt-oss-20b"];
+    for (const model of groqModels) {
+      try {
+        const systemPrompt = `Tu es un directeur marketing élite et copywriter d'exception pour le e-commerce en Afrique francophone.
+À partir du prompt de l'utilisateur, tu dois rédiger un texte de vente ultra-accrocheur et crédible.
+RÉPONDS STRICTEMENT AVEC UN OBJET JSON (aucun texte autour) avec les clés :
+{
+  "productName": "Nom commercial percutant du produit",
+  "headline": "Titre Hero ultra vendeur (évite le prompt brut, formule une promesse forte)",
+  "subtitle": "Sous-titre persuasif détaillant le bénéfice majeur",
+  "badgeText": "⭐ ARRIVAGE OFFICIEL 2026 – Stock limité",
+  "trustPoints": ["Bénéfice concret 1", "Bénéfice concret 2", "Garantie ou livraison rapide"],
+  "packs": [
+    { "name": "Pack Découverte (1 Exemplaire)", "multiplier": 1, "badge": "Économique", "description": "Idéal pour essayer la qualité" },
+    { "name": "Pack Duo Privilège (2 Exemplaires)", "multiplier": 1.7, "badge": "Meilleur Choix", "description": "Le choix préféré de nos clients" }
+  ],
+  "faq": [
+    { "question": "Comment se déroule la livraison ?", "answer": "Livraison en 24h avec contrôle du colis avant tout paiement." },
+    { "question": "Le produit est-il garanti ?", "answer": "Oui, 100% authentique avec garantie satisfait ou remboursé 30 jours." }
+  ],
+  "reviews": [
+    { "author": "Amina K.", "city": "Cotonou", "comment": "Produit exceptionnel, livraison rapide et soignée !" },
+    { "author": "Koffi M.", "city": "Lomé", "comment": "Conforme à la description, très satisfait de mon achat." }
+  ]
+}`;
 
-      if (response.ok) {
-        const json = await response.json();
-        const content = json.choices?.[0]?.message?.content?.trim() || "";
-        const cleanJson = extractJsonFromString(content);
-        if (cleanJson?.sections?.length) {
-          const hero = cleanJson.sections.find((s: any) => s.type === "hero");
-          if (hero) hero.imageUrl = hero.imageUrl || stockImage;
-          cleanJson.theme = { preset: detectedPreset, ...presetConfig };
-          return cleanJson;
+        const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${groqKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model,
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: `Produit : "${prompt}". Devise : ${currency}. Génère les données marketing.` },
+            ],
+            temperature: 0.6,
+            response_format: { type: "json_object" },
+          }),
+        });
+
+        if (response.ok) {
+          const json = await response.json();
+          const content = json.choices?.[0]?.message?.content?.trim() || "";
+          const aiData = extractJsonFromString(content);
+
+          if (aiData?.headline && aiData?.productName) {
+            // Injection du copywriting IA dans la structure de tunnel
+            return buildEliteDesignFunnel(
+              prompt,
+              currency,
+              stockImage,
+              pageType,
+              detectedPreset,
+              aiData
+            );
+          }
         }
+      } catch (e) {
+        console.warn(`Groq (${model}) fallback:`, e);
       }
-    } catch (e) {
-      console.warn("Groq fallback:", e);
     }
   }
 
-  // 3. GÉNÉRATEUR LOCAL HAUTE PERFORMANCE AVEC COPYWRITING PUNCHY
+  // 2. GÉNÉRATEUR LOCAL DÉTERMINISTE DE SECOURS (Réseau coupé ou panne)
   return buildEliteDesignFunnel(prompt, currency, stockImage, pageType, detectedPreset);
 }
 
@@ -282,7 +268,8 @@ function buildEliteDesignFunnel(
   currency: CurrencyCode,
   stockImage: string,
   pageType: FunnelPageType,
-  preset: DesignPreset
+  preset: DesignPreset,
+  aiData?: any
 ): FunnelPageData {
   const p = prompt.trim();
 
@@ -304,7 +291,97 @@ function buildEliteDesignFunnel(
   else if (/douala|yaound[eé]/i.test(p)) city = "Douala";
   else if (/paris/i.test(p)) city = "Paris";
 
-  const { productName, headline, subtitle } = extractCleanProductAndHeadline(p);
+  const fallback = extractCleanProductAndHeadline(p);
+  const productName = aiData?.productName || fallback.productName;
+  const headline = aiData?.headline || fallback.headline;
+  const subtitle = aiData?.subtitle || fallback.subtitle;
+  const badgeText = aiData?.badgeText || "⭐ ARRIVAGE & SÉLECTION OFFICIELLE 2026";
+  const trustPoints = Array.isArray(aiData?.trustPoints) && aiData.trustPoints.length > 0
+    ? aiData.trustPoints
+    : [
+        "Paiement 100% à la livraison",
+        "Garantie satisfait ou remboursé 30j",
+        "Assistance WhatsApp 7j/7",
+      ];
+
+  const showcaseItems = Array.isArray(aiData?.packs) && aiData.packs.length > 0
+    ? aiData.packs.map((pk: any, idx: number) => ({
+        id: `prod-${idx + 1}`,
+        name: pk.name || `Pack ${idx + 1}`,
+        price: Math.round(salePrice * (pk.multiplier || (idx === 0 ? 1 : 1.7))),
+        regularPrice: Math.round(regularPrice * (pk.multiplier || (idx === 0 ? 1 : 1.7))),
+        badge: pk.badge || (idx === 1 ? "Meilleur Choix" : "Économique"),
+        imageUrl: stockImage,
+        description: pk.description || "Idéal pour essayer la qualité supérieure.",
+        features: [`${pk.name || "Pack officiel"}`, "Garantie 30 jours", "Livraison 24h"],
+      }))
+    : [
+        {
+          id: "prod-1",
+          name: "Pack Découverte (1 Exemplaire)",
+          price: salePrice,
+          regularPrice: regularPrice,
+          badge: "Économique",
+          imageUrl: stockImage,
+          description: "Idéal pour essayer et tester la qualité supérieure sans risque.",
+          features: ["1 Produit certifié", "Garantie 30 jours", "Livraison 24h"],
+        },
+        {
+          id: "prod-2",
+          name: "Pack Duo Privilège (2 Exemplaires)",
+          price: Math.round(salePrice * 1.7),
+          regularPrice: regularPrice * 2,
+          badge: "Meilleur Choix",
+          imageUrl: stockImage,
+          description: "Le choix préféré de 78% de nos clients. Économie maximale !",
+          features: ["2 Produits certifiés", "Cadeau offert", "Livraison gratuite express"],
+        },
+      ];
+
+  const reviewsItems = Array.isArray(aiData?.reviews) && aiData.reviews.length > 0
+    ? aiData.reviews.map((r: any, idx: number) => ({
+        id: `r-${idx + 1}`,
+        authorName: r.author || "Client vérifié",
+        authorLocation: r.city || city,
+        rating: 5,
+        comment: r.comment || "Produit de grande qualité, conforme à mes attentes.",
+      }))
+    : [
+        {
+          id: "r-1",
+          authorName: "Amina K.",
+          authorLocation: `${city}`,
+          rating: 5,
+          comment: "Commandé hier à 14h, reçu ce matin à 10h. Le produit est magnifique et conforme aux photos !",
+        },
+        {
+          id: "r-2",
+          authorName: "Marc D.",
+          authorLocation: `${city}`,
+          rating: 5,
+          comment: "J'ai apprécié de pouvoir vérifier l'article avant de donner l'argent au livreur. Très sérieux !",
+        },
+      ];
+
+  const faqItems = Array.isArray(aiData?.faq) && aiData.faq.length > 0
+    ? aiData.faq.map((q: any, idx: number) => ({
+        id: `q-${idx + 1}`,
+        question: q.question,
+        answer: q.answer,
+      }))
+    : [
+        {
+          id: "q-1",
+          question: "Quand et comment puis-je payer ?",
+          answer: "Vous ne payez rien à l'avance ! Vous payez en espèces directement au livreur une fois que vous avez reçu et contrôlé votre produit.",
+        },
+        {
+          id: "q-2",
+          question: "Quel est le délai de livraison ?",
+          answer: `La livraison prend entre 12h et 24h à ${city} et ses environs. Notre livreur vous appelle avant de passer.`,
+        },
+      ];
+
   const presetConfig = DESIGN_PRESETS[preset].theme;
 
   return {
@@ -339,18 +416,14 @@ function buildEliteDesignFunnel(
       {
         id: "hero-1",
         type: "hero",
-        badgeText: "⭐ ARRIVAGE & SÉLECTION OFFICIELLE 2026",
+        badgeText: badgeText,
         title: headline,
         subtitle: subtitle,
         ctaText: "COMMANDER MAINTENANT",
         ctaSubtext: `📦 Livraison express sous 24h à ${city} • Vérification avant paiement`,
         secondaryCtaText: "WhatsApp",
         imageUrl: stockImage,
-        trustPoints: [
-          "Paiement 100% à la livraison",
-          "Garantie satisfait ou remboursé 30j",
-          "Assistance WhatsApp 7j/7",
-        ],
+        trustPoints: trustPoints,
       },
 
       // 2. CARTES FLOTTANTES DE CONFIANCE
@@ -386,28 +459,7 @@ function buildEliteDesignFunnel(
         badgeText: "⭐ NOS OFFRES EN VEDETTE",
         title: "Sélectionnez votre formule idéale",
         subtitle: `Choisissez l'exemplaire adapté à votre besoin avec réduction immédiate à ${city} :`,
-        items: [
-          {
-            id: "prod-1",
-            name: "Pack Découverte (1 Exemplaire)",
-            price: salePrice,
-            regularPrice: regularPrice,
-            badge: "Économique",
-            imageUrl: stockImage,
-            description: "Idéal pour essayer et tester la qualité supérieure sans risque.",
-            features: ["1 Produit certifié", "Garantie 30 jours", "Livraison 24h"],
-          },
-          {
-            id: "prod-2",
-            name: "Pack Duo Privilège (2 Exemplaires)",
-            price: Math.round(salePrice * 1.7),
-            regularPrice: regularPrice * 2,
-            badge: "Meilleur Choix",
-            imageUrl: stockImage,
-            description: "Le choix préféré de 78% de nos clients. Économie maximale !",
-            features: ["2 Produits certifiés", "Cadeau offert", "Livraison gratuite express"],
-          },
-        ],
+        items: showcaseItems,
       },
 
       // 4. STATISTIQUES SOCIALES
@@ -469,22 +521,7 @@ function buildEliteDesignFunnel(
         title: "Ce que disent nos clients",
         ratingAverage: 5,
         totalReviewsText: "5/5 étoiles sur plus de 320 avis",
-        items: [
-          {
-            id: "r-1",
-            authorName: "Amina K.",
-            authorLocation: `${city}`,
-            rating: 5,
-            comment: "Commandé hier à 14h, reçu ce matin à 10h. Le produit est magnifique et conforme aux photos !",
-          },
-          {
-            id: "r-2",
-            authorName: "Marc D.",
-            authorLocation: `${city}`,
-            rating: 5,
-            comment: "J'ai apprécié de pouvoir vérifier l'article avant de donner l'argent au livreur. Très sérieux !",
-          },
-        ],
+        items: reviewsItems,
       },
 
       // 8. FORMULAIRE DE COMMANDE DIRECTE COD
@@ -507,18 +544,7 @@ function buildEliteDesignFunnel(
         badgeText: "❓ FAQ",
         title: "Questions Fréquentes",
         subtitle: "Toutes les réponses à vos questions en toute transparence :",
-        items: [
-          {
-            id: "q-1",
-            question: "Quand et comment puis-je payer ?",
-            answer: "Vous ne payez rien à l'avance ! Vous payez en espèces directement au livreur une fois que vous avez reçu et contrôlé votre produit.",
-          },
-          {
-            id: "q-2",
-            question: "Quel est le délai de livraison ?",
-            answer: `La livraison prend entre 12h et 24h à ${city} et ses environs. Notre livreur vous appelle avant de passer.`,
-          },
-        ],
+        items: faqItems,
       },
     ],
   };

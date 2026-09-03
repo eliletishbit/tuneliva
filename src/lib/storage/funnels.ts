@@ -80,6 +80,17 @@ export function saveFunnel(funnel: FunnelPageData): FunnelPageData {
   return updatedFunnel;
 }
 
+export function deleteFunnel(slug: string): boolean {
+  ensureDataDir();
+  const funnels = getAllFunnels();
+  const filtered = funnels.filter((f) => f.slug !== slug);
+  if (filtered.length !== funnels.length) {
+    fs.writeFileSync(FUNNELS_FILE, JSON.stringify(filtered, null, 2), "utf-8");
+    return true;
+  }
+  return false;
+}
+
 // ==========================================
 // COMMANDES (ORDERS)
 // ==========================================
@@ -170,4 +181,15 @@ export function updateOrderStatus(
   orders[orderIndex].orderStatus = newStatus;
   fs.writeFileSync(ORDERS_FILE, JSON.stringify(orders, null, 2), "utf-8");
   return orders[orderIndex];
+}
+
+export function deleteOrder(orderId: string): boolean {
+  ensureDataDir();
+  const orders = getAllOrders();
+  const filtered = orders.filter((o) => o.id !== orderId);
+  if (filtered.length !== orders.length) {
+    fs.writeFileSync(ORDERS_FILE, JSON.stringify(filtered, null, 2), "utf-8");
+    return true;
+  }
+  return false;
 }

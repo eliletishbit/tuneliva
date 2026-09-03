@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAllOrders, saveOrder, updateOrderStatus } from "@/lib/storage/funnels";
+import { getAllOrders, saveOrder, updateOrderStatus, deleteOrder } from "@/lib/storage/funnels";
 
 export async function GET() {
   const orders = getAllOrders();
@@ -54,4 +54,15 @@ export async function PATCH(req: NextRequest) {
     console.error("Erreur mise à jour commande:", error);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
+}
+
+export async function DELETE(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const id = searchParams.get("id");
+  if (!id) {
+    return NextResponse.json({ error: "ID requis" }, { status: 400 });
+  }
+
+  const success = deleteOrder(id);
+  return NextResponse.json({ success });
 }
