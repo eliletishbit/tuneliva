@@ -51,6 +51,9 @@ import {
   MapPin,
   Layers,
   GripVertical,
+  PackageCheck,
+  ExternalLink,
+  MessageCircle,
 } from "lucide-react";
 import confetti from "canvas-confetti";
 
@@ -79,6 +82,9 @@ export function FunnelEditor({
   );
   const [showAddSectionModal, setShowAddSectionModal] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [publishedUrl, setPublishedUrl] = useState<string | null>(null);
+  const [showPublishModal, setShowPublishModal] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
 
   // ÉTAT DU GLISSER-DÉPOSER DES SECTIONS DANS LA SIDEBAR
   const [draggedSidebarIdx, setDraggedSidebarIdx] = useState<number | null>(null);
@@ -484,11 +490,37 @@ export function FunnelEditor({
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    setIsPublishing(true);
+    try {
+      const res = await fetch("/api/funnels", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(funnelData),
+      });
+
+      if (res.ok) {
+        const result = await res.json();
+        const savedSlug = result.funnel?.slug || funnelData.slug || "offre-speciale";
+        const origin = typeof window !== "undefined" ? window.location.origin : "";
+        const fullUrl = `${origin}/p/${savedSlug}`;
+        setPublishedUrl(fullUrl);
+        setShowPublishModal(true);
+
+        if (typeof window !== "undefined") {
+          localStorage.setItem(`tuneliva_funnel_${savedSlug}`, JSON.stringify(funnelData));
+        }
+      }
+    } catch (e) {
+      console.error("Erreur publication tunnel:", e);
+    } finally {
+      setIsPublishing(false);
+    }
+
     confetti({
-      particleCount: 100,
-      spread: 70,
-      origin: { y: 0.7 },
+      particleCount: 120,
+      spread: 80,
+      origin: { y: 0.6 },
       colors: ["#F43F5E", "#E11D48", "#10B981", "#EAB308", "#6366F1"],
     });
     setSavedSuccess(true);
@@ -588,6 +620,16 @@ export function FunnelEditor({
 
         {/* Actions */}
         <div className="flex items-center gap-2">
+          <a
+            href="/dashboard"
+            target="_blank"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-white/10 bg-slate-900 text-xs font-bold text-slate-200 hover:text-white hover:border-emerald-500/50 transition-all cursor-pointer"
+            title="Voir les commandes reçues et le chiffre d'affaires"
+          >
+            <PackageCheck className="w-4 h-4 text-emerald-400" />
+            <span className="hidden lg:inline">Commandes</span>
+          </a>
+
           <button
             onClick={() => setShowSettings(!showSettings)}
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-white/10 bg-slate-900 text-xs font-bold text-slate-200 hover:text-white hover:border-indigo-500/50 transition-all cursor-pointer"
@@ -1426,6 +1468,78 @@ export function FunnelEditor({
           </div>
         </div>
       </div>
+
+      {/* MODAL DE SUCCÈS DE PUBLICATION */}
+      {showPublishModal && publishedUrl && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-white/10 rounded-3xl max-w-md w-full p-6 space-y-5 shadow-2xl text-center">
+            <div className="w-14 h-14 rounded-full bg-emerald-500/20 text-emerald-400 mx-auto flex items-center justify-center font-bold text-2xl shadow-inner">
+              🎉
+            </div>
+
+            <div className="space-y-1">
+              <h3 className="text-xl font-black text-white">Votre Page de Vente est en Ligne !</h3>
+              <p className="text-xs text-slate-400">
+                Votre tunnel est maintenant actif et prêt à recevoir des commandes partout dans le monde.
+              </p>
+            </div>
+
+            <div className="p-3 rounded-2xl bg-slate-950 border border-white/10 flex items-center justify-between gap-2 text-left">
+              <span className="text-xs font-mono text-indigo-400 truncate select-all">
+                {publishedUrl}
+              </span>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(publishedUrl);
+                  alert("Lien copié dans le presse-papiers !");
+                }}
+                className="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shrink-0 cursor-pointer shadow-sm"
+              >
+                Copier
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              <a
+                href={publishedUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-3 px-4 rounded-xl bg-white text-slate-950 hover:bg-slate-200 font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer"
+              >
+                <ExternalLink className="w-4 h-4" />
+                <span>Ouvrir la Page Client Finale</span>
+              </a>
+
+              <button
+                onClick={() => {
+                  const msg = encodeURIComponent(`Découvrez notre offre spéciale ici : ${publishedUrl}`);
+                  window.open(`https://wa.me/?text=${msg}`, "_blank");
+                }}
+                className="w-full py-3 px-4 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer"
+              >
+                <MessageCircle className="w-4 h-4 fill-white" />
+                <span>Partager sur mon Statut WhatsApp</span>
+              </button>
+
+              <a
+                href="/dashboard"
+                target="_blank"
+                className="w-full py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
+              >
+                <PackageCheck className="w-4 h-4 text-emerald-400" />
+                <span>Voir mon Tableau de Bord des Commandes →</span>
+              </a>
+            </div>
+
+            <button
+              onClick={() => setShowPublishModal(false)}
+              className="text-xs text-slate-500 hover:text-slate-300 font-semibold cursor-pointer pt-2"
+            >
+              Fermer cette fenêtre
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

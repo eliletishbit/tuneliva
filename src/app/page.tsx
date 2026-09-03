@@ -24,6 +24,7 @@ import {
   Check,
   ChevronRight,
   ChevronLeft,
+  PackageCheck,
 } from "lucide-react";
 import { generateSmartFunnel } from "@/lib/ai/smart-engine";
 
@@ -228,6 +229,14 @@ export default function HomePage() {
             <Globe2 className="w-3.5 h-3.5" />
             <span>Afrique • Diaspora • International</span>
           </div>
+
+          <a
+            href="/dashboard"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-900 border border-white/10 hover:border-emerald-500/50 text-white text-xs font-bold transition-all shadow-sm cursor-pointer"
+          >
+            <PackageCheck className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Mes Commandes</span>
+          </a>
         </div>
       </header>
 
