@@ -49,9 +49,10 @@ export interface BaseSectionProps {
   borderRadiusPx?: number; // Arrondi des angles (0 à 44px)
   maxWidthClass?: "max-w-2xl" | "max-w-3xl" | "max-w-4xl" | "max-w-5xl" | "max-w-full";
   titleSize?: "sm" | "base" | "lg" | "xl";
-  sectionSurfaceVariant?: SectionSurfaceVariant; // Harmonie visuelle sans risque
+  sectionSurfaceVariant?: SectionSurfaceVariant;
   customBgColor?: string;
   customTextColor?: string;
+  customTitleColor?: string;
 }
 
 export interface BrandingConfig {
@@ -132,6 +133,11 @@ export interface StatsSection extends BaseSectionProps {
   items: StatItem[];
 }
 
+export interface ProductVariant {
+  name: string; // Ex: "Couleur", "Taille", "Modèle"
+  options: string[]; // Ex: ["Noir", "Or", "Argent"] ou ["M", "L", "XL"]
+}
+
 export interface ProductItem {
   id: string;
   name: string;
@@ -141,6 +147,10 @@ export interface ProductItem {
   imageUrl: string;
   description: string;
   features: string[];
+  variants?: ProductVariant[];
+  selectedVariant?: Record<string, string>;
+  detailsHtml?: string;
+  stockQty?: number;
 }
 
 export interface ProductShowcaseSection extends BaseSectionProps {

@@ -20,6 +20,7 @@ import {
   DesignPreset,
   FunnelStep,
   FunnelPageType,
+  ProductVariant,
 } from "@/types/page";
 import { DESIGN_PRESETS } from "@/lib/design/presets";
 import { createDefaultStepSections } from "@/lib/templates/funnel-steps";
@@ -48,8 +49,9 @@ import {
   Image as ImageIcon,
   CheckCircle2,
   Timer,
-  Award,
+  Upload,
   Package,
+  Award,
   Video,
   MapPin,
   Layers,
@@ -228,9 +230,7 @@ export function FunnelEditor({
     }
   };
 
-  // ÉTAT DU GLISSER-DÉPOSER DES SECTIONS DANS LA SIDEBAR
-  const [draggedSidebarIdx, setDraggedSidebarIdx] = useState<number | null>(null);
-  const [dragOverSidebarIdx, setDragOverSidebarIdx] = useState<number | null>(null);
+
 
   // ACCORDÉONS DÉPLIABLES / PLIABLES
   const [openDesignCategory, setOpenDesignCategory] = useState<string | null>("passion");
@@ -333,6 +333,57 @@ export function FunnelEditor({
     }));
   };
 
+  // IMPORTATION EN 1 CLIC DE 1 À 10 PRODUITS (AVEC VARIANTES & PHOTOS)
+  const handleMultiProductUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []).slice(0, 10);
+    if (files.length === 0) return;
+
+    const newItems: ProductItem[] = [];
+    let processed = 0;
+
+    files.forEach((file, idx) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const dataUrl = reader.result as string;
+        const cleanName = file.name
+          .replace(/\.[^/.]+$/, "")
+          .replace(/[-_]/g, " ")
+          .trim();
+        const capitalizedName =
+          cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
+
+        newItems.push({
+          id: `prod-up-${Date.now()}-${idx}`,
+          name: capitalizedName || `Produit #${idx + 1}`,
+          price: 15000 + idx * 2500,
+          regularPrice: 20000 + idx * 3000,
+          badge: idx === 0 ? "⭐ Top Vente" : idx === 1 ? "🔥 Populaire" : undefined,
+          imageUrl: dataUrl,
+          description: "Article authentique de qualité supérieure avec garantie d'échange et livraison express.",
+          features: ["Qualité certifiée", "Garantie 30 jours", "Livraison suivie"],
+          variants: [
+            { name: "Couleur", options: ["Noir", "Or", "Argent"] },
+            { name: "Taille", options: ["Standard", "Grande"] },
+          ],
+        });
+
+        processed++;
+        if (processed === files.length) {
+          const curSec = funnelData.sections.find(
+            (s) => s.id === selectedSectionId
+          ) as ProductShowcaseSection;
+          const updatedItems = [
+            ...(curSec?.items || []),
+            ...newItems,
+          ].slice(0, 10);
+          updateSelectedSection({ items: updatedItems });
+          alert(`✅ ${newItems.length} produit(s) importé(s) avec succès avec variantes et photos !`);
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
   const handlePageBackgroundChange = (bg: string, isDark: boolean) => {
     setFunnelData((prev) => ({
       ...prev,
@@ -353,13 +404,45 @@ export function FunnelEditor({
   };
 
   const handleBrandingChange = (key: string, value: any) => {
-    setFunnelData((prev) => ({
-      ...prev,
-      branding: {
+    setFunnelData((prev) => {
+      const updatedBranding = {
         ...prev.branding,
         [key]: value,
-      },
-    }));
+      };
+
+      // Synchronisation automatique de la zone d'intervention & des villes du formulaire de commande
+      let updatedSections = prev.sections;
+      const cityName =
+        key === "city"
+          ? String(value || "")
+          : key === "address" && typeof value === "object"
+          ? String(value?.city || "")
+          : "";
+
+      if (cityName.trim()) {
+        updatedSections = prev.sections.map((sec) => {
+          if (sec.type === "service_area") {
+            return {
+              ...sec,
+              zoneText: `${cityName.trim()}, communes et environs immédiats`,
+            };
+          }
+          if (sec.type === "order_form") {
+            return {
+              ...sec,
+              cities: [cityName.trim(), "Banlieue", "Région", "Autre"],
+            };
+          }
+          return sec;
+        });
+      }
+
+      return {
+        ...prev,
+        branding: updatedBranding,
+        sections: updatedSections,
+      };
+    });
   };
 
   const moveSection = (index: number, direction: "up" | "down") => {
@@ -803,47 +886,55 @@ export function FunnelEditor({
       <div className="flex-1 flex relative overflow-hidden">
         {showSettings && (
           <aside className="w-84 sm:w-92 border-r border-white/10 bg-[#07080D] flex flex-col shrink-0 z-30 shadow-2xl">
-            {/* TABS ÉPURÉS ET DESIGN */}
-            <div className="p-2 border-b border-white/10 grid grid-cols-4 gap-1 text-[11px] font-bold">
+            {/* TABS ÉPURÉS ET DESIGN STUDIO */}
+            <div className="p-2.5 border-b border-white/10 grid grid-cols-4 gap-1.5 text-[11px] font-bold">
               <button
                 onClick={() => setActiveTab("inspector")}
-                className={`py-2 px-1 rounded-xl text-center transition-all cursor-pointer truncate ${
+                className={`py-2 px-1 rounded-xl text-center transition-all cursor-pointer truncate flex items-center justify-center gap-1 ${
                   activeTab === "inspector"
                     ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
                     : "text-slate-400 hover:text-white hover:bg-white/5"
                 }`}
+                title="Inspecter le bloc actif"
               >
-                Inspecteur
+                <span>🔍</span>
+                <span className="hidden sm:inline">Inspecteur</span>
               </button>
               <button
                 onClick={() => setActiveTab("sections")}
-                className={`py-2 px-1 rounded-xl text-center transition-all cursor-pointer truncate ${
+                className={`py-2 px-1 rounded-xl text-center transition-all cursor-pointer truncate flex items-center justify-center gap-1 ${
                   activeTab === "sections"
                     ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
                     : "text-slate-400 hover:text-white hover:bg-white/5"
                 }`}
+                title="Arborescence & Réorganisation des Blocs"
               >
-                Sections
+                <span>📑</span>
+                <span className="hidden sm:inline">Blocs</span>
               </button>
               <button
                 onClick={() => setActiveTab("design")}
-                className={`py-2 px-1 rounded-xl text-center transition-all cursor-pointer truncate ${
+                className={`py-2 px-1 rounded-xl text-center transition-all cursor-pointer truncate flex items-center justify-center gap-1 ${
                   activeTab === "design"
                     ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
                     : "text-slate-400 hover:text-white hover:bg-white/5"
                 }`}
+                title="Palette de Couleurs & Thèmes"
               >
-                Thèmes
+                <span>🎨</span>
+                <span className="hidden sm:inline">Thèmes</span>
               </button>
               <button
                 onClick={() => setActiveTab("branding")}
-                className={`py-2 px-1 rounded-xl text-center transition-all cursor-pointer truncate ${
+                className={`py-2 px-1 rounded-xl text-center transition-all cursor-pointer truncate flex items-center justify-center gap-1 ${
                   activeTab === "branding"
                     ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
                     : "text-slate-400 hover:text-white hover:bg-white/5"
                 }`}
+                title="Identité, Coordonnées & Pied de Page"
               >
-                Pied de page
+                <span>🏢</span>
+                <span className="hidden sm:inline">Identité</span>
               </button>
             </div>
 
@@ -867,6 +958,37 @@ export function FunnelEditor({
                           <span>Supprimer</span>
                         </button>
                       </div>
+
+                      {/* IMPORT RAPIDE DE 1 À 10 PRODUITS EN 1 CLIC */}
+                      {selectedSection.type === "product_showcase" && (
+                        <div className="p-3.5 rounded-2xl bg-indigo-950/40 border border-indigo-500/30 space-y-2.5">
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center shrink-0">
+                              <Package className="w-4 h-4" />
+                            </div>
+                            <div>
+                              <span className="font-extrabold text-xs text-white block">
+                                Importer des Produits en 1 Clic
+                              </span>
+                              <span className="text-[10px] text-slate-400">
+                                Importez 1 à 10 photos avec variantes & prix
+                              </span>
+                            </div>
+                          </div>
+
+                          <label className="w-full py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-indigo-600/25 transition-all">
+                            <Upload className="w-4 h-4" />
+                            <span>Choisir 1 à 10 Photos Produits</span>
+                            <input
+                              type="file"
+                              multiple
+                              accept="image/*"
+                              onChange={handleMultiProductUpload}
+                              className="hidden"
+                            />
+                          </label>
+                        </div>
+                      )}
 
                       {/* 1. ACCORDÉON : MARGES & ESPACEMENTS */}
                       <div className="rounded-2xl border border-white/10 bg-slate-950 overflow-hidden">
@@ -1205,6 +1327,83 @@ export function FunnelEditor({
                                 </button>
                               ))}
                             </div>
+
+                            {/* COULEURS PERSONNALISÉES DU TITRE & DU TEXTE */}
+                            <div className="pt-3 border-t border-white/5 space-y-3">
+                              <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider block">
+                                Couleurs Spécifiques du Texte
+                              </span>
+
+                              {/* Couleur du Titre */}
+                              <div className="space-y-1.5">
+                                <div className="flex items-center justify-between text-[11px] font-semibold">
+                                  <span className="text-slate-300">Couleur du Titre</span>
+                                  {selectedSection.customTitleColor && (
+                                    <button
+                                      type="button"
+                                      onClick={() => updateSelectedSection({ customTitleColor: undefined })}
+                                      className="text-[9px] text-rose-400 hover:underline cursor-pointer"
+                                    >
+                                      Réinitialiser
+                                    </button>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <input
+                                    type="color"
+                                    value={selectedSection.customTitleColor || "#ffffff"}
+                                    onChange={(e) => updateSelectedSection({ customTitleColor: e.target.value })}
+                                    className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0"
+                                  />
+                                  <div className="flex items-center gap-1.5 overflow-x-auto">
+                                    {["#ffffff", "#000000", "#4F46E5", "#F59E0B", "#EF4444", "#EC4899", "#10B981"].map((c) => (
+                                      <button
+                                        key={c}
+                                        type="button"
+                                        onClick={() => updateSelectedSection({ customTitleColor: c })}
+                                        className="w-5 h-5 rounded-full border border-white/20 shrink-0 cursor-pointer transition-transform hover:scale-110"
+                                        style={{ backgroundColor: c }}
+                                      />
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Couleur du Texte / Sous-titre */}
+                              <div className="space-y-1.5">
+                                <div className="flex items-center justify-between text-[11px] font-semibold">
+                                  <span className="text-slate-300">Couleur du Texte / Description</span>
+                                  {selectedSection.customTextColor && (
+                                    <button
+                                      type="button"
+                                      onClick={() => updateSelectedSection({ customTextColor: undefined })}
+                                      className="text-[9px] text-rose-400 hover:underline cursor-pointer"
+                                    >
+                                      Réinitialiser
+                                    </button>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <input
+                                    type="color"
+                                    value={selectedSection.customTextColor || "#94A3B8"}
+                                    onChange={(e) => updateSelectedSection({ customTextColor: e.target.value })}
+                                    className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0"
+                                  />
+                                  <div className="flex items-center gap-1.5 overflow-x-auto">
+                                    {["#F8FAFC", "#94A3B8", "#64748B", "#0F172A", "#FCD34D", "#86EFAC"].map((c) => (
+                                      <button
+                                        key={c}
+                                        type="button"
+                                        onClick={() => updateSelectedSection({ customTextColor: c })}
+                                        className="w-5 h-5 rounded-full border border-white/20 shrink-0 cursor-pointer transition-transform hover:scale-110"
+                                        style={{ backgroundColor: c }}
+                                      />
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
                           </div>
                         )}
                       </div>
@@ -1485,97 +1684,69 @@ export function FunnelEditor({
                   </div>
 
                   <p className="text-[10px] text-slate-400">
-                    💡 Glissez-déposez les blocs avec l'icône <GripVertical className="w-3 h-3 inline" /> pour réorganiser l'ordre en 1 seconde.
+                    💡 Réorganisez facilement vos blocs en 1 clic grâce aux flèches ↑ et ↓.
                   </p>
 
                   <div className="space-y-2">
                     {funnelData.sections.map((sec, idx) => {
-                      const isDragged = draggedSidebarIdx === idx;
-                      const isOver = dragOverSidebarIdx === idx;
                       const isSelected = selectedSectionId === sec.id;
 
                       return (
                         <div
                           key={sec.id}
-                          draggable
-                          onDragStart={(e) => {
-                            setDraggedSidebarIdx(idx);
-                            e.dataTransfer.setData("text/plain", `${idx}`);
-                          }}
-                          onDragOver={(e) => {
-                            e.preventDefault();
-                            setDragOverSidebarIdx(idx);
-                          }}
-                          onDrop={(e) => {
-                            e.preventDefault();
-                            const from = Number(e.dataTransfer.getData("text/plain"));
-                            if (!isNaN(from)) {
-                              handleReorderSections(from, idx);
-                            }
-                            setDraggedSidebarIdx(null);
-                            setDragOverSidebarIdx(null);
-                          }}
-                          onDragEnd={() => {
-                            setDraggedSidebarIdx(null);
-                            setDragOverSidebarIdx(null);
-                          }}
                           onClick={() => {
                             setSelectedSectionId(sec.id);
                             setActiveTab("inspector");
                           }}
                           className={`p-3 rounded-2xl border flex items-center justify-between gap-2 cursor-pointer transition-all ${
-                            isDragged ? "opacity-30 scale-95" : ""
-                          } ${
-                            isOver ? "border-indigo-500 ring-2 ring-indigo-500 bg-indigo-600/20" : ""
-                          } ${
                             isSelected
-                              ? "bg-indigo-600/15 border-indigo-500 shadow-md ring-1 ring-indigo-500/50"
-                              : "bg-slate-950 border-white/5 hover:border-white/20"
+                              ? "bg-indigo-600/20 border-indigo-500 shadow-md ring-1 ring-indigo-500/50"
+                              : "bg-slate-950/90 border-white/5 hover:border-white/20 hover:bg-slate-900"
                           }`}
                         >
                           <div className="flex items-center gap-2.5 truncate">
-                            <span
-                              className="text-slate-500 hover:text-white cursor-grab active:cursor-grabbing p-0.5"
-                              title="Glisser pour réorganiser"
-                            >
-                              <GripVertical className="w-4 h-4" />
+                            <span className="w-5 h-5 rounded-full bg-slate-900 border border-white/10 text-indigo-400 font-mono text-[10px] font-bold flex items-center justify-center shrink-0">
+                              {idx + 1}
                             </span>
-                            <span className="text-base">{getSectionIcon(sec.type)}</span>
+                            <span className="text-base shrink-0">{getSectionIcon(sec.type)}</span>
                             <span className="font-bold text-white text-xs capitalize truncate">
                               {sec.type.replace("_", " ")}
                             </span>
                           </div>
 
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center gap-1 shrink-0">
                             <button
+                              type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 moveSection(idx, "up");
                               }}
                               disabled={idx === 0}
-                              className="p-1 text-slate-400 hover:text-white disabled:opacity-20 cursor-pointer"
-                              title="Monter"
+                              className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white disabled:opacity-20 cursor-pointer border border-white/5"
+                              title="Monter ce bloc"
                             >
                               <ArrowUp className="w-3.5 h-3.5" />
                             </button>
                             <button
+                              type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 moveSection(idx, "down");
                               }}
                               disabled={idx === funnelData.sections.length - 1}
-                              className="p-1 text-slate-400 hover:text-white disabled:opacity-20 cursor-pointer"
-                              title="Descendre"
+                              className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white disabled:opacity-20 cursor-pointer border border-white/5"
+                              title="Descendre ce bloc"
                             >
                               <ArrowDown className="w-3.5 h-3.5" />
                             </button>
                             <button
+                              type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 deleteSection(sec.id);
                               }}
-                              className="p-1 text-rose-400 hover:text-rose-300 ml-0.5 cursor-pointer"
-                              title="Supprimer"
+                              className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 cursor-pointer border border-rose-500/20"
+                              title="Supprimer ce bloc"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>

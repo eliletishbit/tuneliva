@@ -169,11 +169,37 @@ export function ImagePickerModal({
   currentImage,
   title = "Choisir une Photo Professionnelle",
 }: ImagePickerModalProps) {
-  const [activeTab, setActiveTab] = useState<"search" | "upload" | "url">("search");
+  const [activeTab, setActiveTab] = useState<"search" | "upload" | "ai" | "url">("search");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [customUrl, setCustomUrl] = useState(currentImage || "");
   const [uploadedPreview, setUploadedPreview] = useState<string | null>(null);
+
+  // GÉNÉRATEUR IA GRATUIT (POLLINATIONS.AI - ILLIMITÉ SANS CLÉ)
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [isGeneratingAi, setIsGeneratingAi] = useState(false);
+  const [generatedAiUrl, setGeneratedAiUrl] = useState<string | null>(null);
+
+  const handleGenerateAi = () => {
+    if (!aiPrompt.trim()) return;
+    setIsGeneratingAi(true);
+    const seed = Math.floor(Math.random() * 999999);
+    const cleanPrompt = encodeURIComponent(
+      aiPrompt.trim() + ", professional commercial product photography, sharp focus, 4k studio lighting, award winning"
+    );
+    const url = `https://image.pollinations.ai/prompt/${cleanPrompt}?width=1024&height=1024&seed=${seed}&nologo=true`;
+
+    const img = new Image();
+    img.onload = () => {
+      setGeneratedAiUrl(url);
+      setIsGeneratingAi(false);
+    };
+    img.onerror = () => {
+      setGeneratedAiUrl(url);
+      setIsGeneratingAi(false);
+    };
+    img.src = url;
+  };
 
   if (!isOpen) return null;
 
@@ -265,7 +291,18 @@ export function ImagePickerModal({
             }`}
           >
             <Upload className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Depuis mon Appareil (PC / Mobile)</span>
+            <span>Depuis mon Appareil</span>
+          </button>
+          <button
+            onClick={() => setActiveTab("ai")}
+            className={`py-3 px-4 border-b-2 transition-all flex items-center gap-1.5 cursor-pointer ${
+              activeTab === "ai"
+                ? "border-indigo-500 text-white"
+                : "border-transparent text-slate-400 hover:text-white"
+            }`}
+          >
+            <Sparkles className="w-3.5 h-3.5 text-pink-400" />
+            <span>✨ Générateur IA Gratuit</span>
           </button>
           <button
             onClick={() => setActiveTab("url")}
@@ -386,6 +423,90 @@ export function ImagePickerModal({
                   </span>
                 </div>
               </label>
+            )}
+          </div>
+        )}
+
+        {/* CORPS DE L'ONGLET GÉNÉRATEUR IA GRATUIT */}
+        {activeTab === "ai" && (
+          <div className="flex-1 p-6 sm:p-8 space-y-4 max-w-xl mx-auto w-full overflow-y-auto">
+            <div className="space-y-1.5 text-left">
+              <label className="block text-xs font-bold text-white flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-yellow-400" />
+                <span>Décrivez l'image que vous souhaitez générer par IA :</span>
+              </label>
+              <textarea
+                rows={3}
+                placeholder="Ex: Montre connectée haut de gamme noire étanche posée sur un rocher avec gouttes d'eau et reflets lumineux..."
+                value={aiPrompt}
+                onChange={(e) => setAiPrompt(e.target.value)}
+                className="w-full p-3 rounded-xl bg-slate-950 border border-white/10 text-white text-xs placeholder:text-slate-500 focus:outline-none focus:border-indigo-500"
+              />
+            </div>
+
+            {/* Suggestions rapides */}
+            <div className="space-y-1 text-left">
+              <span className="text-[10px] text-slate-400 font-semibold block">Idées en 1 clic :</span>
+              <div className="flex flex-wrap gap-1.5">
+                {[
+                  "Sérum cosmétique bio flacon doré sur marbre",
+                  "Montre connectée sport étanche sur fond noir",
+                  "Sneakers streetwear blanches et rouges modernes",
+                  "Pot de miel naturel doré avec cuillère en bois",
+                  "Sac à main cuir prestige femme",
+                ].map((sug, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setAiPrompt(sug)}
+                    className="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 border border-white/5 text-[10px] text-slate-300 hover:text-white transition-colors cursor-pointer"
+                  >
+                    {sug}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleGenerateAi}
+              disabled={isGeneratingAi || !aiPrompt.trim()}
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:opacity-95 text-white font-black text-xs shadow-lg flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+            >
+              {isGeneratingAi ? (
+                <>
+                  <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                  <span>Génération par IA en cours (sans frais)...</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4 text-yellow-300" />
+                  <span>Générer cette image par IA (100% Gratuit)</span>
+                </>
+              )}
+            </button>
+
+            {generatedAiUrl && (
+              <div className="space-y-3 pt-2">
+                <div className="rounded-2xl overflow-hidden border border-indigo-500/30 aspect-square max-w-sm mx-auto shadow-2xl relative group">
+                  <img
+                    src={generatedAiUrl}
+                    alt="Visuel IA"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onSelectImage(generatedAiUrl);
+                    onClose();
+                  }}
+                  className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-xl flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <Check className="w-4 h-4" />
+                  <span>Utiliser cette image sur ma page</span>
+                </button>
+              </div>
             )}
           </div>
         )}

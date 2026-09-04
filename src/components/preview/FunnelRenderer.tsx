@@ -20,6 +20,8 @@ import {
   FaqSection,
   CurrencyCode,
   FunnelSection,
+  ProductItem,
+  ProductVariant,
 } from "@/types/page";
 import {
   CheckCircle2,
@@ -156,16 +158,7 @@ function CardReorderToolbar({
           : "opacity-0 group-hover/card:opacity-100"
       }`}
     >
-      <div
-        draggable={isEditable}
-        onDragStart={onDragCardStart}
-        className="cursor-grab active:cursor-grabbing p-0.5 text-indigo-400 hover:text-white rounded hover:bg-white/10"
-        title="Glisser pour déplacer cette colonne"
-      >
-        <GripVertical className="w-3.5 h-3.5" />
-      </div>
-
-      <span className="text-[10px] text-indigo-400 font-mono font-bold mr-0.5">#{idx + 1}</span>
+      <span className="text-[10px] text-indigo-400 font-mono font-bold px-1">#{idx + 1}</span>
 
       {onMoveLeft && (
         <button
@@ -242,6 +235,7 @@ export function FunnelRenderer({
   const { theme, branding, sections } = data;
   const isDark = theme.isDarkTheme;
   const [openFaqId, setOpenFaqId] = useState<string | null>(null);
+  const [detailModalProduct, setDetailModalProduct] = useState<ProductItem | null>(null);
 
   // État de glisser-déposer de sections
   const [draggedSectionIdx, setDraggedSectionIdx] = useState<number | null>(null);
@@ -579,21 +573,6 @@ export function FunnelRenderer({
                     isSelected ? "opacity-100 ring-2 ring-indigo-500" : "opacity-0 group-hover/section:opacity-100"
                   }`}
                 >
-                  <div
-                    draggable={isEditable}
-                    onDragStart={(e) => {
-                      if (!isEditable) return;
-                      e.stopPropagation();
-                      setDraggedSectionIdx(idx);
-                      e.dataTransfer.effectAllowed = "move";
-                      e.dataTransfer.setData("text/plain", `${idx}`);
-                    }}
-                    className="p-1 text-indigo-400 hover:text-white cursor-grab active:cursor-grabbing rounded hover:bg-white/10"
-                    title="Attraper pour déplacer cette section par glisser-déposer"
-                  >
-                    <GripVertical className="w-3.5 h-3.5" />
-                  </div>
-
                   <span className="text-[10px] font-bold text-slate-300 px-1.5 uppercase">
                     {section.type.replace("_", " ")}
                   </span>
@@ -690,6 +669,8 @@ export function FunnelRenderer({
                 secondsLeft,
                 formatCountdown,
                 onSwitchStep,
+                detailModalProduct,
+                setDetailModalProduct,
                 isEditable,
                 isSectionSelected: isSelected,
               })}
@@ -768,6 +749,122 @@ export function FunnelRenderer({
           </p>
         </div>
       </footer>
+
+      {/* MODAL FICHE PRODUIT DÉTAILLÉE & VARIANTES */}
+      {detailModalProduct && (
+        <div
+          onClick={() => setDetailModalProduct(null)}
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-6"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-[#0B1020] border border-white/15 rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-5 sm:p-6 space-y-4 shadow-2xl text-slate-100 relative"
+          >
+            <button
+              type="button"
+              onClick={() => setDetailModalProduct(null)}
+              className="absolute top-4 right-4 p-2 rounded-xl bg-slate-900/80 text-slate-400 hover:text-white border border-white/10 cursor-pointer"
+            >
+              ✕
+            </button>
+
+            <div className="rounded-2xl overflow-hidden aspect-video bg-black/40 border border-white/10 relative">
+              <img
+                src={detailModalProduct.imageUrl}
+                alt={detailModalProduct.name}
+                className="w-full h-full object-cover"
+              />
+              {detailModalProduct.badge && (
+                <span
+                  className="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-bold text-white shadow-lg"
+                  style={{ backgroundColor: theme.primaryColor }}
+                >
+                  {detailModalProduct.badge}
+                </span>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-baseline justify-between gap-2">
+                <h3 className="text-lg sm:text-xl font-black text-white">
+                  {detailModalProduct.name}
+                </h3>
+                <div className="flex items-baseline gap-2 shrink-0">
+                  <span
+                    className="text-xl sm:text-2xl font-black"
+                    style={{ color: theme.primaryColor }}
+                  >
+                    {formatMoney(detailModalProduct.price, currency)}
+                  </span>
+                  {detailModalProduct.regularPrice && (
+                    <span className="text-xs text-slate-400 line-through">
+                      {formatMoney(detailModalProduct.regularPrice, currency)}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <p className="text-xs text-slate-300 leading-relaxed">
+                {detailModalProduct.description}
+              </p>
+            </div>
+
+            {/* VARIANTES DU PRODUIT */}
+            {detailModalProduct.variants && detailModalProduct.variants.length > 0 && (
+              <div className="space-y-2 pt-2 border-t border-white/10">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300">
+                  Options & Variantes disponibles :
+                </h4>
+                {detailModalProduct.variants.map((v, i) => (
+                  <div key={i} className="space-y-1">
+                    <span className="text-[11px] font-semibold text-slate-400">
+                      {v.name} :
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {v.options.map((opt, optIdx) => (
+                        <span
+                          key={optIdx}
+                          className="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-900 border border-white/10 text-white"
+                        >
+                          {opt}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* CARACTÉRISTIQUES / POINTS FORTS */}
+            {detailModalProduct.features && detailModalProduct.features.length > 0 && (
+              <div className="space-y-2 pt-2 border-t border-white/10">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300">
+                  Points Forts & Spécifications :
+                </h4>
+                <ul className="space-y-1.5 text-xs text-slate-300">
+                  {detailModalProduct.features.map((feat, idx) => (
+                    <li key={idx} className="flex items-center gap-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                      <span>{feat}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <div className="pt-3 border-t border-white/10">
+              <a
+                href="#commander"
+                onClick={() => setDetailModalProduct(null)}
+                className="block w-full py-3.5 px-4 rounded-xl text-center font-black text-white text-xs sm:text-sm shadow-xl transition-transform hover:scale-[1.02] cursor-pointer"
+                style={{ backgroundColor: theme.primaryColor }}
+              >
+                Commander ce produit maintenant
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -837,7 +934,10 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
             />
           </div>
 
-          <h1 className={`${titleSizeClass} font-black tracking-tight leading-tight sm:leading-tight max-w-3xl mx-auto px-2 ${headingClass}`}>
+          <h1
+            className={`${titleSizeClass} font-black tracking-tight leading-tight sm:leading-tight max-w-3xl mx-auto px-2 ${headingClass}`}
+            style={{ color: s.customTitleColor || undefined }}
+          >
             <InlineText
               value={s.title}
               onSave={(val) => updateField("title", val)}
@@ -845,7 +945,10 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
             />
           </h1>
 
-          <p className={`text-sm sm:text-lg max-w-2xl mx-auto leading-relaxed px-2 ${mutedTextClass}`}>
+          <p
+            className={`text-sm sm:text-lg max-w-2xl mx-auto leading-relaxed px-2 ${mutedTextClass}`}
+            style={{ color: s.customTextColor || undefined }}
+          >
             <InlineText
               value={s.subtitle}
               onSave={(val) => updateField("subtitle", val)}
@@ -986,14 +1089,20 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                 isEditable={isEditable}
               />
             </span>
-            <h2 className={`text-2xl sm:text-4xl font-extrabold ${headingClass}`}>
+            <h2
+              className={`text-2xl sm:text-4xl font-extrabold ${headingClass}`}
+              style={{ color: s.customTitleColor || undefined }}
+            >
               <InlineText
                 value={s.title}
                 onSave={(val) => updateField("title", val)}
                 isEditable={isEditable}
               />
             </h2>
-            <p className={`text-xs sm:text-sm max-w-xl mx-auto ${mutedTextClass}`}>
+            <p
+              className={`text-xs sm:text-sm max-w-xl mx-auto ${mutedTextClass}`}
+              style={{ color: s.customTextColor || undefined }}
+            >
               <InlineText
                 value={s.subtitle}
                 onSave={(val) => updateField("subtitle", val)}
@@ -1087,16 +1196,62 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                   </div>
                 </div>
 
-                <div className="space-y-3 pt-2 border-t border-slate-200/30">
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-xl sm:text-2xl font-black" style={{ color: theme.primaryColor }}>
-                      {formatMoney(item.price, currency)}
-                    </span>
-                    {item.regularPrice && (
-                      <span className="text-xs text-slate-400 line-through">
-                        {formatMoney(item.regularPrice, currency)}
+                {/* VARIANTES DU PRODUIT (COULEURS, TAILLES, MODÈLES) */}
+                {item.variants && item.variants.length > 0 && (
+                  <div className="space-y-2 pt-2 border-t border-slate-200/20 text-left">
+                    {item.variants.map((v, vIdx) => (
+                      <div key={vIdx} className="space-y-1">
+                        <span className="text-[10px] font-bold text-slate-400 block uppercase tracking-wider">
+                          {v.name} :
+                        </span>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          {v.options.map((opt, oIdx) => {
+                            const isOptSelected =
+                              (item.selectedVariant && item.selectedVariant[v.name] === opt) ||
+                              (!item.selectedVariant?.[v.name] && oIdx === 0);
+
+                            return (
+                              <button
+                                key={oIdx}
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const updated = [...s.items];
+                                  const cur = updated[idx].selectedVariant || {};
+                                  updated[idx] = {
+                                    ...updated[idx],
+                                    selectedVariant: { ...cur, [v.name]: opt },
+                                  };
+                                  updateField("items", updated);
+                                }}
+                                className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all cursor-pointer ${
+                                  isOptSelected
+                                    ? "bg-indigo-600 text-white border-indigo-400 shadow-sm"
+                                    : "bg-slate-900 border-white/10 text-slate-400 hover:text-white"
+                                }`}
+                              >
+                                {opt}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div className="space-y-2 pt-2 border-t border-slate-200/30">
+                  <div className="flex items-baseline justify-between gap-2">
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-xl sm:text-2xl font-black" style={{ color: theme.primaryColor }}>
+                        {formatMoney(item.price, currency)}
                       </span>
-                    )}
+                      {item.regularPrice && (
+                        <span className="text-xs text-slate-400 line-through">
+                          {formatMoney(item.regularPrice, currency)}
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   <a
@@ -1104,8 +1259,20 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                     className="block w-full py-3 px-4 rounded-xl text-center font-bold text-white text-xs sm:text-sm shadow-md transition-all hover:opacity-90"
                     style={{ backgroundColor: theme.primaryColor }}
                   >
-                    Commander cet exemplaire
+                    Commander cet article
                   </a>
+
+                  {/* BOUTON DÉTAILS DU PRODUIT */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      ctx.setDetailModalProduct?.(item);
+                    }}
+                    className="w-full py-1 text-center text-[11px] font-bold text-indigo-400 hover:text-indigo-300 flex items-center justify-center gap-1 cursor-pointer hover:underline"
+                  >
+                    <span>🔍 Voir les détails & caractéristiques</span>
+                  </button>
                 </div>
               </div>
             ))}

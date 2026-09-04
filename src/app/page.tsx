@@ -138,6 +138,14 @@ export default function HomePage() {
   // Index du slider de créatives
   const [activeCreativeIndex, setActiveCreativeIndex] = useState(0);
 
+  // Détection synchrone de ?edit= pour éviter le flash de l'accueil
+  const [isEditLoading, setIsEditLoading] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      return new URLSearchParams(window.location.search).has("edit");
+    }
+    return false;
+  });
+
   // CHARGEMENT DIRECT D'UN PROJET EXISTANT DEPUIS LE DASHBOARD (?edit=mon-slug)
   React.useEffect(() => {
     if (typeof window !== "undefined") {
@@ -145,6 +153,7 @@ export default function HomePage() {
       const editSlug = urlParams.get("edit");
       if (editSlug) {
         setIsLoading(true);
+        setIsEditLoading(true);
         fetch(`/api/funnels?slug=${encodeURIComponent(editSlug)}`)
           .then((res) => {
             if (res.ok) return res.json();
@@ -155,8 +164,14 @@ export default function HomePage() {
               setGeneratedFunnel(data);
             }
           })
-          .catch((err) => console.warn("Erreur chargement projet à éditer:", err))
-          .finally(() => setIsLoading(false));
+          .catch((err) => {
+            console.warn("Erreur chargement projet à éditer:", err);
+            setIsEditLoading(false);
+          })
+          .finally(() => {
+            setIsLoading(false);
+            setIsEditLoading(false);
+          });
       }
     }
   }, []);
@@ -210,6 +225,23 @@ export default function HomePage() {
       setIsLoading(false);
     }
   };
+
+  if (isEditLoading && !generatedFunnel) {
+    return (
+      <div className="min-h-screen bg-[#06080E] text-white flex flex-col items-center justify-center p-6 space-y-4">
+        <div className="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center font-black text-2xl shadow-xl shadow-indigo-600/30 animate-pulse">
+          T
+        </div>
+        <div className="space-y-1 text-center">
+          <h2 className="font-extrabold text-base tracking-tight text-white">
+            Ouverture du Studio Tuneliva...
+          </h2>
+          <p className="text-xs text-slate-400">Chargement de votre tunnel de vente en cours.</p>
+        </div>
+        <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   if (generatedFunnel) {
     return (
@@ -286,7 +318,33 @@ export default function HomePage() {
 
         {/* BARRE DE PROMPT */}
         <div className="w-full max-w-2xl mx-auto space-y-3">
-          <div className="p-2 rounded-3xl bg-slate-900/90 border border-white/15 shadow-2xl backdrop-blur-xl focus-within:border-indigo-500 transition-all space-y-2 text-left">
+          <div className="p-2.5 rounded-3xl bg-slate-900/90 border border-white/15 shadow-2xl backdrop-blur-xl focus-within:border-indigo-500 transition-all space-y-2 text-left">
+            {/* TYPE DE PAGE À CRÉER */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 px-1 text-xs">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider hidden sm:inline mr-1">
+                Type :
+              </span>
+              {[
+                { id: "sales", label: "🚀 Page de Vente", desc: "Landing page haute conversion" },
+                { id: "capture", label: "🧲 Page de Capture", desc: "Opt-in WhatsApp / Email" },
+                { id: "checkout", label: "🛒 Page de Commande", desc: "Paiement direct & COD" },
+                { id: "thank_you", label: "🎉 Remerciement", desc: "Confirmation coursier" },
+              ].map((t) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => setPageType(t.id as FunnelPageType)}
+                  className={`px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer whitespace-nowrap text-xs ${
+                    pageType === t.id
+                      ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30 ring-1 ring-indigo-400"
+                      : "bg-slate-950/80 border border-white/10 text-slate-400 hover:text-white hover:border-white/20"
+                  }`}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+
             <textarea
               rows={3}
               placeholder="Décrivez votre offre (ex: Je vends une montre connectée étanche sport luxe à 25 000 FCFA avec livraison express à Cotonou et paiement à la livraison...)"
