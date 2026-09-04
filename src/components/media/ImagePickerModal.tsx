@@ -9,6 +9,7 @@ import {
   Check,
   Image as ImageIcon,
   FolderOpen,
+  AlertTriangle,
 } from "lucide-react";
 
 interface ImagePickerModalProps {
@@ -17,6 +18,7 @@ interface ImagePickerModalProps {
   onSelectImage: (imageUrl: string) => void;
   currentImage?: string;
   title?: string;
+  aiImagesCount?: number;
 }
 
 interface CuratedStock {
@@ -168,6 +170,7 @@ export function ImagePickerModal({
   onSelectImage,
   currentImage,
   title = "Choisir une Photo Professionnelle",
+  aiImagesCount = 0,
 }: ImagePickerModalProps) {
   const [activeTab, setActiveTab] = useState<"search" | "upload" | "ai" | "url">("search");
   const [searchQuery, setSearchQuery] = useState("");
@@ -175,10 +178,11 @@ export function ImagePickerModal({
   const [customUrl, setCustomUrl] = useState(currentImage || "");
   const [uploadedPreview, setUploadedPreview] = useState<string | null>(null);
 
-  // GÉNÉRATEUR IA GRATUIT (POLLINATIONS.AI - ILLIMITÉ SANS CLÉ)
+  // GÉNÉRATEUR IA GRATUIT (POLLINATIONS.AI - LIMITÉ À 3 PAR PAGE POUR LA LÉGÈRETÉ)
   const [aiPrompt, setAiPrompt] = useState("");
   const [isGeneratingAi, setIsGeneratingAi] = useState(false);
   const [generatedAiUrl, setGeneratedAiUrl] = useState<string | null>(null);
+  const isAiLimitReached = aiImagesCount >= 3;
 
   const handleGenerateAi = () => {
     if (!aiPrompt.trim()) return;
@@ -430,61 +434,99 @@ export function ImagePickerModal({
         {/* CORPS DE L'ONGLET GÉNÉRATEUR IA GRATUIT */}
         {activeTab === "ai" && (
           <div className="flex-1 p-6 sm:p-8 space-y-4 max-w-xl mx-auto w-full overflow-y-auto">
-            <div className="space-y-1.5 text-left">
-              <label className="block text-xs font-bold text-white flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-yellow-400" />
-                <span>Décrivez l'image que vous souhaitez générer par IA :</span>
-              </label>
-              <textarea
-                rows={3}
-                placeholder="Ex: Montre connectée haut de gamme noire étanche posée sur un rocher avec gouttes d'eau et reflets lumineux..."
-                value={aiPrompt}
-                onChange={(e) => setAiPrompt(e.target.value)}
-                className="w-full p-3 rounded-xl bg-slate-950 border border-white/10 text-white text-xs placeholder:text-slate-500 focus:outline-none focus:border-indigo-500"
-              />
+            {/* BADGE QUOTA 3 IMAGES */}
+            <div className="flex items-center justify-between p-3 rounded-xl bg-slate-950 border border-white/10 text-xs">
+              <span className="text-slate-300 font-semibold flex items-center gap-1.5">
+                <Sparkles className="w-4 h-4 text-yellow-400" />
+                <span>Images IA personnalisées :</span>
+              </span>
+              <span className={`px-2.5 py-0.5 rounded-full font-extrabold text-[11px] ${
+                isAiLimitReached ? "bg-rose-500/20 text-rose-400 border border-rose-500/30" : "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30"
+              }`}>
+                {aiImagesCount} / 3 générées
+              </span>
             </div>
 
-            {/* Suggestions rapides */}
-            <div className="space-y-1 text-left">
-              <span className="text-[10px] text-slate-400 font-semibold block">Idées en 1 clic :</span>
-              <div className="flex flex-wrap gap-1.5">
-                {[
-                  "Sérum cosmétique bio flacon doré sur marbre",
-                  "Montre connectée sport étanche sur fond noir",
-                  "Sneakers streetwear blanches et rouges modernes",
-                  "Pot de miel naturel doré avec cuillère en bois",
-                  "Sac à main cuir prestige femme",
-                ].map((sug, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => setAiPrompt(sug)}
-                    className="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 border border-white/5 text-[10px] text-slate-300 hover:text-white transition-colors cursor-pointer"
-                  >
-                    {sug}
-                  </button>
-                ))}
+            {isAiLimitReached ? (
+              <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-left space-y-3">
+                <div className="flex items-center gap-2 text-amber-300 font-bold text-xs sm:text-sm">
+                  <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+                  <span>Limite de 3 images IA sur mesure atteinte pour cette page</span>
+                </div>
+                <p className="text-slate-300 text-xs leading-relaxed">
+                  Pour garantir un affichage instantané sur les réseaux mobiles et préserver la légèreté de votre tunnel de vente, le quota d'images générées par IA est fixé à 3 visuels par page.
+                </p>
+                <p className="text-slate-300 text-xs leading-relaxed">
+                  Pour vos autres produits et sections, utilisez notre vaste banque de photos professionnelles gratuites et libres de droits disponibles en accès illimité !
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("search")}
+                  className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs cursor-pointer flex items-center justify-center gap-2 shadow-lg"
+                >
+                  <FolderOpen className="w-4 h-4" />
+                  <span>Parcourir la Bibliothèque Gratuite Illimitée</span>
+                </button>
               </div>
-            </div>
+            ) : (
+              <>
+                <div className="space-y-1.5 text-left">
+                  <label className="block text-xs font-bold text-white flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-yellow-400" />
+                    <span>Décrivez l'image que vous souhaitez générer par IA :</span>
+                  </label>
+                  <textarea
+                    rows={3}
+                    placeholder="Ex: Montre connectée haut de gamme noire étanche posée sur un rocher avec gouttes d'eau et reflets lumineux..."
+                    value={aiPrompt}
+                    onChange={(e) => setAiPrompt(e.target.value)}
+                    className="w-full p-3 rounded-xl bg-slate-950 border border-white/10 text-white text-xs placeholder:text-slate-500 focus:outline-none focus:border-indigo-500"
+                  />
+                </div>
 
-            <button
-              type="button"
-              onClick={handleGenerateAi}
-              disabled={isGeneratingAi || !aiPrompt.trim()}
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:opacity-95 text-white font-black text-xs shadow-lg flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-            >
-              {isGeneratingAi ? (
-                <>
-                  <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                  <span>Génération par IA en cours (sans frais)...</span>
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-4 h-4 text-yellow-300" />
-                  <span>Générer cette image par IA (100% Gratuit)</span>
-                </>
-              )}
-            </button>
+                {/* Suggestions rapides */}
+                <div className="space-y-1 text-left">
+                  <span className="text-[10px] text-slate-400 font-semibold block">Idées en 1 clic :</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {[
+                      "Sérum cosmétique bio flacon doré sur marbre",
+                      "Montre connectée sport étanche sur fond noir",
+                      "Sneakers streetwear blanches et rouges modernes",
+                      "Pot de miel naturel doré avec cuillère en bois",
+                      "Sac à main cuir prestige femme",
+                    ].map((sug, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setAiPrompt(sug)}
+                        className="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 border border-white/5 text-[10px] text-slate-300 hover:text-white transition-colors cursor-pointer"
+                      >
+                        {sug}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleGenerateAi}
+                  disabled={isGeneratingAi || !aiPrompt.trim()}
+                  className="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:opacity-95 text-white font-black text-xs shadow-lg flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  {isGeneratingAi ? (
+                    <>
+                      <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                      <span>Génération par IA en cours (sans frais)...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4 text-yellow-300" />
+                      <span>Générer cette image par IA (100% Gratuit – {3 - aiImagesCount} restante(s))</span>
+                    </>
+                  )}
+                </button>
+              </>
+            )}
 
             {generatedAiUrl && (
               <div className="space-y-3 pt-2">

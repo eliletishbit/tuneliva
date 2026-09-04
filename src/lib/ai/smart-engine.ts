@@ -361,6 +361,13 @@ function buildEliteDesignFunnel(
           rating: 5,
           comment: "J'ai apprécié de pouvoir vérifier l'article avant de donner l'argent au livreur. Très sérieux !",
         },
+        {
+          id: "r-3",
+          authorName: "Fatou S.",
+          authorLocation: `${city}`,
+          rating: 5,
+          comment: "Excellent rapport qualité/prix et livraison très ponctuelle. Je recommanderai sans hésiter.",
+        },
       ];
 
   const faqItems = Array.isArray(aiData?.faq) && aiData.faq.length > 0
@@ -384,34 +391,211 @@ function buildEliteDesignFunnel(
 
   const presetConfig = DESIGN_PRESETS[preset].theme;
 
-  return {
-    projectName: productName,
-    slug: "offre-speciale",
-    pageType,
-    metaTitle: `${productName} | Édition Officielle 2026`,
-    metaDescription: `${headline}. Livraison express à ${city} et paiement sécurisé à la livraison.`,
-    branding: {
-      businessName: productName,
-      tagline: "Qualité Certifiée & Service d'Excellence",
-      whatsappNumber: "+22997000000",
-      phone: "+229 01 53 29 52 82",
-      socialLinks: {
-        whatsapp: "https://wa.me/22997000000",
-        facebook: "https://facebook.com",
-        instagram: "https://instagram.com",
+  let sections: FunnelSection[] = [];
+
+  if (pageType === "capture") {
+    sections = [
+      {
+        id: "hero-1",
+        type: "hero",
+        badgeText: "🎁 ACCÈS IMMÉDIAT & CADEAU EXCLUSIF",
+        title: `Guide & Conseils VIP : Réussissez avec ${productName}`,
+        subtitle: `Téléchargez gratuitement votre guide pratique et recevez nos conseils d'experts directement par WhatsApp et Email.`,
+        ctaText: "RECEVOIR MON CADEAU GRATUIT",
+        ctaSubtext: "🔒 Zéro spam • Vos coordonnées restent 100% confidentielles",
+        imageUrl: stockImage,
+        trustPoints: [
+          "Accès immédiat par WhatsApp en 30s",
+          "100% gratuit et sans engagement",
+          "Déjà plus de 2 500 membres actifs",
+        ],
       },
-      address: {
-        city,
-        country: "Bénin",
-        fullAddress: `Centre Commercial, Haie Vive, ${city}`,
-        serviceZone: `Zone d'intervention : ${city}, Calavi, Porto-Novo et environs`,
+      {
+        id: "capture-1",
+        type: "capture_form",
+        badgeText: "⚡ INSCRIPTION EN 1 CLIC",
+        title: "Où devons-nous vous envoyer votre accès ?",
+        subtitle: "Remplissez ce court formulaire pour recevoir votre cadeau par WhatsApp et par Email :",
+        buttonText: "ACCÉDER MAINTENANT",
+        collectName: true,
+        collectPhone: true,
+        collectEmail: true,
       },
-    },
-    theme: {
-      preset,
-      ...presetConfig,
-    },
-    sections: [
+      {
+        id: "floating-1",
+        type: "floating_cards",
+        cards: [
+          {
+            id: "c-1",
+            icon: "timer",
+            title: "Réception Express",
+            description: "Votre lien de téléchargement vous est envoyé en moins de 30 secondes.",
+          },
+          {
+            id: "c-2",
+            icon: "shield",
+            title: "100% Sécurisé",
+            description: "Nous respectons votre vie privée : aucun spam ne vous sera jamais envoyé.",
+          },
+          {
+            id: "c-3",
+            icon: "check",
+            title: "Méthodes Validées",
+            description: "Des astuces concrètes et éprouvées directement applicables dès aujourd'hui.",
+          },
+        ],
+      },
+      {
+        id: "faq-1",
+        type: "faq",
+        badgeText: "❓ QUESTIONS FRÉQUENTES",
+        title: "Tout ce que vous devez savoir",
+        subtitle: "Vos réponses en toute transparence :",
+        items: [
+          {
+            id: "q-1",
+            question: "Est-ce réellement 100% gratuit ?",
+            answer: "Oui, absolument gratuit ! Aucun numéro de carte bancaire n'est requis. Nous vous envoyons directement le contenu par WhatsApp ou Email.",
+          },
+          {
+            id: "q-2",
+            question: "Quand vais-je recevoir mon cadeau ?",
+            answer: "Instantanément après avoir validé le formulaire ci-dessus, notre système automatique vous transmet votre lien d'accès direct.",
+          },
+        ],
+      },
+    ];
+  } else if (pageType === "checkout") {
+    sections = [
+      {
+        id: "hero-1",
+        type: "hero",
+        badgeText: "🔐 FINALISATION DE COMMANDE SÉCURISÉE",
+        title: `Votre commande de ${productName} est prête`,
+        subtitle: `Complétez votre adresse de livraison ci-dessous. Aucun prépaiement obligatoire : vérifiez votre colis avant tout règlement !`,
+        ctaText: "PASSER DIRECTEMENT AU FORMULAIRE",
+        ctaSubtext: `📦 Livraison express 24h à ${city} • Paiement à la réception ou Mobile Money`,
+        imageUrl: stockImage,
+        trustPoints: [
+          "Paiement à la livraison après vérification",
+          "Expédition express sous 24h",
+          "Garantie satisfait ou remboursé 30 jours",
+        ],
+      },
+      {
+        id: "pricing-1",
+        type: "pricing",
+        badgeText: "TARIF PROMOTIONNEL GARANTI",
+        title: "Récapitulatif de Votre Commande",
+        subtitle: "Bénéficiez du tarif réduit garanti avant épuisement du stock :",
+        offer: {
+          id: "offer-1",
+          name: `${productName} – Édition Officielle 2026`,
+          salePrice,
+          regularPrice,
+          currency,
+          features: [
+            "Produit 100% certifié conforme",
+            "Garantie satisfait ou remboursé 30j",
+            "Assistance client dédiée 7j/7",
+          ],
+          stockLeft: 4,
+        },
+        guaranteeText: "Garantie 30 jours satisfait ou remboursé sans aucun justificatif",
+      },
+      {
+        id: "order-1",
+        type: "order_form",
+        title: "Où devons-nous vous livrer ?",
+        subtitle: "Remplissez simplement votre nom, téléphone et ville pour recevoir votre colis sous 24h :",
+        whatsappEnabled: true,
+        whatsappNumber: "+22997000000",
+        codEnabled: true,
+        onlinePaymentEnabled: true,
+        cities: [city, "Communes et environs", "Autre ville"],
+      },
+      {
+        id: "floating-1",
+        type: "floating_cards",
+        cards: [
+          {
+            id: "c-1",
+            icon: "check",
+            title: "Contrôle à la Réception",
+            description: "Vous ouvrez le paquet et contrôlez le produit avant de remettre l'argent au livreur.",
+          },
+          {
+            id: "c-2",
+            icon: "timer",
+            title: "Livreur Dédié",
+            description: `Le coursier vous appelle avant de passer à ${city} pour convenir de l'heure exacte.`,
+          },
+          {
+            id: "c-3",
+            icon: "shield",
+            title: "Zéro Risque",
+            description: "Si le produit ne vous convient pas, vous refusez la livraison sans payer un seul centime.",
+          },
+        ],
+      },
+    ];
+  } else if (pageType === "thank_you") {
+    sections = [
+      {
+        id: "hero-1",
+        type: "hero",
+        badgeText: "🎉 COMMANDE ENREGISTRÉE AVEC SUCCÈS",
+        title: "Merci pour votre confiance !",
+        subtitle: `Votre commande de ${productName} a bien été prise en compte par notre équipe logistique à ${city}.`,
+        ctaText: "REJOINDRE NOTRE WHATSAPP VIP",
+        ctaSubtext: "📱 Assistance dédiée et suivi de votre colis en direct",
+        imageUrl: stockImage,
+        trustPoints: [
+          "Numéro de suivi enregistré",
+          "Colis en cours de préparation",
+          "Paiement à la réception du colis",
+        ],
+      },
+      {
+        id: "steps-1",
+        type: "steps",
+        badgeText: "PROCHAINES ÉTAPES",
+        title: "Comment va se passer la livraison ?",
+        subtitle: "Voici les 3 étapes pour recevoir votre colis en main propre :",
+        items: [
+          {
+            id: "st-1",
+            stepNumber: 1,
+            title: "Préparation soignée",
+            description: "Votre article est contrôlé et emballé dans un carton sécurisé et discret.",
+          },
+          {
+            id: "st-2",
+            stepNumber: 2,
+            title: "Appel du livreur",
+            description: "Notre livreur vous appellera par téléphone ou WhatsApp pour convenir de l'heure exacte.",
+          },
+          {
+            id: "st-3",
+            stepNumber: 3,
+            title: "Vérification & Règlement",
+            description: "Vous déballez votre commande, vérifiez sa conformité et payez en espèces ou Mobile Money.",
+          },
+        ],
+      },
+      {
+        id: "reviews-1",
+        type: "social_proof",
+        badgeText: "💬 LA COMMUNAUTÉ VOUS RASSURE",
+        title: "Vous êtes entre de très bonnes mains",
+        ratingAverage: 5,
+        totalReviewsText: "5/5 étoiles sur plus de 350 avis",
+        items: reviewsItems,
+      },
+    ];
+  } else {
+    // SALES (Landing page complète haute conversion)
+    sections = [
       // 1. HERO SECTION AVEC UN VRAI TITRE VENDEUR (PAS LE TEXTE DU PROMPT)
       {
         id: "hero-1",
@@ -478,24 +662,24 @@ function buildEliteDesignFunnel(
       {
         id: "steps-1",
         type: "steps",
-        badgeText: "PROCESSUS SIMPLE",
-        title: "Comment ça marche ?",
-        subtitle: "3 étapes rapides pour recevoir votre colis en toute sérénité :",
+        badgeText: "SIMPLE & SÉCURISÉ",
+        title: "Comment commander ?",
+        subtitle: "3 étapes rapides pour recevoir votre colis chez vous :",
         items: [
           {
-            id: "step-1",
+            id: "s-1",
             stepNumber: 1,
-            title: "Commande ou WhatsApp",
-            description: "Remplissez le formulaire en 30 secondes ou cliquez pour échanger sur WhatsApp.",
+            title: "Remplissez le formulaire",
+            description: "Indiquez votre nom, numéro WhatsApp et lieu de livraison.",
           },
           {
-            id: "step-2",
+            id: "s-2",
             stepNumber: 2,
-            title: "Confirmation & Expédition",
-            description: "Notre équipe vous appelle pour valider le lieu et l'heure exacte de livraison.",
+            title: "Confirmation d'Expédition",
+            description: "Notre livreur vous contacte rapidement pour planifier l'heure de passage.",
           },
           {
-            id: "step-3",
+            id: "s-3",
             stepNumber: 3,
             title: "Contrôle & Règlement en Espèces",
             description: "Vous recevez votre produit, vous vérifiez et vous payez en toute sécurité.",
@@ -509,7 +693,7 @@ function buildEliteDesignFunnel(
         type: "service_area",
         title: "Notre zone de livraison & d'intervention",
         subtitle: "Zone de couverture garantie avec expédition suivie",
-        zoneText: `${city}, Calavi, Porto-Novo et communes environnantes`,
+        zoneText: `${city}, communes et environs immédiats`,
         mapImageUrl: "https://images.unsplash.com/photo-1524661135-423995f22d0b?w=1000&auto=format&fit=crop&q=80",
       },
 
@@ -534,7 +718,7 @@ function buildEliteDesignFunnel(
         whatsappNumber: "+22997000000",
         codEnabled: true,
         onlinePaymentEnabled: true,
-        cities: [city, "Calavi", "Porto-Novo", "Autre"],
+        cities: [city, "Communes et environs", "Autre ville"],
       },
 
       // 9. FAQ ACCORDÉON
@@ -546,6 +730,36 @@ function buildEliteDesignFunnel(
         subtitle: "Toutes les réponses à vos questions en toute transparence :",
         items: faqItems,
       },
-    ],
+    ];
+  }
+
+  return {
+    projectName: productName,
+    slug: "offre-speciale",
+    pageType,
+    metaTitle: `${productName} | Édition Officielle 2026`,
+    metaDescription: `${headline}. Livraison express à ${city} et paiement sécurisé à la livraison.`,
+    branding: {
+      businessName: productName,
+      tagline: "Qualité Certifiée & Service d'Excellence",
+      whatsappNumber: "+22997000000",
+      phone: "+229 01 53 29 52 82",
+      socialLinks: {
+        whatsapp: "https://wa.me/22997000000",
+        facebook: "https://facebook.com",
+        instagram: "https://instagram.com",
+      },
+      address: {
+        city,
+        country: "Bénin",
+        fullAddress: `Centre Commercial, Haie Vive, ${city}`,
+        serviceZone: `Zone d'intervention : ${city}, Calavi, Porto-Novo et environs`,
+      },
+    },
+    theme: {
+      preset,
+      ...presetConfig,
+    },
+    sections,
   };
 }
