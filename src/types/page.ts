@@ -62,7 +62,9 @@ export interface BrandingConfig {
   phone?: string;
   whatsappNumber?: string;
   headerLayout?: "standard" | "centered" | "minimal";
+  headerVariant?: "classic" | "centered_minimal" | "split_banner" | "floating_pill";
   footerBgColor?: string;
+  footerVariant?: "modern_3cols" | "centered_luxury" | "compact_reassurance";
   socialLinks?: {
     whatsapp?: string;
     instagram?: string;
@@ -149,6 +151,7 @@ export interface ProductItem {
   features: string[];
   variants?: ProductVariant[];
   selectedVariant?: Record<string, string>;
+  variantImages?: Record<string, string>; // Image par option de variante (ex: { "Or": "url1", "Argent": "url2" })
   detailsHtml?: string;
   stockQty?: number;
 }
@@ -267,7 +270,10 @@ export interface OrderFormConfig extends BaseSectionProps {
   whatsappEnabled: boolean;
   whatsappNumber: string;
   codEnabled: boolean;
-  onlinePaymentEnabled: boolean;
+  momoEnabled?: boolean;
+  cardEnabled?: boolean;
+  onlinePaymentEnabled?: boolean;
+  allowedPaymentMethods?: ("cod" | "momo" | "card")[];
   cities: string[];
 }
 

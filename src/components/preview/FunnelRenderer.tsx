@@ -49,6 +49,9 @@ import {
   Package,
   Video,
   GripVertical,
+  Plus,
+  CreditCard,
+  Wallet,
 } from "lucide-react";
 
 interface FunnelRendererProps {
@@ -65,6 +68,7 @@ interface FunnelRendererProps {
   onOpenSettings?: () => void;
   onOpenImagePicker?: (targetSectionId: string, itemIndex?: number) => void;
   onSwitchStep?: (targetStepIdOrSlug: string) => void;
+  onInsertWidget?: (widgetId: string, atIndex: number) => void;
 }
 
 // Convertisseur intelligent d'URLs vidéo
@@ -220,6 +224,62 @@ function CardReorderToolbar({
   );
 }
 
+function CanvasDropZone({
+  index,
+  onDropWidget,
+  isEditable,
+  primaryColor,
+}: {
+  index: number;
+  onDropWidget?: (widgetId: string, atIndex: number) => void;
+  isEditable?: boolean;
+  primaryColor: string;
+}) {
+  const [isOver, setIsOver] = useState(false);
+  if (!isEditable) return null;
+
+  return (
+    <div
+      onDragOver={(e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "copy";
+        if (!isOver) setIsOver(true);
+      }}
+      onDragLeave={() => setIsOver(false)}
+      onDrop={(e) => {
+        e.preventDefault();
+        setIsOver(false);
+        const widgetId =
+          e.dataTransfer.getData("application/tuneliva-widget") ||
+          e.dataTransfer.getData("text/plain");
+        if (widgetId && onDropWidget) {
+          onDropWidget(widgetId, index);
+        }
+      }}
+      className={`transition-all duration-200 flex items-center justify-center my-1 rounded-2xl ${
+        isOver
+          ? "py-4 border-2 border-dashed shadow-xl scale-[1.01]"
+          : "py-1 opacity-0 hover:opacity-100 hover:py-2.5"
+      }`}
+      style={{
+        borderColor: isOver ? primaryColor : "rgba(255,255,255,0.2)",
+        backgroundColor: isOver ? `${primaryColor}18` : "transparent",
+      }}
+    >
+      <div
+        className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold shadow-sm"
+        style={{
+          backgroundColor: isOver ? primaryColor : "rgba(15,23,42,0.9)",
+          color: "#ffffff",
+        }}
+      >
+        <Plus className="w-3.5 h-3.5" />
+        <span>{isOver ? `Déposer le widget ici (Position ${index + 1})` : "Glisser un widget ici"}</span>
+      </div>
+    </div>
+  );
+}
+
 export function FunnelRenderer({
   data,
   isEditable = false,
@@ -234,11 +294,19 @@ export function FunnelRenderer({
   onOpenSettings,
   onOpenImagePicker,
   onSwitchStep,
+  onInsertWidget,
 }: FunnelRendererProps) {
   const { theme, branding, sections } = data;
   const isDark = theme.isDarkTheme;
   const [openFaqId, setOpenFaqId] = useState<string | null>(null);
   const [detailModalProduct, setDetailModalProduct] = useState<ProductItem | null>(null);
+  const [modalSelectedVariant, setModalSelectedVariant] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (detailModalProduct) {
+      setModalSelectedVariant(detailModalProduct.selectedVariant || {});
+    }
+  }, [detailModalProduct]);
 
   // État de glisser-déposer de sections
   const [draggedSectionIdx, setDraggedSectionIdx] = useState<number | null>(null);
@@ -278,6 +346,11 @@ export function FunnelRenderer({
   const headingClass = isDark ? "text-white" : "text-slate-950 font-black";
   const mutedTextClass = isDark ? "text-slate-400" : "text-slate-600";
 
+  const bgStyle: React.CSSProperties = {
+    backgroundColor: theme.pageBackground || (isDark ? "#07080D" : "#FFFFFF"),
+    fontFamily: theme.fontFamily ? `${theme.fontFamily}, sans-serif` : undefined,
+  };
+
   // Formulaire de commande
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
@@ -300,7 +373,20 @@ export function FunnelRenderer({
     return `${amount} ${curr}`;
   };
 
+  // Moyens de paiement et données de transaction
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<"cod" | "momo" | "card">("cod");
+  const [selectedMomoOperator, setSelectedMomoOperator] = useState<string>("Wave");
+  const [momoPhone, setMomoPhone] = useState("");
+  const [cardHolder, setCardHolder] = useState("");
+  const [cardNumber, setCardNumber] = useState("");
+  const [cardExpiry, setCardExpiry] = useState("");
+  const [cardCvc, setCardCvc] = useState("");
+
   const handleCodSubmit = (e: React.FormEvent) => {
+    handlePaymentSubmit(e, "cod");
+  };
+
+  const handlePaymentSubmit = (e: React.FormEvent, method: "cod" | "momo" | "card") => {
     e.preventDefault();
     if (!customerName || !customerPhone) {
       alert("Veuillez renseigner votre nom et votre numéro de téléphone.");
@@ -319,10 +405,16 @@ export function FunnelRenderer({
           productName: data.projectName,
           amount: currentPrice,
           currency,
-          paymentMethod: "cod",
+          paymentMethod: method,
+          paymentDetails:
+            method === "momo"
+              ? { operator: selectedMomoOperator, phone: momoPhone || customerPhone }
+              : method === "card"
+              ? { cardHolder, last4: cardNumber.slice(-4) || "4242" }
+              : undefined,
         });
       }
-    }, 800);
+    }, 850);
   };
 
   const handleWhatsAppClick = (whatsappNumber: string) => {
@@ -336,10 +428,547 @@ export function FunnelRenderer({
     window.open(`https://wa.me/${cleanNumber}?text=${message}`, "_blank");
   };
 
-  const bgStyle = {
-    backgroundColor: theme.pageBackground || (isDark ? "#07080D" : "#F8FAFC"),
-    color: theme.textColor || (isDark ? "#F8FAFC" : "#0F172A"),
-    fontFamily: theme.fontFamily,
+  const renderHeader = () => {
+    const variant = branding?.headerVariant || "classic";
+
+    if (variant === "centered_minimal") {
+      return (
+        <header
+          className={`border-b backdrop-blur-md px-4 sm:px-8 py-4 sm:py-5 max-w-6xl mx-auto w-full transition-all ${
+            isDark ? "bg-[#07080D]/95 text-white" : "bg-white/95 text-slate-900 shadow-sm"
+          }`}
+          style={{
+            borderColor: `${theme.primaryColor}25`,
+            borderBottomWidth: "1.5px",
+          }}
+        >
+          <div className="flex items-center justify-between gap-4">
+            {/* Gauche: Assurance discrète */}
+            <div className="hidden sm:flex items-center gap-2 text-xs font-semibold text-slate-400">
+              <ShieldCheck className="w-4 h-4" style={{ color: theme.primaryColor }} />
+              <span>Garantie Qualité & Authenticité</span>
+            </div>
+
+            {/* Centre: Logo & Marque centré luxe */}
+            <div className="flex flex-col items-center justify-center text-center mx-auto">
+              {branding?.logoUrl ? (
+                <img
+                  src={branding.logoUrl}
+                  alt={branding.businessName}
+                  className="h-10 sm:h-12 w-auto object-contain rounded-xl shadow-md mb-1"
+                />
+              ) : (
+                <div
+                  className="w-10 sm:w-12 h-10 sm:h-12 rounded-2xl flex items-center justify-center text-white font-black text-sm sm:text-base shadow-lg mb-1 ring-4 ring-offset-2 ring-offset-black/50"
+                  style={{
+                    backgroundColor: theme.primaryColor,
+                    boxShadow: `0 0 20px ${theme.primaryColor}40`,
+                  }}
+                >
+                  {(branding?.businessName || data.projectName || "T").slice(0, 2).toUpperCase()}
+                </div>
+              )}
+              <span className={`font-black text-sm sm:text-lg tracking-widest uppercase block ${headingClass}`}>
+                {branding?.businessName || data.projectName}
+              </span>
+              {branding?.tagline && (
+                <span className={`text-[10px] sm:text-xs tracking-wider block text-slate-400 font-medium`}>
+                  {branding.tagline}
+                </span>
+              )}
+            </div>
+
+            {/* Droite: Contact WhatsApp */}
+            <div className="shrink-0">
+              {branding?.whatsappNumber ? (
+                <button
+                  onClick={() => handleWhatsAppClick(branding.whatsappNumber!)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#25D366] hover:bg-[#20ba59] text-white text-xs font-bold shadow-md transition-transform hover:scale-105 cursor-pointer"
+                >
+                  <MessageCircle className="w-3.5 h-3.5 fill-white" />
+                  <span className={isMobile ? "hidden" : "inline"}>Service Client</span>
+                </button>
+              ) : branding?.phone ? (
+                <a
+                  href={`tel:${branding.phone}`}
+                  className="flex items-center gap-1.5 text-xs font-bold hover:underline"
+                  style={{ color: theme.primaryColor }}
+                >
+                  <Phone className="w-3.5 h-3.5" />
+                  <span>{branding.phone}</span>
+                </a>
+              ) : null}
+            </div>
+          </div>
+        </header>
+      );
+    }
+
+    if (variant === "split_banner") {
+      return (
+        <div className="w-full">
+          {/* Top Urgency Flash Bar */}
+          <div
+            className="px-3 sm:px-6 py-2 text-xs font-black text-white flex flex-wrap items-center justify-between gap-2 shadow-md"
+            style={{ backgroundColor: theme.primaryColor }}
+          >
+            <div className="flex items-center gap-2 max-w-6xl mx-auto w-full justify-between">
+              <div className="flex items-center gap-2">
+                <Flame className="w-4 h-4 text-amber-300 animate-pulse" />
+                <span className="tracking-wide uppercase text-[11px] sm:text-xs">
+                  {theme.bannerUrgencyText || "⚡ Vente Flash Exclusive • Stock Limité • Expédition Immédiate"}
+                </span>
+              </div>
+              <div className="hidden sm:flex items-center gap-1.5 bg-black/30 px-2.5 py-0.5 rounded-full text-[11px] font-mono">
+                <Timer className="w-3 h-3" />
+                <span>Offre expire dans {formatCountdown(secondsLeft)}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Main Header */}
+          <header
+            className={`border-b px-3 sm:px-8 py-3 flex items-center justify-between max-w-6xl mx-auto w-full transition-colors ${
+              isDark ? "bg-[#07080D]/90 text-white" : "bg-white/95 text-slate-900 shadow-sm"
+            }`}
+            style={{ borderColor: `${theme.primaryColor}30` }}
+          >
+            <div className="flex items-center gap-3">
+              {branding?.logoUrl ? (
+                <img
+                  src={branding.logoUrl}
+                  alt={branding.businessName}
+                  className="h-8 sm:h-10 w-auto object-contain rounded-lg"
+                />
+              ) : (
+                <div
+                  className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-extrabold text-xs shadow-md shrink-0"
+                  style={{ backgroundColor: theme.primaryColor }}
+                >
+                  {(branding?.businessName || data.projectName || "T").slice(0, 2).toUpperCase()}
+                </div>
+              )}
+              <div>
+                <span className={`font-black text-sm sm:text-base block truncate ${headingClass}`}>
+                  {branding?.businessName || data.projectName}
+                </span>
+                <span className="text-[10px] sm:text-xs text-emerald-400 font-semibold flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                  <span>Boutique certifiée 2026</span>
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div className="hidden md:flex items-center gap-2 text-xs text-slate-400 bg-slate-900/60 px-3 py-1 rounded-xl border border-white/5">
+                <Truck className="w-3.5 h-3.5 text-amber-400" />
+                <span>Expédition suivie 24h</span>
+              </div>
+              {branding?.whatsappNumber && (
+                <button
+                  onClick={() => handleWhatsAppClick(branding.whatsappNumber!)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-white text-xs font-bold shadow-md transition-all cursor-pointer"
+                >
+                  <MessageCircle className="w-3.5 h-3.5 fill-white" />
+                  <span className={isMobile ? "hidden" : "inline"}>WhatsApp Direct</span>
+                </button>
+              )}
+            </div>
+          </header>
+        </div>
+      );
+    }
+
+    if (variant === "floating_pill") {
+      return (
+        <div className="sticky top-2 z-40 px-3 sm:px-6 w-full max-w-5xl mx-auto py-2">
+          <header
+            className={`rounded-full border backdrop-blur-xl px-4 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between gap-3 shadow-2xl transition-all ${
+              isDark ? "bg-slate-950/85 text-white border-white/15" : "bg-white/90 text-slate-900 border-slate-200/90 shadow-slate-300/40"
+            }`}
+            style={{
+              boxShadow: `0 8px 30px ${theme.primaryColor}20`,
+            }}
+          >
+            <div className="flex items-center gap-2.5 truncate">
+              {branding?.logoUrl ? (
+                <img
+                  src={branding.logoUrl}
+                  alt={branding.businessName}
+                  className="h-7 sm:h-8 w-auto object-contain rounded-full"
+                />
+              ) : (
+                <div
+                  className="w-7 sm:h-8 w-7 sm:w-8 rounded-full flex items-center justify-center text-white font-black text-xs shrink-0"
+                  style={{ backgroundColor: theme.primaryColor }}
+                >
+                  {(branding?.businessName || data.projectName || "T").slice(0, 2).toUpperCase()}
+                </div>
+              )}
+              <span className={`font-black text-xs sm:text-sm truncate ${headingClass}`}>
+                {branding?.businessName || data.projectName}
+              </span>
+            </div>
+
+            <div className="hidden md:flex items-center gap-2 text-xs font-medium text-slate-400">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span>Livraison 24h & Paiement à la réception</span>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <a
+                href="#commander"
+                className="px-3.5 py-1.5 rounded-full text-white text-xs font-bold shadow-md transition-transform hover:scale-105"
+                style={{ backgroundColor: theme.primaryColor }}
+              >
+                Commander
+              </a>
+              {branding?.whatsappNumber && (
+                <button
+                  onClick={() => handleWhatsAppClick(branding.whatsappNumber!)}
+                  className="p-2 rounded-full bg-[#25D366] text-white hover:bg-[#20ba59] transition-all cursor-pointer"
+                  title="WhatsApp direct"
+                >
+                  <MessageCircle className="w-3.5 h-3.5 fill-white" />
+                </button>
+              )}
+            </div>
+          </header>
+        </div>
+      );
+    }
+
+    // Default "classic"
+    return (
+      <div className="w-full">
+        <div
+          className={`px-3 sm:px-8 py-1.5 sm:py-2 border-b text-[11px] sm:text-xs flex flex-wrap items-center justify-between gap-2 max-w-6xl mx-auto w-full transition-colors ${
+            isDark ? "text-slate-300" : "text-slate-700"
+          }`}
+          style={{
+            backgroundColor: isDark ? `${theme.primaryColor}18` : `${theme.primaryColor}0A`,
+            borderColor: `${theme.primaryColor}30`,
+          }}
+        >
+          <div className="flex items-center gap-1.5 sm:gap-2 font-medium">
+            <Clock className="w-3 sm:w-3.5 h-3 sm:h-3.5 shrink-0" style={{ color: theme.primaryColor }} />
+            <span className="truncate">Livraison 24h • Paiement à la réception ou Mobile Money</span>
+          </div>
+          {branding?.phone && (
+            <a
+              href={`tel:${branding.phone}`}
+              className="flex items-center gap-1.5 font-bold hover:underline"
+              style={{ color: theme.primaryColor }}
+            >
+              <Phone className="w-3 sm:w-3.5 h-3 sm:h-3.5" />
+              <span>{branding.phone}</span>
+            </a>
+          )}
+        </div>
+
+        <header
+          className={`border-b backdrop-blur-md px-3 sm:px-8 py-2.5 sm:py-3.5 flex items-center justify-between max-w-6xl mx-auto w-full transition-colors ${
+            isDark ? "bg-[#07080D]/90" : "bg-white/95 shadow-sm"
+          }`}
+          style={{
+            borderColor: `${theme.primaryColor}25`,
+            borderBottomWidth: "1.5px",
+          }}
+        >
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            {branding?.logoUrl ? (
+              <img
+                src={branding.logoUrl}
+                alt={branding.businessName}
+                className="h-8 sm:h-10 w-auto object-contain rounded-lg shadow-sm"
+              />
+            ) : (
+              <div
+                className="w-8 sm:w-10 h-8 sm:h-10 rounded-xl sm:rounded-2xl flex items-center justify-center text-white font-extrabold text-xs sm:text-sm shadow-md shrink-0"
+                style={{ backgroundColor: theme.primaryColor }}
+              >
+                {(branding?.businessName || data.projectName || "T").slice(0, 2).toUpperCase()}
+              </div>
+            )}
+            <div className="truncate">
+              <span className={`font-extrabold text-xs sm:text-base tracking-tight block truncate ${headingClass}`}>
+                {branding?.businessName || data.projectName}
+              </span>
+              {branding?.tagline && (
+                <span className={`text-[9px] sm:text-xs block -mt-0.5 truncate ${mutedTextClass}`}>
+                  {branding.tagline}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {branding?.whatsappNumber && (
+            <button
+              onClick={() => handleWhatsAppClick(branding.whatsappNumber!)}
+              className="flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-full bg-[#25D366] hover:bg-[#20ba59] text-white text-[11px] sm:text-xs font-bold shadow-md shadow-emerald-900/20 transition-all shrink-0 cursor-pointer"
+            >
+              <MessageCircle className="w-3.5 h-3.5 fill-white" />
+              <span className={isMobile ? "hidden" : "inline"}>WhatsApp Direct</span>
+            </button>
+          )}
+        </header>
+      </div>
+    );
+  };
+
+  const renderFooter = () => {
+    const variant = branding?.footerVariant || "modern_3cols";
+    const footerBg =
+      branding?.footerBgColor ||
+      (isDark ? `${theme.primaryColor}14` : `${theme.primaryColor}08`);
+
+    if (variant === "centered_luxury") {
+      return (
+        <footer
+          className="border-t mt-16 py-10 sm:py-14 px-4 sm:px-8 text-center transition-colors"
+          style={{
+            backgroundColor: footerBg,
+            borderTopColor: `${theme.primaryColor}40`,
+            borderTopWidth: "2px",
+          }}
+        >
+          <div className="max-w-4xl mx-auto space-y-6">
+            {/* Monogramme ou Logo centré */}
+            <div className="flex justify-center">
+              {branding?.logoUrl ? (
+                <img
+                  src={branding.logoUrl}
+                  alt={branding.businessName}
+                  className="h-12 w-auto object-contain rounded-2xl shadow-lg"
+                />
+              ) : (
+                <div
+                  className="w-14 h-14 rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-xl ring-4 ring-offset-2 ring-offset-black/50"
+                  style={{
+                    backgroundColor: theme.primaryColor,
+                    boxShadow: `0 0 25px ${theme.primaryColor}50`,
+                  }}
+                >
+                  {(branding?.businessName || data.projectName || "T").slice(0, 2).toUpperCase()}
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-1.5">
+              <h3 className="font-black text-base sm:text-lg uppercase tracking-widest text-white">
+                {branding?.businessName || data.projectName}
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-400 max-w-lg mx-auto leading-relaxed">
+                {branding?.tagline || "L'excellence au service de votre satisfaction au quotidien."}
+              </p>
+            </div>
+
+            {/* Ruban de 4 badges de réassurance */}
+            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 pt-2">
+              <span className="px-3 py-1 rounded-full bg-slate-900/80 border border-white/10 text-[11px] font-bold text-slate-300 flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                Paiement Sécurisé
+              </span>
+              <span className="px-3 py-1 rounded-full bg-slate-900/80 border border-white/10 text-[11px] font-bold text-slate-300 flex items-center gap-1.5">
+                <Truck className="w-3.5 h-3.5 text-amber-400" />
+                Livraison Rapide 24h
+              </span>
+              <span className="px-3 py-1 rounded-full bg-slate-900/80 border border-white/10 text-[11px] font-bold text-slate-300 flex items-center gap-1.5">
+                <ShieldCheck className="w-3.5 h-3.5 text-indigo-400" />
+                Garantie 30 Jours
+              </span>
+              <span className="px-3 py-1 rounded-full bg-slate-900/80 border border-white/10 text-[11px] font-bold text-slate-300 flex items-center gap-1.5">
+                <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
+                Satisfaction 100%
+              </span>
+            </div>
+
+            {/* Contacts & Adresse */}
+            <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-slate-300 pt-2">
+              {branding?.phone && (
+                <a href={`tel:${branding.phone}`} className="flex items-center gap-1.5 hover:underline font-bold">
+                  <Phone className="w-3.5 h-3.5 text-orange-400" />
+                  <span>{branding.phone}</span>
+                </a>
+              )}
+              {branding?.whatsappNumber && (
+                <button
+                  onClick={() => handleWhatsAppClick(branding.whatsappNumber!)}
+                  className="flex items-center gap-1.5 hover:underline font-bold text-emerald-400 cursor-pointer"
+                >
+                  <MessageCircle className="w-3.5 h-3.5" />
+                  <span>{branding.whatsappNumber}</span>
+                </button>
+              )}
+              {branding?.address && (
+                <div className="flex items-center gap-1.5 text-slate-400">
+                  <MapPin className="w-3.5 h-3.5 text-indigo-400" />
+                  <span>{branding.address.fullAddress || `${branding.address.city}, ${branding.address.country}`}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="border-t border-white/10 pt-6 text-[11px] text-slate-500">
+              <p>© {new Date().getFullYear()} {branding?.businessName || data.projectName}. Tous droits réservés.</p>
+              <p className="mt-1 flex items-center justify-center gap-1">
+                <span>Conçu et propulsé avec rapidité par</span>
+                <span className="font-bold text-indigo-400">Tuneliva</span>
+              </p>
+            </div>
+          </div>
+        </footer>
+      );
+    }
+
+    if (variant === "compact_reassurance") {
+      return (
+        <footer
+          className="border-t mt-16 py-8 px-4 sm:px-8 transition-colors text-slate-300"
+          style={{
+            backgroundColor: footerBg,
+            borderTopColor: `${theme.primaryColor}40`,
+            borderTopWidth: "2px",
+          }}
+        >
+          <div className="max-w-6xl mx-auto space-y-6">
+            {/* Grille de 4 cartes réassurance horizontales */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-left">
+              <div className="p-3 rounded-2xl bg-slate-900/70 border border-white/10 flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-amber-500/20 text-amber-400 shrink-0">
+                  <Truck className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-xs text-white">Livraison 24h</h4>
+                  <p className="text-[10px] text-slate-400">Expédition suivie express</p>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-2xl bg-slate-900/70 border border-white/10 flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-emerald-500/20 text-emerald-400 shrink-0">
+                  <CheckCircle2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-xs text-white">Paiement Réception</h4>
+                  <p className="text-[10px] text-slate-400">Vérifiez avant de régler</p>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-2xl bg-slate-900/70 border border-white/10 flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-indigo-500/20 text-indigo-400 shrink-0">
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-xs text-white">Garantie 30 Jours</h4>
+                  <p className="text-[10px] text-slate-400">Satisfait ou remboursé</p>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-2xl bg-slate-900/70 border border-white/10 flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-emerald-500/20 text-emerald-400 shrink-0">
+                  <MessageCircle className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-xs text-white">Support 7j/7</h4>
+                  <p className="text-[10px] text-slate-400">Assistance WhatsApp</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom copyright line */}
+            <div className="border-t border-white/10 pt-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-slate-400 text-center sm:text-left">
+              <div>
+                <span className="font-bold text-white">{branding?.businessName || data.projectName}</span>
+                {branding?.address && (
+                  <span className="ml-2">({branding.address.city}, {branding.address.country})</span>
+                )}
+                <span className="ml-2">• © {new Date().getFullYear()} Tous droits réservés</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span>Propulsé par</span>
+                <span className="font-bold text-indigo-400">Tuneliva</span>
+              </div>
+            </div>
+          </div>
+        </footer>
+      );
+    }
+
+    // Default "modern_3cols"
+    return (
+      <footer
+        className={`border-t mt-16 py-8 sm:py-12 px-4 sm:px-6 text-[11px] sm:text-xs transition-colors ${
+          branding?.footerBgColor
+            ? ""
+            : isDark
+            ? "text-slate-300"
+            : "text-slate-700 shadow-inner"
+        }`}
+        style={{
+          backgroundColor: footerBg,
+          borderTopColor: `${theme.primaryColor}40`,
+          borderTopWidth: "2px",
+        }}
+      >
+        <div className={`max-w-6xl mx-auto grid ${grid3Cols} gap-6 sm:gap-8 text-left`}>
+          <div className="space-y-3">
+            <h3 className="font-extrabold text-white text-sm sm:text-base">
+              {branding?.businessName || data.projectName}
+            </h3>
+            <p className="text-slate-400 leading-relaxed text-xs">
+              {branding?.tagline || "Votre satisfaction et la qualité supérieure sont nos priorités absolues."}
+            </p>
+            {branding?.address && (
+              <div className="flex items-center gap-1.5 text-slate-400">
+                <MapPin className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+                <span>{branding.address.fullAddress || `${branding.address.city}, ${branding.address.country}`}</span>
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-2.5">
+            <h4 className="font-bold text-white uppercase tracking-wider text-[11px]">Garanties & Confiance</h4>
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <span>Paiement sécurisé à la livraison ou Mobile Money</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+                <span>Garantie Satisfait ou Remboursé 30j</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Truck className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                <span>Expédition express suivie sous 24h</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <h4 className="font-bold text-white uppercase tracking-wider text-[11px]">Assistance Client</h4>
+            {branding?.phone && (
+              <div className="flex items-center gap-2 text-white font-semibold">
+                <Phone className="w-3.5 h-3.5 text-orange-400" />
+                <span>{branding.phone}</span>
+              </div>
+            )}
+            {branding?.whatsappNumber && (
+              <div className="flex items-center gap-2 text-emerald-400 font-semibold">
+                <MessageCircle className="w-3.5 h-3.5" />
+                <span>{branding.whatsappNumber}</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="border-t border-white/10 mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-center">
+          <p>© {new Date().getFullYear()} {branding?.businessName || data.projectName}. Tous droits réservés.</p>
+          <p className="flex items-center justify-center gap-1.5">
+            <span>Propulsé avec rapidité par</span>
+            <span className="font-bold text-indigo-400">Tuneliva</span>
+          </p>
+        </div>
+      </footer>
+    );
   };
 
   return (
@@ -370,84 +999,18 @@ export function FunnelRenderer({
         </div>
       )}
 
-      {/* 2. TOP BAR SERVICES & PAIEMENTS */}
-      <div
-        className={`px-3 sm:px-8 py-1.5 sm:py-2 border-b text-[11px] sm:text-xs flex flex-wrap items-center justify-between gap-2 max-w-6xl mx-auto w-full transition-colors ${
-          isDark
-            ? "text-slate-300"
-            : "text-slate-700"
-        }`}
-        style={{
-          backgroundColor: isDark ? `${theme.primaryColor}18` : `${theme.primaryColor}0A`,
-          borderColor: `${theme.primaryColor}30`,
-        }}
-      >
-        <div className="flex items-center gap-1.5 sm:gap-2 font-medium">
-          <Clock className="w-3 sm:w-3.5 h-3 sm:h-3.5 shrink-0" style={{ color: theme.primaryColor }} />
-          <span className="truncate">Livraison 24h • Paiement à la réception ou MoMo</span>
-        </div>
-        {branding?.phone && (
-          <a
-            href={`tel:${branding.phone}`}
-            className="flex items-center gap-1.5 font-bold hover:underline"
-            style={{ color: theme.primaryColor }}
-          >
-            <Phone className="w-3 sm:w-3.5 h-3 sm:h-3.5" />
-            <span>{branding.phone}</span>
-          </a>
-        )}
-      </div>
+      {/* 2 & 3. EN-TÊTE DU SITE / TUNNEL (AVEC 4 VARIATIONS VISUELLES) */}
+      {renderHeader()}
 
-      {/* 3. HEADER DE MARQUE */}
-      <header
-        className={`border-b backdrop-blur-md px-3 sm:px-8 py-2.5 sm:py-3.5 flex items-center justify-between max-w-6xl mx-auto w-full transition-colors ${
-          isDark ? "bg-[#07080D]/90" : "bg-white/95 shadow-sm"
-        }`}
-        style={{
-          borderColor: `${theme.primaryColor}25`,
-          borderBottomWidth: "1.5px",
-        }}
-      >
-        <div className="flex items-center gap-2.5 sm:gap-3">
-          {branding?.logoUrl ? (
-            <img
-              src={branding.logoUrl}
-              alt={branding.businessName}
-              className="h-8 sm:h-10 w-auto object-contain rounded-lg shadow-sm"
-            />
-          ) : (
-            <div
-              className="w-8 sm:w-10 h-8 sm:h-10 rounded-xl sm:rounded-2xl flex items-center justify-center text-white font-extrabold text-xs sm:text-sm shadow-md shrink-0"
-              style={{ backgroundColor: theme.primaryColor }}
-            >
-              {(branding?.businessName || data.projectName || "T").slice(0, 2).toUpperCase()}
-            </div>
-          )}
-          <div className="truncate">
-            <span className={`font-extrabold text-xs sm:text-base tracking-tight block truncate ${headingClass}`}>
-              {branding?.businessName || data.projectName}
-            </span>
-            {branding?.tagline && (
-              <span className={`text-[9px] sm:text-xs block -mt-0.5 truncate ${mutedTextClass}`}>
-                {branding.tagline}
-              </span>
-            )}
-          </div>
-        </div>
-
-        {branding?.whatsappNumber && (
-          <button
-            onClick={() => handleWhatsAppClick(branding.whatsappNumber!)}
-            className="flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-full bg-[#25D366] hover:bg-[#20ba59] text-white text-[11px] sm:text-xs font-bold shadow-md shadow-emerald-900/20 transition-all shrink-0 cursor-pointer"
-          >
-            <MessageCircle className="w-3.5 sm:w-4 h-3.5 sm:h-4 fill-white" />
-            <span className={isMobile ? "hidden" : "inline"}>WhatsApp Direct</span>
-          </button>
-        )}
-      </header>
-
-      {/* 4. CORPS DU TUNNEL (AVEC DRAG & DROP DES SECTIONS) */}
+      {/* 4. CORPS DU TUNNEL (AVEC DRAG & DROP DES SECTIONS ET DROP ZONES) */}
       <main className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-6 sm:py-10 space-y-10 sm:space-y-14 overflow-x-clip w-full box-border">
+        {/* Drop Zone tout en haut de la page */}
+        <CanvasDropZone
+          index={0}
+          onDropWidget={onInsertWidget}
+          isEditable={isEditable}
+          primaryColor={theme.primaryColor}
+        />
 
         {sections.map((section, idx) => {
           const isSelected = selectedSectionId === section.id;
@@ -684,88 +1247,37 @@ export function FunnelRenderer({
                 setDetailModalProduct,
                 isEditable,
                 isSectionSelected: isSelected,
+                handlePaymentSubmit,
+                selectedPaymentMethod,
+                setSelectedPaymentMethod,
+                selectedMomoOperator,
+                setSelectedMomoOperator,
+                momoPhone,
+                setMomoPhone,
+                cardHolder,
+                setCardHolder,
+                cardNumber,
+                setCardNumber,
+                cardExpiry,
+                setCardExpiry,
+                cardCvc,
+                setCardCvc,
               })}
+
+              {/* Drop Zone après chaque section */}
+              <CanvasDropZone
+                index={idx + 1}
+                onDropWidget={onInsertWidget}
+                isEditable={isEditable}
+                primaryColor={theme.primaryColor}
+              />
             </div>
           );
         })}
       </main>
 
-      {/* 5. PIED DE PAGE */}
-      <footer
-        className={`border-t mt-16 py-8 sm:py-12 px-4 sm:px-6 text-[11px] sm:text-xs transition-colors ${
-          branding?.footerBgColor
-            ? ""
-            : isDark
-            ? "text-slate-300"
-            : "text-slate-700 shadow-inner"
-        }`}
-        style={{
-          backgroundColor:
-            branding?.footerBgColor ||
-            (isDark ? `${theme.primaryColor}14` : `${theme.primaryColor}08`),
-          borderTopColor: `${theme.primaryColor}40`,
-          borderTopWidth: "2px",
-        }}
-      >
-        <div className={`max-w-6xl mx-auto grid ${grid3Cols} gap-6 sm:gap-8 text-left`}>
-          <div className="space-y-3">
-            <h3 className="font-extrabold text-white text-sm sm:text-base">
-              {branding?.businessName || data.projectName}
-            </h3>
-            <p className="text-slate-400 leading-relaxed text-xs">
-              {branding?.tagline || "Votre satisfaction et la qualité supérieure sont nos priorités absolues."}
-            </p>
-            {branding?.address && (
-              <div className="flex items-center gap-1.5 text-slate-400">
-                <MapPin className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
-                <span>{branding.address.fullAddress || `${branding.address.city}, ${branding.address.country}`}</span>
-              </div>
-            )}
-          </div>
-
-          <div className="space-y-2.5">
-            <h4 className="font-bold text-white uppercase tracking-wider text-[11px]">Garanties & Confiance</h4>
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                <span>Paiement sécurisé à la livraison ou Mobile Money</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
-                <span>Garantie Satisfait ou Remboursé 30j</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Truck className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                <span>Expédition express suivie sous 24h</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <h4 className="font-bold text-white uppercase tracking-wider text-[11px]">Assistance Client</h4>
-            {branding?.phone && (
-              <div className="flex items-center gap-2 text-white font-semibold">
-                <Phone className="w-3.5 h-3.5 text-orange-400" />
-                <span>{branding.phone}</span>
-              </div>
-            )}
-            {branding?.whatsappNumber && (
-              <div className="flex items-center gap-2 text-emerald-400 font-semibold">
-                <MessageCircle className="w-3.5 h-3.5" />
-                <span>{branding.whatsappNumber}</span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="border-t border-white/10 mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-center">
-          <p>© {new Date().getFullYear()} {branding?.businessName || data.projectName}. Tous droits réservés.</p>
-          <p className="flex items-center justify-center gap-1.5">
-            <span>Propulsé avec rapidité par</span>
-            <span className="font-bold text-indigo-400">Tuneliva</span>
-          </p>
-        </div>
-      </footer>
+      {/* 5. PIED DE PAGE (3 VARIATIONS DE DESIGN AVEC TYPO ADAPTÉE) */}
+      {renderFooter()}
 
       {/* MODAL FICHE PRODUIT DÉTAILLÉE & VARIANTES */}
       {detailModalProduct && (
@@ -785,72 +1297,107 @@ export function FunnelRenderer({
               ✕
             </button>
 
-            <div className="rounded-2xl overflow-hidden aspect-video bg-black/40 border border-white/10 relative">
-              <img
-                src={detailModalProduct.imageUrl}
-                alt={detailModalProduct.name}
-                className="w-full h-full object-cover"
-              />
-              {detailModalProduct.badge && (
-                <span
-                  className="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-bold text-white shadow-lg"
-                  style={{ backgroundColor: theme.primaryColor }}
-                >
-                  {detailModalProduct.badge}
-                </span>
-              )}
-            </div>
+            {(() => {
+              const modalSelectedOpt = Object.values(modalSelectedVariant)[0];
+              const modalActiveImg =
+                (modalSelectedOpt && detailModalProduct.variantImages?.[modalSelectedOpt]) ||
+                detailModalProduct.imageUrl;
 
-            <div className="space-y-2">
-              <div className="flex items-baseline justify-between gap-2">
-                <h3 className="text-lg sm:text-xl font-black text-white">
-                  {detailModalProduct.name}
-                </h3>
-                <div className="flex items-baseline gap-2 shrink-0">
-                  <span
-                    className="text-xl sm:text-2xl font-black"
-                    style={{ color: theme.primaryColor }}
-                  >
-                    {formatMoney(detailModalProduct.price, currency)}
-                  </span>
-                  {detailModalProduct.regularPrice && (
-                    <span className="text-xs text-slate-400 line-through">
-                      {formatMoney(detailModalProduct.regularPrice, currency)}
-                    </span>
-                  )}
-                </div>
-              </div>
+              return (
+                <div className="space-y-4">
+                  <div className="rounded-2xl overflow-hidden aspect-video bg-black/40 border border-white/10 relative">
+                    <img
+                      src={modalActiveImg}
+                      alt={detailModalProduct.name}
+                      className="w-full h-full object-cover transition-all duration-300"
+                    />
+                    {detailModalProduct.badge && (
+                      <span
+                        className="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-bold text-white shadow-lg"
+                        style={{ backgroundColor: theme.primaryColor }}
+                      >
+                        {detailModalProduct.badge}
+                      </span>
+                    )}
+                    {modalSelectedOpt && detailModalProduct.variantImages?.[modalSelectedOpt] && (
+                      <span className="absolute bottom-3 right-3 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-black/70 text-indigo-300 border border-indigo-400/30 backdrop-blur-sm">
+                        📸 {modalSelectedOpt}
+                      </span>
+                    )}
+                  </div>
 
-              <p className="text-xs text-slate-300 leading-relaxed">
-                {detailModalProduct.description}
-              </p>
-            </div>
-
-            {/* VARIANTES DU PRODUIT */}
-            {detailModalProduct.variants && detailModalProduct.variants.length > 0 && (
-              <div className="space-y-2 pt-2 border-t border-white/10">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300">
-                  Options & Variantes disponibles :
-                </h4>
-                {detailModalProduct.variants.map((v, i) => (
-                  <div key={i} className="space-y-1">
-                    <span className="text-[11px] font-semibold text-slate-400">
-                      {v.name} :
-                    </span>
-                    <div className="flex flex-wrap gap-1.5">
-                      {v.options.map((opt, optIdx) => (
+                  <div className="space-y-2">
+                    <div className="flex items-baseline justify-between gap-2">
+                      <h3 className="text-lg sm:text-xl font-black text-white">
+                        {detailModalProduct.name}
+                      </h3>
+                      <div className="flex items-baseline gap-2 shrink-0">
                         <span
-                          key={optIdx}
-                          className="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-900 border border-white/10 text-white"
+                          className="text-xl sm:text-2xl font-black"
+                          style={{ color: theme.primaryColor }}
                         >
-                          {opt}
+                          {formatMoney(detailModalProduct.price, currency)}
                         </span>
+                        {detailModalProduct.regularPrice && (
+                          <span className="text-xs text-slate-400 line-through">
+                            {formatMoney(detailModalProduct.regularPrice, currency)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <p className="text-xs text-slate-300 leading-relaxed">
+                      {detailModalProduct.description}
+                    </p>
+                  </div>
+
+                  {/* VARIANTES DU PRODUIT */}
+                  {detailModalProduct.variants && detailModalProduct.variants.length > 0 && (
+                    <div className="space-y-2.5 pt-2 border-t border-white/10">
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center justify-between">
+                        <span>Options & Variantes :</span>
+                        <span className="text-[10px] font-normal text-indigo-300">Cliquez pour voir la photo</span>
+                      </h4>
+                      {detailModalProduct.variants.map((v, i) => (
+                        <div key={i} className="space-y-1.5">
+                          <span className="text-[11px] font-semibold text-slate-400">
+                            {v.name} :
+                          </span>
+                          <div className="flex flex-wrap gap-1.5">
+                            {v.options.map((opt, optIdx) => {
+                              const isOptSelected =
+                                modalSelectedVariant[v.name] === opt ||
+                                (!modalSelectedVariant[v.name] && optIdx === 0);
+                              const hasVariantImg = !!detailModalProduct.variantImages?.[opt];
+
+                              return (
+                                <button
+                                  key={optIdx}
+                                  type="button"
+                                  onClick={() => {
+                                    setModalSelectedVariant((prev) => ({ ...prev, [v.name]: opt }));
+                                  }}
+                                  className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center gap-1.5 ${
+                                    isOptSelected
+                                      ? "bg-indigo-600 text-white border-indigo-400 shadow-md ring-2 ring-indigo-400/30"
+                                      : "bg-slate-900 border-white/10 text-slate-300 hover:text-white hover:border-white/30"
+                                  }`}
+                                >
+                                  <span>{opt}</span>
+                                  {hasVariantImg && (
+                                    <span className="text-[10px]" title="Photo dédiée disponible">📸</span>
+                                  )}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
                       ))}
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
+                  )}
+                </div>
+              );
+            })()}
 
             {/* CARACTÉRISTIQUES / POINTS FORTS */}
             {detailModalProduct.features && detailModalProduct.features.length > 0 && (
@@ -1171,54 +1718,66 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                   </div>
                 )}
 
-                <div className="space-y-3 pt-6">
-                  <div
-                    onClick={(e) => {
-                      if (isEditable && onOpenImagePicker) {
-                        e.stopPropagation();
-                        onOpenImagePicker(s.id, idx);
-                      }
-                    }}
-                    className="rounded-2xl overflow-hidden aspect-square relative bg-slate-900 group cursor-pointer"
-                  >
-                    <img
-                      src={item.imageUrl}
-                      alt={item.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    {isEditable && (
-                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white text-xs font-bold gap-1.5">
-                        <Camera className="w-4 h-4 text-yellow-300" />
-                        <span>Changer photo</span>
-                      </div>
-                    )}
-                  </div>
+                {(() => {
+                  const itemSelectedOpt = item.selectedVariant ? Object.values(item.selectedVariant)[0] : undefined;
+                  const activeItemImg = (itemSelectedOpt && item.variantImages?.[itemSelectedOpt]) || item.imageUrl;
 
-                  <div>
-                    <h3 className={`font-bold text-base sm:text-lg ${headingClass}`}>
-                      <InlineText
-                        value={item.name}
-                        onSave={(val) => {
-                          const updated = [...s.items];
-                          updated[idx] = { ...updated[idx], name: val };
-                          updateField("items", updated);
+                  return (
+                    <div className="space-y-3 pt-6">
+                      <div
+                        onClick={(e) => {
+                          if (isEditable && onOpenImagePicker) {
+                            e.stopPropagation();
+                            onOpenImagePicker(s.id, idx);
+                          }
                         }}
-                        isEditable={isEditable}
-                      />
-                    </h3>
-                    <p className={`text-xs mt-1 leading-relaxed line-clamp-2 ${mutedTextClass}`}>
-                      <InlineText
-                        value={item.description}
-                        onSave={(val) => {
-                          const updated = [...s.items];
-                          updated[idx] = { ...updated[idx], description: val };
-                          updateField("items", updated);
-                        }}
-                        isEditable={isEditable}
-                      />
-                    </p>
-                  </div>
-                </div>
+                        className="rounded-2xl overflow-hidden aspect-square relative bg-slate-900 group cursor-pointer"
+                      >
+                        <img
+                          src={activeItemImg}
+                          alt={item.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-all duration-300"
+                        />
+                        {itemSelectedOpt && item.variantImages?.[itemSelectedOpt] && (
+                          <span className="absolute bottom-2 right-2 px-2 py-0.5 rounded-md text-[9px] font-bold bg-black/75 text-indigo-300 border border-indigo-400/30">
+                            📸 {itemSelectedOpt}
+                          </span>
+                        )}
+                        {isEditable && (
+                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white text-xs font-bold gap-1.5">
+                            <Camera className="w-4 h-4 text-yellow-300" />
+                            <span>Changer photo</span>
+                          </div>
+                        )}
+                      </div>
+
+                      <div>
+                        <h3 className={`font-bold text-base sm:text-lg ${headingClass}`}>
+                          <InlineText
+                            value={item.name}
+                            onSave={(val) => {
+                              const updated = [...s.items];
+                              updated[idx] = { ...updated[idx], name: val };
+                              updateField("items", updated);
+                            }}
+                            isEditable={isEditable}
+                          />
+                        </h3>
+                        <p className={`text-xs mt-1 leading-relaxed line-clamp-2 ${mutedTextClass}`}>
+                          <InlineText
+                            value={item.description}
+                            onSave={(val) => {
+                              const updated = [...s.items];
+                              updated[idx] = { ...updated[idx], description: val };
+                              updateField("items", updated);
+                            }}
+                            isEditable={isEditable}
+                          />
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {/* VARIANTES DU PRODUIT (COULEURS, TAILLES, MODÈLES) */}
                 {item.variants && item.variants.length > 0 && (
@@ -1233,6 +1792,7 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                             const isOptSelected =
                               (item.selectedVariant && item.selectedVariant[v.name] === opt) ||
                               (!item.selectedVariant?.[v.name] && oIdx === 0);
+                            const hasOptImg = !!item.variantImages?.[opt];
 
                             return (
                               <button
@@ -1248,13 +1808,16 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                                   };
                                   updateField("items", updated);
                                 }}
-                                className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all cursor-pointer ${
+                                className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all cursor-pointer flex items-center gap-1 ${
                                   isOptSelected
                                     ? "bg-indigo-600 text-white border-indigo-400 shadow-sm"
                                     : "bg-slate-900 border-white/10 text-slate-400 hover:text-white"
                                 }`}
                               >
-                                {opt}
+                                <span>{opt}</span>
+                                {hasOptImg && (
+                                  <span className="text-[8px]" title="Photo dédiée disponible">📸</span>
+                                )}
                               </button>
                             );
                           })}
@@ -2127,112 +2690,275 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                 </button>
               )}
 
-              {s.whatsappEnabled && s.codEnabled && (
-                <div className="flex items-center gap-3 text-xs text-slate-400 uppercase tracking-wider">
-                  <div className="h-px bg-slate-200/30 flex-1" />
-                  <span>OU REMPLIR LE FORMULAIRE</span>
-                  <div className="h-px bg-slate-200/30 flex-1" />
-                </div>
-              )}
+              {(() => {
+                const isCodActive = s.codEnabled !== false;
+                const isMomoActive = !!s.momoEnabled;
+                const isCardActive = !!s.cardEnabled;
 
-              {s.codEnabled && (
-                <form onSubmit={handleCodSubmit} className="space-y-3.5 text-left">
-                  <div>
-                    <label className={`block text-xs font-semibold mb-1 ${headingClass}`}>
-                      Nom complet ou Prénom *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="Ex: Jean Kouassi"
-                      value={ctx.customerName}
-                      onChange={(e) => ctx.setCustomerName(e.target.value)}
-                      className={`w-full px-4 py-3 rounded-xl border text-sm focus:outline-none ${
-                        ctx.isDark
-                          ? "bg-slate-950 border-white/10 text-white"
-                          : "bg-slate-50 border-slate-300 text-slate-900"
-                      }`}
-                    />
-                  </div>
+                const activeMethods: ("cod" | "momo" | "card")[] = [];
+                if (isCodActive) activeMethods.push("cod");
+                if (isMomoActive) activeMethods.push("momo");
+                if (isCardActive) activeMethods.push("card");
 
-                  <div>
-                    <label className={`block text-xs font-semibold mb-1 ${headingClass}`}>
-                      Numéro de Téléphone (WhatsApp de préférence) *
-                    </label>
-                    <input
-                      type="tel"
-                      required
-                      placeholder="Ex: +229 01 53 29 52 82"
-                      value={ctx.customerPhone}
-                      onChange={(e) => ctx.setCustomerPhone(e.target.value)}
-                      className={`w-full px-4 py-3 rounded-xl border text-sm focus:outline-none ${
-                        ctx.isDark
-                          ? "bg-slate-950 border-white/10 text-white"
-                          : "bg-slate-50 border-slate-300 text-slate-900"
-                      }`}
-                    />
-                  </div>
+                if (activeMethods.length === 0) activeMethods.push("cod");
 
-                  <div>
-                    <label className={`block text-xs font-semibold mb-1 ${headingClass}`}>
-                      Ville de livraison *
-                    </label>
-                    <select
-                      value={ctx.customerCity}
-                      onChange={(e) => ctx.setCustomerCity(e.target.value)}
-                      className={`w-full px-4 py-3 rounded-xl border text-sm focus:outline-none ${
-                        ctx.isDark
-                          ? "bg-slate-950 border-white/10 text-white"
-                          : "bg-slate-50 border-slate-300 text-slate-900"
-                      }`}
-                    >
-                      {s.cities.map((city) => (
-                        <option key={city} value={city}>
-                          {city}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                const currentMethod: "cod" | "momo" | "card" =
+                  ctx.selectedPaymentMethod && activeMethods.includes(ctx.selectedPaymentMethod)
+                    ? ctx.selectedPaymentMethod
+                    : activeMethods[0];
 
-                  <div>
-                    <label className={`block text-xs font-semibold mb-1 ${headingClass}`}>
-                      Quartier ou Adresse précise
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Ex: Haie Vive, en face de la pharmacie"
-                      value={ctx.customerAddress}
-                      onChange={(e) => ctx.setCustomerAddress(e.target.value)}
-                      className={`w-full px-4 py-3 rounded-xl border text-sm focus:outline-none ${
-                        ctx.isDark
-                          ? "bg-slate-950 border-white/10 text-white"
-                          : "bg-slate-50 border-slate-300 text-slate-900"
-                      }`}
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={ctx.orderSubmitting}
-                    className="w-full py-4 px-6 rounded-2xl font-bold text-white text-base shadow-xl hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer"
-                    style={{ backgroundColor: theme.primaryColor }}
-                  >
-                    {ctx.orderSubmitting ? (
-                      <span>Validation en cours...</span>
-                    ) : (
-                      <>
-                        <span>CONFIRMER LA COMMANDE ({formatMoney(currentPrice, currency)})</span>
-                        <ArrowRight className="w-4 h-4" />
-                      </>
+                return (
+                  <div className="space-y-4">
+                    {/* SÉLECTEUR D'ONGLETS DE PAIEMENT SI PLUS D'UN MOYEN AUTORISÉ */}
+                    {activeMethods.length > 1 && (
+                      <div className="grid grid-cols-3 gap-1.5 p-1 rounded-2xl bg-slate-900/90 border border-white/10">
+                        {isCodActive && (
+                          <button
+                            type="button"
+                            onClick={() => ctx.setSelectedPaymentMethod?.("cod")}
+                            className={`py-2 px-1 rounded-xl text-xs font-bold transition-all cursor-pointer flex flex-col items-center gap-0.5 ${
+                              currentMethod === "cod"
+                                ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
+                                : "text-slate-400 hover:text-white"
+                            }`}
+                          >
+                            <span className="text-sm">💵</span>
+                            <span className="text-[10px] sm:text-xs">À la livraison</span>
+                          </button>
+                        )}
+                        {isMomoActive && (
+                          <button
+                            type="button"
+                            onClick={() => ctx.setSelectedPaymentMethod?.("momo")}
+                            className={`py-2 px-1 rounded-xl text-xs font-bold transition-all cursor-pointer flex flex-col items-center gap-0.5 ${
+                              currentMethod === "momo"
+                                ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
+                                : "text-slate-400 hover:text-white"
+                            }`}
+                          >
+                            <span className="text-sm">📱</span>
+                            <span className="text-[10px] sm:text-xs">Mobile Money</span>
+                          </button>
+                        )}
+                        {isCardActive && (
+                          <button
+                            type="button"
+                            onClick={() => ctx.setSelectedPaymentMethod?.("card")}
+                            className={`py-2 px-1 rounded-xl text-xs font-bold transition-all cursor-pointer flex flex-col items-center gap-0.5 ${
+                              currentMethod === "card"
+                                ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
+                                : "text-slate-400 hover:text-white"
+                            }`}
+                          >
+                            <span className="text-sm">💳</span>
+                            <span className="text-[10px] sm:text-xs">Carte Bancaire</span>
+                          </button>
+                        )}
+                      </div>
                     )}
-                  </button>
 
-                  <div className={`flex items-center justify-center gap-2 text-xs pt-1 ${mutedTextClass}`}>
-                    <Lock className="w-3.5 h-3.5" />
-                    <span>Paiement en espèces à la livraison après contrôle du colis</span>
+                    <form
+                      onSubmit={(e) => {
+                        if (ctx.handlePaymentSubmit) {
+                          ctx.handlePaymentSubmit(e, currentMethod);
+                        } else {
+                          handleCodSubmit(e);
+                        }
+                      }}
+                      className="space-y-3.5 text-left"
+                    >
+                      <div>
+                        <label className={`block text-xs font-semibold mb-1 ${headingClass}`}>
+                          Nom complet ou Prénom *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="Ex: Jean Kouassi"
+                          value={ctx.customerName}
+                          onChange={(e) => ctx.setCustomerName(e.target.value)}
+                          className={`w-full px-4 py-3 rounded-xl border text-sm focus:outline-none ${
+                            ctx.isDark
+                              ? "bg-slate-950 border-white/10 text-white"
+                              : "bg-slate-50 border-slate-300 text-slate-900"
+                          }`}
+                        />
+                      </div>
+
+                      <div>
+                        <label className={`block text-xs font-semibold mb-1 ${headingClass}`}>
+                          Numéro de Téléphone (WhatsApp de préférence) *
+                        </label>
+                        <input
+                          type="tel"
+                          required
+                          placeholder="Ex: +229 01 53 29 52 82"
+                          value={ctx.customerPhone}
+                          onChange={(e) => ctx.setCustomerPhone(e.target.value)}
+                          className={`w-full px-4 py-3 rounded-xl border text-sm focus:outline-none ${
+                            ctx.isDark
+                              ? "bg-slate-950 border-white/10 text-white"
+                              : "bg-slate-50 border-slate-300 text-slate-900"
+                          }`}
+                        />
+                      </div>
+
+                      <div>
+                        <label className={`block text-xs font-semibold mb-1 ${headingClass}`}>
+                          Ville de livraison *
+                        </label>
+                        <select
+                          value={ctx.customerCity}
+                          onChange={(e) => ctx.setCustomerCity(e.target.value)}
+                          className={`w-full px-4 py-3 rounded-xl border text-sm focus:outline-none ${
+                            ctx.isDark
+                              ? "bg-slate-950 border-white/10 text-white"
+                              : "bg-slate-50 border-slate-300 text-slate-900"
+                          }`}
+                        >
+                          {s.cities.map((city) => (
+                            <option key={city} value={city}>
+                              {city}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className={`block text-xs font-semibold mb-1 ${headingClass}`}>
+                          Quartier ou Adresse précise
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Ex: Haie Vive, en face de la pharmacie"
+                          value={ctx.customerAddress}
+                          onChange={(e) => ctx.setCustomerAddress(e.target.value)}
+                          className={`w-full px-4 py-3 rounded-xl border text-sm focus:outline-none ${
+                            ctx.isDark
+                              ? "bg-slate-950 border-white/10 text-white"
+                              : "bg-slate-50 border-slate-300 text-slate-900"
+                          }`}
+                        />
+                      </div>
+
+                      {/* SPÉCIFIQUE MOBILE MONEY */}
+                      {currentMethod === "momo" && (
+                        <div className="space-y-2.5 p-3.5 rounded-2xl bg-slate-950/70 border border-indigo-500/30">
+                          <label className={`block text-xs font-bold text-indigo-300`}>
+                            Sélectionnez votre Opérateur Mobile Money :
+                          </label>
+                          <div className="grid grid-cols-4 gap-1.5">
+                            {[
+                              { name: "Wave", badge: "Wave", color: "bg-cyan-500/25 border-cyan-400 text-cyan-300" },
+                              { name: "Orange", badge: "Orange", color: "bg-orange-500/25 border-orange-400 text-orange-300" },
+                              { name: "MTN", badge: "MTN", color: "bg-yellow-500/25 border-yellow-400 text-yellow-300" },
+                              { name: "Moov", badge: "Moov", color: "bg-emerald-500/25 border-emerald-400 text-emerald-300" },
+                            ].map((op) => (
+                              <button
+                                key={op.name}
+                                type="button"
+                                onClick={() => ctx.setSelectedMomoOperator?.(op.name)}
+                                className={`py-2 px-1 rounded-xl text-xs font-black border transition-all cursor-pointer ${
+                                  ctx.selectedMomoOperator === op.name
+                                    ? `${op.color} ring-2 ring-white/40 scale-105 shadow-md`
+                                    : "bg-slate-900 border-white/10 text-slate-400 hover:text-white"
+                                }`}
+                              >
+                                {op.badge}
+                              </button>
+                            ))}
+                          </div>
+                          <p className="text-[10px] text-slate-400 leading-tight">
+                            📱 Un prompt sécurisé de confirmation sera envoyé sur votre numéro {ctx.customerPhone || "Mobile Money"} pour valider le paiement.
+                          </p>
+                        </div>
+                      )}
+
+                      {/* SPÉCIFIQUE CARTE BANCAIRE */}
+                      {currentMethod === "card" && (
+                        <div className="space-y-2.5 p-3.5 rounded-2xl bg-slate-950/70 border border-indigo-500/30">
+                          <div className="flex items-center justify-between">
+                            <label className={`block text-xs font-bold text-indigo-300`}>
+                              Détails de la Carte Bancaire :
+                            </label>
+                            <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400">
+                              <span>Visa</span>
+                              <span>•</span>
+                              <span>Mastercard</span>
+                            </div>
+                          </div>
+                          <input
+                            type="text"
+                            placeholder="Nom sur la carte"
+                            value={ctx.cardHolder}
+                            onChange={(e) => ctx.setCardHolder?.(e.target.value)}
+                            className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-white/10 text-white text-xs"
+                          />
+                          <input
+                            type="text"
+                            placeholder="Numéro de carte (16 chiffres)"
+                            maxLength={19}
+                            value={ctx.cardNumber}
+                            onChange={(e) => ctx.setCardNumber?.(e.target.value)}
+                            className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-white/10 text-white text-xs font-mono tracking-wider"
+                          />
+                          <div className="grid grid-cols-2 gap-2">
+                            <input
+                              type="text"
+                              placeholder="MM / AA"
+                              maxLength={5}
+                              value={ctx.cardExpiry}
+                              onChange={(e) => ctx.setCardExpiry?.(e.target.value)}
+                              className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-white/10 text-white text-xs text-center font-mono"
+                            />
+                            <input
+                              type="password"
+                              placeholder="CVC"
+                              maxLength={4}
+                              value={ctx.cardCvc}
+                              onChange={(e) => ctx.setCardCvc?.(e.target.value)}
+                              className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-white/10 text-white text-xs text-center font-mono"
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      <button
+                        type="submit"
+                        disabled={ctx.orderSubmitting}
+                        className="w-full py-4 px-6 rounded-2xl font-bold text-white text-base shadow-xl hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer"
+                        style={{ backgroundColor: theme.primaryColor }}
+                      >
+                        {ctx.orderSubmitting ? (
+                          <span>Traitement en cours...</span>
+                        ) : (
+                          <>
+                            <span>
+                              {currentMethod === "momo"
+                                ? `PAYER AVEC ${(ctx.selectedMomoOperator || "MOMO").toUpperCase()} (${formatMoney(currentPrice, currency)})`
+                                : currentMethod === "card"
+                                ? `PAYER PAR CARTE (${formatMoney(currentPrice, currency)})`
+                                : `CONFIRMER LA COMMANDE (${formatMoney(currentPrice, currency)})`}
+                            </span>
+                            <ArrowRight className="w-4 h-4" />
+                          </>
+                        )}
+                      </button>
+
+                      <div className={`flex items-center justify-center gap-2 text-xs pt-1 ${mutedTextClass}`}>
+                        <Lock className="w-3.5 h-3.5" />
+                        <span>
+                          {currentMethod === "momo"
+                            ? "Paiement Mobile Money instantané et 100% sécurisé"
+                            : currentMethod === "card"
+                            ? "Paiement crypté SSL 256-bit garanti"
+                            : "Paiement en espèces à la livraison après contrôle du colis"}
+                        </span>
+                      </div>
+                    </form>
                   </div>
-                </form>
-              )}
+                );
+              })()}
             </div>
           )}
         </section>

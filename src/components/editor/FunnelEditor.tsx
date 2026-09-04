@@ -71,7 +71,7 @@ interface FunnelEditorProps {
 }
 
 type DeviceMode = "mobile" | "tablet" | "desktop";
-type EditorTab = "sections" | "inspector" | "design" | "branding";
+type EditorTab = "sections" | "widgets" | "inspector" | "products" | "design" | "branding";
 
 const FONTS = ["Plus Jakarta Sans", "Inter", "Poppins", "Geist"] as const;
 
@@ -916,6 +916,156 @@ export function FunnelEditor({
     });
   };
 
+  const productFileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleProductFilesUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const maxFiles = Math.min(files.length, 10);
+    const newItems: ProductItem[] = [];
+    let processedCount = 0;
+
+    for (let i = 0; i < maxFiles; i++) {
+      const file = files[i];
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const dataUrl = event.target?.result as string;
+        const randId = Math.random().toString(36).substring(2, 7);
+        const cleanFileName = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ");
+        const capitalizedName = cleanFileName.charAt(0).toUpperCase() + cleanFileName.slice(1);
+
+        newItems.push({
+          id: `p-upload-${randId}`,
+          name: capitalizedName || `Article #${i + 1}`,
+          price: 20000 + i * 5000,
+          regularPrice: 30000 + i * 5000,
+          badge: i === 0 ? "🔥 Arrivage" : i === 1 ? "⭐ Populaire" : undefined,
+          imageUrl: dataUrl,
+          description: `Produit d'excellente qualité supérieure, certifié et garanti. Disponible en stock limité.`,
+          features: ["Garantie 30 jours", "Paiement à la livraison", "Livraison express 24h"],
+          variants: [
+            {
+              name: "Modèle",
+              options: ["Standard", "Édition Privilège"],
+            },
+          ],
+        });
+
+        processedCount++;
+        if (processedCount === maxFiles) {
+          let showcaseSec = funnelData.sections.find((s) => s.type === "product_showcase") as ProductShowcaseSection | undefined;
+          let updatedSections = [...funnelData.sections];
+
+          if (showcaseSec) {
+            const combinedItems = [...showcaseSec.items, ...newItems].slice(0, 10);
+            updatedSections = updatedSections.map((s) =>
+              s.id === showcaseSec!.id ? ({ ...showcaseSec!, items: combinedItems } as FunnelSection) : s
+            );
+          } else {
+            const randSecId = Math.random().toString(36).substring(2, 7);
+            const newSec: ProductShowcaseSection = {
+              id: `showcase-${randSecId}`,
+              type: "product_showcase",
+              badgeText: "⭐ SÉLECTION EXCLUSIVE 2026",
+              title: "Nos Produits & Offres",
+              subtitle: `Découvrez notre collection sélectionnée avec soin. Livraison express à ${funnelData.branding?.address?.city || "Cotonou"} :`,
+              items: newItems,
+            };
+            const orderIdx = updatedSections.findIndex((s) => s.type === "order_form");
+            if (orderIdx !== -1) {
+              updatedSections.splice(orderIdx, 0, newSec);
+            } else {
+              updatedSections.push(newSec);
+            }
+          }
+
+          setFunnelData((prev) => ({ ...prev, sections: updatedSections }));
+          confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 } });
+          alert(`Succès : ${maxFiles} produit(s) importé(s) avec succès !`);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleInsertWidgetAt = (widgetId: string, targetIndex: number) => {
+    const widgetDef = PREMIUM_WIDGETS.find((w) => w.id === widgetId);
+    let newSection: FunnelSection;
+
+    if (widgetDef) {
+      const randId = Math.random().toString(36).substring(2, 7);
+      newSection = widgetDef.create(randId, funnelData.branding?.address?.city || "Cotonou");
+    } else if (widgetId === "element_button") {
+      const randId = Math.random().toString(36).substring(2, 7);
+      newSection = {
+        id: `btn-sec-${randId}`,
+        type: "hero",
+        badgeText: "⚡ ACTION RAPIDE",
+        title: "Passez à l'étape suivante",
+        subtitle: "Cliquez sur le bouton ci-dessous pour finaliser votre commande en toute sérénité.",
+        ctaText: "COMMANDER MAINTENANT",
+        ctaTargetStepSlug: "commande",
+        imageUrl: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&auto=format&fit=crop&q=80",
+        trustPoints: ["Paiement à la livraison", "Livraison 24h suivie"],
+      };
+    } else if (widgetId === "element_text") {
+      const randId = Math.random().toString(36).substring(2, 7);
+      newSection = {
+        id: `text-sec-${randId}`,
+        type: "features",
+        badgeText: "POINTS CLÉS & AVANTAGES",
+        title: "Pourquoi nos clients nous recommandent",
+        subtitle: "Découvrez les bénéfices concrets qui font notre différence au quotidien :",
+        items: [
+          { id: `f-${randId}-1`, title: "Qualité Premium Certifiée", description: "Matériaux haut de gamme sélectionnés et testés avec rigueur." },
+          { id: `f-${randId}-2`, title: "Garantie 30 Jours", description: "Satisfait ou remboursé sous 30 jours sans discussion." },
+        ],
+      };
+    } else {
+      const randId = Math.random().toString(36).substring(2, 7);
+      newSection = {
+        id: `custom-${randId}`,
+        type: "features",
+        badgeText: "NOUVEAU BLOC",
+        title: "Section Personnalisée",
+        subtitle: "Configurez le texte et les éléments de ce bloc dans le panneau de gauche.",
+        items: [],
+      };
+    }
+
+    const newSections = [...funnelData.sections];
+    const insertIdx = Math.max(0, Math.min(targetIndex, newSections.length));
+    newSections.splice(insertIdx, 0, newSection);
+
+    setFunnelData((prev) => ({
+      ...prev,
+      sections: newSections,
+    }));
+    setSelectedSectionId(newSection.id);
+    setActiveTab("inspector");
+    setShowSettings(true);
+  };
+
+  const handleTogglePaymentMethod = (method: "cod" | "momo" | "card") => {
+    setFunnelData((prev) => {
+      const updatedSections = prev.sections.map((sec) => {
+        if (sec.type === "order_form") {
+          const oForm = sec as OrderFormConfig;
+          if (method === "cod") {
+            return { ...oForm, codEnabled: !oForm.codEnabled };
+          } else if (method === "momo") {
+            return { ...oForm, momoEnabled: !oForm.momoEnabled };
+          } else if (method === "card") {
+            return { ...oForm, cardEnabled: !oForm.cardEnabled };
+          }
+        }
+        return sec;
+      });
+      return { ...prev, sections: updatedSections };
+    });
+  };
+
   const moveSection = (index: number, direction: "up" | "down") => {
     const targetIndex = direction === "up" ? index - 1 : index + 1;
     if (targetIndex < 0 || targetIndex >= funnelData.sections.length) return;
@@ -1370,56 +1520,80 @@ export function FunnelEditor({
       {/* 2. ZONE PRINCIPALE : PANNEAU & CANEVAS */}
       <div className="flex-1 flex relative overflow-hidden">
         {showSettings && (
-          <aside className="w-84 sm:w-92 border-r border-white/10 bg-[#07080D] flex flex-col shrink-0 z-30 shadow-2xl">
-            {/* TABS ÉPURÉS ET DESIGN STUDIO */}
-            <div className="p-2.5 border-b border-white/10 grid grid-cols-4 gap-1.5 text-[11px] font-bold">
-              <button
-                onClick={() => setActiveTab("inspector")}
-                className={`py-2 px-1 rounded-xl text-center transition-all cursor-pointer truncate flex items-center justify-center gap-1 ${
-                  activeTab === "inspector"
-                    ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
-                    : "text-slate-400 hover:text-white hover:bg-white/5"
-                }`}
-                title="Inspecter le bloc actif"
-              >
-                <span>🔍</span>
-                <span className="hidden sm:inline">Inspecteur</span>
-              </button>
+          <aside className="w-88 sm:w-96 border-r border-white/10 bg-[#07080D] flex flex-col shrink-0 z-30 shadow-2xl">
+            {/* 6 TABS ÉLÉGANTS & INTUITIFS STUDIO */}
+            <div className="p-2 border-b border-white/10 grid grid-cols-6 gap-1 text-[10px] font-bold">
               <button
                 onClick={() => setActiveTab("sections")}
-                className={`py-2 px-1 rounded-xl text-center transition-all cursor-pointer truncate flex items-center justify-center gap-1 ${
+                className={`py-2 px-1 rounded-xl text-center transition-all cursor-pointer truncate flex flex-col items-center gap-0.5 ${
                   activeTab === "sections"
                     ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
                     : "text-slate-400 hover:text-white hover:bg-white/5"
                 }`}
                 title="Arborescence & Réorganisation des Blocs"
               >
-                <span>📑</span>
-                <span className="hidden sm:inline">Blocs</span>
+                <span className="text-xs">📑</span>
+                <span className="truncate">Blocs</span>
+              </button>
+              <button
+                onClick={() => setActiveTab("widgets")}
+                className={`py-2 px-1 rounded-xl text-center transition-all cursor-pointer truncate flex flex-col items-center gap-0.5 ${
+                  activeTab === "widgets"
+                    ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
+                    : "text-slate-400 hover:text-white hover:bg-white/5"
+                }`}
+                title="Widgets glissables sur le canevas"
+              >
+                <span className="text-xs">🧩</span>
+                <span className="truncate">Widgets</span>
+              </button>
+              <button
+                onClick={() => setActiveTab("products")}
+                className={`py-2 px-1 rounded-xl text-center transition-all cursor-pointer truncate flex flex-col items-center gap-0.5 ${
+                  activeTab === "products"
+                    ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
+                    : "text-slate-400 hover:text-white hover:bg-white/5"
+                }`}
+                title="Gestion des Produits & Variantes (Import 1-clic)"
+              >
+                <span className="text-xs">📦</span>
+                <span className="truncate">Offres</span>
+              </button>
+              <button
+                onClick={() => setActiveTab("inspector")}
+                className={`py-2 px-1 rounded-xl text-center transition-all cursor-pointer truncate flex flex-col items-center gap-0.5 ${
+                  activeTab === "inspector"
+                    ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
+                    : "text-slate-400 hover:text-white hover:bg-white/5"
+                }`}
+                title="Inspecter le bloc sélectionné"
+              >
+                <span className="text-xs">🔍</span>
+                <span className="truncate">Style</span>
               </button>
               <button
                 onClick={() => setActiveTab("design")}
-                className={`py-2 px-1 rounded-xl text-center transition-all cursor-pointer truncate flex items-center justify-center gap-1 ${
+                className={`py-2 px-1 rounded-xl text-center transition-all cursor-pointer truncate flex flex-col items-center gap-0.5 ${
                   activeTab === "design"
                     ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
                     : "text-slate-400 hover:text-white hover:bg-white/5"
                 }`}
                 title="Palette de Couleurs & Thèmes"
               >
-                <span>🎨</span>
-                <span className="hidden sm:inline">Thèmes</span>
+                <span className="text-xs">🎨</span>
+                <span className="truncate">Thèmes</span>
               </button>
               <button
                 onClick={() => setActiveTab("branding")}
-                className={`py-2 px-1 rounded-xl text-center transition-all cursor-pointer truncate flex items-center justify-center gap-1 ${
+                className={`py-2 px-1 rounded-xl text-center transition-all cursor-pointer truncate flex flex-col items-center gap-0.5 ${
                   activeTab === "branding"
                     ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
                     : "text-slate-400 hover:text-white hover:bg-white/5"
                 }`}
-                title="Identité, Coordonnées & Pied de Page"
+                title="Identité, En-tête, Pied de page & Paiements"
               >
-                <span>🏢</span>
-                <span className="hidden sm:inline">Identité</span>
+                <span className="text-xs">🏢</span>
+                <span className="truncate">Marque</span>
               </button>
             </div>
 
@@ -2624,6 +2798,427 @@ export function FunnelEditor({
               )}
 
               {/* ========================================================================= */}
+              {/* ONGLET WIDGETS GLISSABLES & COMPOSANTS INTRA-SECTION */}
+              {/* ========================================================================= */}
+              {activeTab === "widgets" && (
+                <div className="space-y-4">
+                  <div className="p-3 rounded-2xl bg-indigo-600/15 border border-indigo-500/25 text-indigo-200 space-y-1">
+                    <div className="flex items-center gap-1.5 font-extrabold text-xs text-white">
+                      <Sparkles className="w-4 h-4 text-indigo-400" />
+                      <span>Catalogue de Widgets Glissables</span>
+                    </div>
+                    <p className="text-[10px] text-slate-300 leading-relaxed">
+                      Glissez n'importe quel widget directement sur les zones <strong>[+ Déposer]</strong> du canevas, ou cliquez sur <strong>[+ Insérer]</strong> pour l'ajouter en 1 clic.
+                    </p>
+                  </div>
+
+                  {/* 1. SECTIONS COMPLÈTES HAUTE CONVERSION */}
+                  <div className="space-y-2">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-indigo-400 block">
+                      📦 Blocs & Sections Pro ({PREMIUM_WIDGETS.length})
+                    </span>
+
+                    <div className="grid grid-cols-1 gap-2">
+                      {PREMIUM_WIDGETS.map((w) => (
+                        <div
+                          key={w.id}
+                          draggable
+                          onDragStart={(e) => {
+                            e.dataTransfer.setData("application/tuneliva-widget", w.id);
+                            e.dataTransfer.setData("text/plain", w.id);
+                          }}
+                          className="p-3 rounded-2xl bg-slate-900/80 border border-white/10 hover:border-indigo-500/50 hover:bg-slate-900 transition-all space-y-2 cursor-grab active:cursor-grabbing group shadow-sm"
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xl shrink-0 p-1.5 rounded-xl bg-slate-950 border border-white/5">{w.icon}</span>
+                              <div>
+                                <h4 className="font-extrabold text-xs text-white group-hover:text-indigo-300 transition-colors">
+                                  {w.name}
+                                </h4>
+                                <span className="text-[9px] px-1.5 py-0.5 rounded bg-indigo-950/60 text-indigo-300 font-medium">
+                                  {w.category}
+                                </span>
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleInsertWidget(w)}
+                              className="px-2.5 py-1 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-[10px] shadow-sm cursor-pointer shrink-0 transition-transform active:scale-95"
+                            >
+                              + Insérer
+                            </button>
+                          </div>
+                          <p className="text-[10px] text-slate-400 leading-snug line-clamp-2">
+                            {w.desc}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 2. ÉLÉMENTS INTRA-SECTION & BOUTONS */}
+                  <div className="space-y-2 pt-3 border-t border-white/10">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400 block">
+                      🔘 Éléments & Boutons Intelligents
+                    </span>
+
+                    <div className="grid grid-cols-1 gap-2">
+                      <div
+                        draggable
+                        onDragStart={(e) => {
+                          e.dataTransfer.setData("application/tuneliva-widget", "element_button");
+                          e.dataTransfer.setData("text/plain", "element_button");
+                        }}
+                        className="p-3 rounded-2xl bg-slate-900/80 border border-white/10 hover:border-indigo-500/50 space-y-1.5 cursor-grab active:cursor-grabbing shadow-sm"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg p-1.5 rounded-xl bg-emerald-950/60 text-emerald-400">🔘</span>
+                            <div>
+                              <h4 className="font-extrabold text-xs text-white">Bouton de Redirection Tunnel</h4>
+                              <p className="text-[9px] text-slate-400">Lien vers Commande, Capture ou Merci</p>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleInsertWidgetAt("element_button", funnelData.sections.length)}
+                            className="px-2.5 py-1 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-[10px] shadow-sm cursor-pointer shrink-0"
+                          >
+                            + Insérer
+                          </button>
+                        </div>
+                      </div>
+
+                      <div
+                        draggable
+                        onDragStart={(e) => {
+                          e.dataTransfer.setData("application/tuneliva-widget", "element_text");
+                          e.dataTransfer.setData("text/plain", "element_text");
+                        }}
+                        className="p-3 rounded-2xl bg-slate-900/80 border border-white/10 hover:border-indigo-500/50 space-y-1.5 cursor-grab active:cursor-grabbing shadow-sm"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg p-1.5 rounded-xl bg-blue-950/60 text-blue-400">✍️</span>
+                            <div>
+                              <h4 className="font-extrabold text-xs text-white">Titre & Arguments Impactants</h4>
+                              <p className="text-[9px] text-slate-400">Bloc de texte éditable en 1 clic</p>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleInsertWidgetAt("element_text", funnelData.sections.length)}
+                            className="px-2.5 py-1 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-[10px] shadow-sm cursor-pointer shrink-0"
+                          >
+                            + Insérer
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ========================================================================= */}
+              {/* ONGLET GESTION DES PRODUITS & VARIANTES (AVEC IMPORT 1-CLIC JUSQU'À 10 PHOTOS) */}
+              {/* ========================================================================= */}
+              {activeTab === "products" && (
+                <div className="space-y-4">
+                  {/* IMPORT 1-CLIC */}
+                  <div className="p-3.5 rounded-2xl bg-gradient-to-br from-indigo-950/60 to-slate-900 border border-indigo-500/30 space-y-2.5 shadow-lg">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xl">⚡</span>
+                        <div>
+                          <h4 className="font-extrabold text-xs text-white">Import Rapide de Produits</h4>
+                          <p className="text-[10px] text-indigo-300">1 à 10 photos simultanées en 1 clic</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      ref={productFileInputRef}
+                      onChange={handleProductFilesUpload}
+                      className="hidden"
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() => productFileInputRef.current?.click()}
+                      className="w-full py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <Upload className="w-4 h-4" />
+                      <span>Sélectionner 1 à 10 Photos Produits</span>
+                    </button>
+
+                    <p className="text-[9px] text-slate-400 leading-tight">
+                      Vos photos créent instantanément les fiches produits avec variantes et prix modifiables.
+                    </p>
+                  </div>
+
+                  {/* LISTE DES PRODUITS */}
+                  {(() => {
+                    const showcaseSec = funnelData.sections.find((s) => s.type === "product_showcase") as ProductShowcaseSection | undefined;
+
+                    if (!showcaseSec || showcaseSec.items.length === 0) {
+                      return (
+                        <div className="p-6 rounded-2xl bg-slate-900/60 border border-white/10 text-center space-y-3">
+                          <Package className="w-10 h-10 text-slate-500 mx-auto" />
+                          <p className="text-xs text-slate-300 font-bold">Aucune offre configurée sur cette page</p>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const w = PREMIUM_WIDGETS.find((w) => w.id === "showcase_3packs");
+                              if (w) handleInsertWidget(w);
+                            }}
+                            className="px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md cursor-pointer"
+                          >
+                            + Créer la Grille E-commerce (3 Packs)
+                          </button>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="font-black text-slate-300 uppercase tracking-wider text-[10px]">
+                            Offres & Exemplaires ({showcaseSec.items.length}/10)
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const randId = Math.random().toString(36).substring(2, 6);
+                              const updated = [
+                                ...showcaseSec.items,
+                                {
+                                  id: `p-${randId}`,
+                                  name: `Nouveau Produit #${showcaseSec.items.length + 1}`,
+                                  price: 25000,
+                                  regularPrice: 35000,
+                                  badge: "Nouveau",
+                                  imageUrl: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&auto=format&fit=crop&q=80",
+                                  description: "Description de l'article avec points forts et garantie.",
+                                  features: ["Garantie 30j", "Paiement à la livraison", "Livraison 24h"],
+                                  variants: [{ name: "Couleur", options: ["Standard"] }],
+                                },
+                              ];
+                              handleUpdateSection(showcaseSec.id, { items: updated });
+                            }}
+                            className="text-[10px] text-indigo-400 hover:text-indigo-300 font-bold cursor-pointer"
+                          >
+                            + Ajouter une offre
+                          </button>
+                        </div>
+
+                        {showcaseSec.items.map((prod, pIdx) => (
+                          <div key={prod.id || pIdx} className="p-3 rounded-2xl bg-slate-900 border border-white/10 space-y-3 shadow-md">
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="flex items-center gap-2.5">
+                                <div
+                                  onClick={() => openImagePicker(showcaseSec.id, pIdx)}
+                                  className="w-12 h-12 rounded-xl overflow-hidden bg-slate-950 border border-white/10 relative group/img cursor-pointer shrink-0"
+                                  title="Changer la photo principale"
+                                >
+                                  <img src={prod.imageUrl} alt={prod.name} className="w-full h-full object-cover" />
+                                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/img:opacity-100 flex items-center justify-center text-white text-[9px]">
+                                    📷
+                                  </div>
+                                </div>
+                                <div>
+                                  <span className="text-[10px] font-bold text-indigo-400 uppercase">Offre #{pIdx + 1}</span>
+                                  <input
+                                    type="text"
+                                    value={prod.name}
+                                    onChange={(e) => {
+                                      const updated = [...showcaseSec.items];
+                                      updated[pIdx] = { ...updated[pIdx], name: e.target.value };
+                                      handleUpdateSection(showcaseSec.id, { items: updated });
+                                    }}
+                                    className="w-full px-2 py-1 rounded bg-slate-950 border border-white/10 text-white font-bold text-xs"
+                                    placeholder="Nom de l'offre..."
+                                  />
+                                </div>
+                              </div>
+
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (confirm("Supprimer cette offre ?")) {
+                                    const updated = showcaseSec.items.filter((_, i) => i !== pIdx);
+                                    handleUpdateSection(showcaseSec.id, { items: updated });
+                                  }
+                                }}
+                                className="p-1 rounded text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 cursor-pointer"
+                                title="Supprimer cette offre"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+
+                            {/* PRIX ET BADGE */}
+                            <div className="grid grid-cols-3 gap-1.5">
+                              <div>
+                                <label className="text-[9px] text-slate-400 block font-semibold">Prix Promo</label>
+                                <input
+                                  type="number"
+                                  value={prod.price}
+                                  onChange={(e) => {
+                                    const updated = [...showcaseSec.items];
+                                    updated[pIdx] = { ...updated[pIdx], price: Number(e.target.value) };
+                                    handleUpdateSection(showcaseSec.id, { items: updated });
+                                  }}
+                                  className="w-full px-2 py-1 rounded bg-slate-950 border border-white/10 text-white text-xs font-mono font-bold"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-[9px] text-slate-400 block font-semibold">Prix Barré</label>
+                                <input
+                                  type="number"
+                                  value={prod.regularPrice || ""}
+                                  onChange={(e) => {
+                                    const updated = [...showcaseSec.items];
+                                    updated[pIdx] = { ...updated[pIdx], regularPrice: Number(e.target.value) };
+                                    handleUpdateSection(showcaseSec.id, { items: updated });
+                                  }}
+                                  className="w-full px-2 py-1 rounded bg-slate-950 border border-white/10 text-slate-400 text-xs font-mono"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-[9px] text-slate-400 block font-semibold">Badge</label>
+                                <input
+                                  type="text"
+                                  value={prod.badge || ""}
+                                  onChange={(e) => {
+                                    const updated = [...showcaseSec.items];
+                                    updated[pIdx] = { ...updated[pIdx], badge: e.target.value };
+                                    handleUpdateSection(showcaseSec.id, { items: updated });
+                                  }}
+                                  placeholder="🔥 Populaire"
+                                  className="w-full px-2 py-1 rounded bg-slate-950 border border-white/10 text-indigo-300 text-xs"
+                                />
+                              </div>
+                            </div>
+
+                            {/* GESTIONNAIRE DE VARIANTES & PHOTOS ASSOCIÉES */}
+                            <div className="pt-2 border-t border-white/5 space-y-2">
+                              <div className="flex items-center justify-between">
+                                <span className="text-[10px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1">
+                                  <span>🎨 Variantes & Photos</span>
+                                  <span className="text-slate-500 font-normal">({prod.variants?.length || 0})</span>
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const curVariants = prod.variants || [];
+                                    const updated = [...showcaseSec.items];
+                                    updated[pIdx] = {
+                                      ...updated[pIdx],
+                                      variants: [...curVariants, { name: "Couleur", options: ["Option 1", "Option 2"] }],
+                                    };
+                                    handleUpdateSection(showcaseSec.id, { items: updated });
+                                  }}
+                                  className="text-[9px] text-indigo-400 hover:underline font-bold cursor-pointer"
+                                >
+                                  + Ajouter variante
+                                </button>
+                              </div>
+
+                              {prod.variants && prod.variants.map((v, vIdx) => (
+                                <div key={vIdx} className="p-2 rounded-xl bg-slate-950/80 border border-white/5 space-y-2">
+                                  <div className="flex items-center justify-between gap-2">
+                                    <input
+                                      type="text"
+                                      value={v.name}
+                                      onChange={(e) => {
+                                        const updated = [...showcaseSec.items];
+                                        const newV = [...(updated[pIdx].variants || [])];
+                                        newV[vIdx] = { ...newV[vIdx], name: e.target.value };
+                                        updated[pIdx] = { ...updated[pIdx], variants: newV };
+                                        handleUpdateSection(showcaseSec.id, { items: updated });
+                                      }}
+                                      className="w-24 px-1.5 py-0.5 rounded bg-slate-900 border border-white/10 text-white font-bold text-[10px]"
+                                      placeholder="Ex: Couleur"
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const optName = prompt("Nom de la nouvelle option (ex: Or, Noir, XL) :");
+                                        if (optName) {
+                                          const updated = [...showcaseSec.items];
+                                          const newV = [...(updated[pIdx].variants || [])];
+                                          newV[vIdx] = { ...newV[vIdx], options: [...newV[vIdx].options, optName.trim()] };
+                                          updated[pIdx] = { ...updated[pIdx], variants: newV };
+                                          handleUpdateSection(showcaseSec.id, { items: updated });
+                                        }
+                                      }}
+                                      className="text-[9px] text-emerald-400 hover:underline font-bold cursor-pointer"
+                                    >
+                                      + Option
+                                    </button>
+                                  </div>
+
+                                  {/* Options et Photos dédiées */}
+                                  <div className="space-y-1.5">
+                                    {v.options.map((opt, oIdx) => {
+                                      const optImg = prod.variantImages?.[opt];
+                                      return (
+                                        <div key={oIdx} className="flex items-center justify-between gap-1.5 text-[10px] bg-slate-900 p-1.5 rounded-lg border border-white/5">
+                                          <span className="font-bold text-white truncate max-w-[90px]">{opt}</span>
+                                          <div className="flex items-center gap-1">
+                                            <input
+                                              type="text"
+                                              value={optImg || ""}
+                                              onChange={(e) => {
+                                                const updated = [...showcaseSec.items];
+                                                const curMap = updated[pIdx].variantImages || {};
+                                                updated[pIdx] = {
+                                                  ...updated[pIdx],
+                                                  variantImages: { ...curMap, [opt]: e.target.value },
+                                                };
+                                                handleUpdateSection(showcaseSec.id, { items: updated });
+                                              }}
+                                              placeholder="URL Photo..."
+                                              className="w-32 px-1.5 py-0.5 rounded bg-slate-950 border border-white/10 text-[9px] text-slate-300"
+                                            />
+                                            <button
+                                              type="button"
+                                              onClick={() => {
+                                                const updated = [...showcaseSec.items];
+                                                const newV = [...(updated[pIdx].variants || [])];
+                                                newV[vIdx] = {
+                                                  ...newV[vIdx],
+                                                  options: newV[vIdx].options.filter((_, i) => i !== oIdx),
+                                                };
+                                                updated[pIdx] = { ...updated[pIdx], variants: newV };
+                                                handleUpdateSection(showcaseSec.id, { items: updated });
+                                              }}
+                                              className="text-slate-500 hover:text-rose-400 p-0.5 cursor-pointer"
+                                              title="Supprimer cette option"
+                                            >
+                                              ✕
+                                            </button>
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
+
+              {/* ========================================================================= */}
               {/* ONGLET THÈMES */}
               {/* ========================================================================= */}
               {activeTab === "design" && (
@@ -2752,27 +3347,138 @@ export function FunnelEditor({
               )}
 
               {/* ========================================================================= */}
-              {/* ONGLET PIED DE PAGE */}
+              {/* ONGLET MARQUE, EN-TÊTE, PIED DE PAGE & PAIEMENTS */}
               {/* ========================================================================= */}
               {activeTab === "branding" && (
-                <div className="space-y-4">
-                  <div className="space-y-1">
-                    <label className="block text-[11px] font-bold text-slate-300 uppercase tracking-wider">
-                      Couleur de fond du Pied de page
+                <div className="space-y-5">
+                  {/* VARIATION DE L'EN-TÊTE (HEADER) */}
+                  <div className="space-y-2">
+                    <label className="block text-[11px] font-bold text-indigo-300 uppercase tracking-wider">
+                      ✨ Style de l'En-tête (Header)
                     </label>
-                    <div className="grid grid-cols-4 gap-2 pt-1">
+                    <div className="grid grid-cols-2 gap-2">
+                      {[
+                        {
+                          id: "classic",
+                          label: "Classique E-com",
+                          desc: "Logo + WhatsApp & Commande",
+                          icon: "📐",
+                        },
+                        {
+                          id: "centered_minimal",
+                          label: "Minimaliste Centré",
+                          desc: "Logo centré & badges discrets",
+                          icon: "🎯",
+                        },
+                        {
+                          id: "split_banner",
+                          label: "Bannière Promo",
+                          desc: "Bandeau d'urgence + Navigation",
+                          icon: "🔥",
+                        },
+                        {
+                          id: "floating_pill",
+                          label: "Pilule Flottante",
+                          desc: "Glassmorphism moderne flottant",
+                          icon: "💊",
+                        },
+                      ].map((item) => {
+                        const isCurrent = (funnelData.branding?.headerVariant || "classic") === item.id;
+                        return (
+                          <button
+                            key={item.id}
+                            type="button"
+                            onClick={() => handleBrandingChange("headerVariant", item.id)}
+                            className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer space-y-1 ${
+                              isCurrent
+                                ? "border-indigo-500 bg-indigo-600/20 text-white ring-1 ring-indigo-500"
+                                : "border-white/10 bg-slate-950 text-slate-400 hover:text-slate-200 hover:border-white/20"
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="text-sm">{item.icon}</span>
+                              {isCurrent && <span className="text-[10px] text-indigo-400 font-bold">✓ Actif</span>}
+                            </div>
+                            <div className="font-bold text-[11px] leading-tight text-white">{item.label}</div>
+                            <div className="text-[9px] text-slate-400 leading-tight line-clamp-1">{item.desc}</div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* VARIATION DU PIED DE PAGE (FOOTER) */}
+                  <div className="space-y-2 pt-3 border-t border-white/10">
+                    <label className="block text-[11px] font-bold text-indigo-300 uppercase tracking-wider">
+                      ✨ Style du Pied de Page (Footer)
+                    </label>
+                    <div className="grid grid-cols-1 gap-2">
+                      {[
+                        {
+                          id: "modern_3cols",
+                          label: "3 Colonnes Modernes",
+                          desc: "À Propos, Liens utiles, Mentions et Contacts en colonnes aérées",
+                          icon: "🏛️",
+                        },
+                        {
+                          id: "centered_luxury",
+                          label: "Centré Premium Luxe",
+                          desc: "Grand logo centré, citation de confiance, badge garantie et avis clients",
+                          icon: "👑",
+                        },
+                        {
+                          id: "compact_reassurance",
+                          label: "Bandeau Compact Réassurance",
+                          desc: "Ligne fine et épurée avec 3 piliers de confiance et copyright",
+                          icon: "🛡️",
+                        },
+                      ].map((item) => {
+                        const isCurrent = (funnelData.branding?.footerVariant || "modern_3cols") === item.id;
+                        return (
+                          <button
+                            key={item.id}
+                            type="button"
+                            onClick={() => handleBrandingChange("footerVariant", item.id)}
+                            className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex items-center justify-between gap-3 ${
+                              isCurrent
+                                ? "border-indigo-500 bg-indigo-600/20 text-white ring-1 ring-indigo-500"
+                                : "border-white/10 bg-slate-950 text-slate-400 hover:text-slate-200 hover:border-white/20"
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5">
+                              <span className="text-base">{item.icon}</span>
+                              <div>
+                                <div className="font-bold text-[11px] text-white">{item.label}</div>
+                                <div className="text-[9px] text-slate-400 leading-tight">{item.desc}</div>
+                              </div>
+                            </div>
+                            {isCurrent && <span className="text-[10px] text-indigo-400 font-bold shrink-0">✓ Actif</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* COULEURS DE FOND PIED DE PAGE */}
+                  <div className="space-y-1.5 pt-3 border-t border-white/10">
+                    <label className="block text-[11px] font-bold text-slate-300 uppercase tracking-wider">
+                      Couleur de fond En-tête & Pied de page
+                    </label>
+                    <div className="grid grid-cols-5 gap-1.5 pt-1">
                       {[
                         { label: "Défaut", color: "" },
                         { label: "Sombre", color: "#0A0D18" },
                         { label: "Bordeaux", color: "#1E060D" },
                         { label: "Bleu Nuit", color: "#051124" },
+                        { label: "Noir", color: "#000000" },
                       ].map((item, i) => (
                         <button
                           key={i}
+                          type="button"
                           onClick={() => handleBrandingChange("footerBgColor", item.color)}
                           className={`py-2 rounded-lg border text-[10px] font-bold transition-all cursor-pointer ${
                             (funnelData.branding?.footerBgColor || "") === item.color
-                              ? "border-indigo-500 bg-indigo-600/20 text-white"
+                              ? "border-indigo-500 bg-indigo-600/20 text-white ring-1 ring-indigo-500"
                               : "border-white/10 bg-slate-950 text-slate-400"
                           }`}
                         >
@@ -2782,43 +3488,164 @@ export function FunnelEditor({
                     </div>
                   </div>
 
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-1">
-                      Nom de la marque / Entreprise
+                  {/* IDENTITÉ DE L'ENTREPRISE */}
+                  <div className="space-y-3 pt-3 border-t border-white/10">
+                    <label className="block text-[11px] font-bold text-slate-300 uppercase tracking-wider">
+                      Identité de l'Entreprise
                     </label>
-                    <input
-                      type="text"
-                      value={funnelData.branding?.businessName || ""}
-                      onChange={(e) => handleBrandingChange("businessName", e.target.value)}
-                      placeholder="Ex: Ivoire Luxe Boutique"
-                      className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-white/10 text-white text-xs"
-                    />
+
+                    <div>
+                      <span className="block text-[10px] text-slate-400 mb-1">Nom de la marque / Boutique</span>
+                      <input
+                        type="text"
+                        value={funnelData.branding?.businessName || ""}
+                        onChange={(e) => handleBrandingChange("businessName", e.target.value)}
+                        placeholder="Ex: Ivoire Luxe Boutique"
+                        className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-white/10 text-white text-xs"
+                      />
+                    </div>
+
+                    <div>
+                      <span className="block text-[10px] text-slate-400 mb-1">Téléphone d'appel direct</span>
+                      <input
+                        type="text"
+                        value={funnelData.branding?.phone || ""}
+                        onChange={(e) => handleBrandingChange("phone", e.target.value)}
+                        placeholder="+229 01 53 29 52 82"
+                        className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-white/10 text-orange-400 font-bold text-xs"
+                      />
+                    </div>
+
+                    <div>
+                      <span className="block text-[10px] text-slate-400 mb-1">Numéro WhatsApp Vendeur *</span>
+                      <input
+                        type="text"
+                        value={funnelData.branding?.whatsappNumber || ""}
+                        onChange={(e) => handleBrandingChange("whatsappNumber", e.target.value)}
+                        placeholder="+229 97 00 00 00"
+                        className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-white/10 text-emerald-400 font-bold text-xs"
+                      />
+                    </div>
                   </div>
 
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-1">
-                      Téléphone d'appel direct
-                    </label>
-                    <input
-                      type="text"
-                      value={funnelData.branding?.phone || ""}
-                      onChange={(e) => handleBrandingChange("phone", e.target.value)}
-                      placeholder="+229 01 53 29 52 82"
-                      className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-white/10 text-orange-400 font-bold text-xs"
-                    />
-                  </div>
+                  {/* MOYENS DE PAIEMENT DU FORMULAIRE */}
+                  <div className="space-y-2 pt-3 border-t border-white/10">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-[11px] font-bold text-slate-300 uppercase tracking-wider">
+                        💳 Moyens de Paiement Acceptés
+                      </label>
+                      <span className="text-[9px] text-indigo-400 font-semibold">Formulaire Checkout</span>
+                    </div>
 
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-1">
-                      Numéro WhatsApp Vendeur *
-                    </label>
-                    <input
-                      type="text"
-                      value={funnelData.branding?.whatsappNumber || ""}
-                      onChange={(e) => handleBrandingChange("whatsappNumber", e.target.value)}
-                      placeholder="+229 97 00 00 00"
-                      className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-white/10 text-emerald-400 font-bold text-xs"
-                    />
+                    {(() => {
+                      const orderSec = funnelData.sections.find((s) => s.type === "order_form") as OrderFormConfig | undefined;
+                      const codOn = orderSec ? orderSec.codEnabled !== false : true;
+                      const momoOn = orderSec ? Boolean(orderSec.momoEnabled) : false;
+                      const cardOn = orderSec ? Boolean(orderSec.cardEnabled) : false;
+
+                      return (
+                        <div className="space-y-2 pt-1">
+                          {/* COD */}
+                          <div
+                            onClick={() => handleTogglePaymentMethod("cod")}
+                            className={`p-3 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
+                              codOn
+                                ? "bg-emerald-500/10 border-emerald-500/30 text-white"
+                                : "bg-slate-950 border-white/10 text-slate-400"
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5">
+                              <span className="text-lg">💵</span>
+                              <div>
+                                <span className="font-bold text-xs block text-white">
+                                  Paiement à la Livraison (COD)
+                                </span>
+                                <span className="text-[10px] text-slate-400 block">
+                                  L'acheteur paie en espèces au coursier après inspection.
+                                </span>
+                              </div>
+                            </div>
+                            <div
+                              className={`w-9 h-5 rounded-full p-0.5 transition-colors ${
+                                codOn ? "bg-emerald-500" : "bg-slate-800"
+                              }`}
+                            >
+                              <div
+                                className={`w-4 h-4 rounded-full bg-white transition-transform ${
+                                  codOn ? "translate-x-4" : "translate-x-0"
+                                }`}
+                              />
+                            </div>
+                          </div>
+
+                          {/* Mobile Money */}
+                          <div
+                            onClick={() => handleTogglePaymentMethod("momo")}
+                            className={`p-3 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
+                              momoOn
+                                ? "bg-indigo-500/10 border-indigo-500/30 text-white"
+                                : "bg-slate-950 border-white/10 text-slate-400"
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5">
+                              <span className="text-lg">📱</span>
+                              <div>
+                                <span className="font-bold text-xs block text-white">
+                                  Mobile Money (Wave, MTN, Orange, Moov)
+                                </span>
+                                <span className="text-[10px] text-slate-400 block">
+                                  Paiement instantané par portefeuille électronique africain.
+                                </span>
+                              </div>
+                            </div>
+                            <div
+                              className={`w-9 h-5 rounded-full p-0.5 transition-colors ${
+                                momoOn ? "bg-indigo-500" : "bg-slate-800"
+                              }`}
+                            >
+                              <div
+                                className={`w-4 h-4 rounded-full bg-white transition-transform ${
+                                  momoOn ? "translate-x-4" : "translate-x-0"
+                                }`}
+                              />
+                            </div>
+                          </div>
+
+                          {/* Carte Bancaire */}
+                          <div
+                            onClick={() => handleTogglePaymentMethod("card")}
+                            className={`p-3 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
+                              cardOn
+                                ? "bg-blue-500/10 border-blue-500/30 text-white"
+                                : "bg-slate-950 border-white/10 text-slate-400"
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5">
+                              <span className="text-lg">💳</span>
+                              <div>
+                                <span className="font-bold text-xs block text-white">
+                                  Carte Bancaire (Visa, Mastercard)
+                                </span>
+                                <span className="text-[10px] text-slate-400 block">
+                                  Paiement international sécurisé 3D-Secure.
+                                </span>
+                              </div>
+                            </div>
+                            <div
+                              className={`w-9 h-5 rounded-full p-0.5 transition-colors ${
+                                cardOn ? "bg-blue-500" : "bg-slate-800"
+                              }`}
+                            >
+                              <div
+                                className={`w-4 h-4 rounded-full bg-white transition-transform ${
+                                  cardOn ? "translate-x-4" : "translate-x-0"
+                                }`}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
               )}
@@ -2913,108 +3740,9 @@ export function FunnelEditor({
           aiImagesCount={aiImagesCount}
         />
 
-        {/* 3. CANEVAS DE PRÉVISUALISATION AVEC GESTIONNAIRE D'ÉTAPES DU TUNNEL */}
-        <div className="flex-1 bg-[#040407] p-2 sm:p-6 flex flex-col items-center justify-start overflow-hidden relative">
+        {/* 3. CANEVAS DE PRÉVISUALISATION MAXIMISÉ EN HAUTEUR */}
+        <div className="flex-1 bg-[#040407] p-2 sm:p-4 flex flex-col items-center justify-start overflow-hidden relative h-full">
           
-          {/* BARRE DE PIPELINE HAUT DE GAMME (DESIGN STUDIO FRAMER / WEBFLOW) */}
-          <div className="w-full max-w-6xl mb-3.5 p-2 sm:p-2.5 rounded-2xl bg-slate-950/95 border border-white/10 backdrop-blur-md shadow-2xl shrink-0 flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2 overflow-x-auto py-0.5 max-w-full">
-              <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-indigo-600/15 border border-indigo-500/25 shrink-0">
-                <Layers className="w-3.5 h-3.5 text-indigo-400" />
-                <span className="text-[11px] font-black text-indigo-300 uppercase tracking-wider">
-                  Tunnel ({steps.length} pages)
-                </span>
-              </div>
-
-              <div className="flex items-center gap-1.5 overflow-x-auto">
-                {steps.map((st, i) => {
-                  const isActive = st.id === activeStepId;
-                  const stepIcon =
-                    st.pageType === "capture"
-                      ? "🧲"
-                      : st.pageType === "sales"
-                      ? "🚀"
-                      : st.pageType === "checkout"
-                      ? "🛒"
-                      : st.pageType === "thank_you"
-                      ? "🎉"
-                      : "📄";
-
-                  return (
-                    <div key={st.id} className="flex items-center gap-1.5 shrink-0 group/step">
-                      <div
-                        onClick={() => handleSwitchStep(st.id)}
-                        className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm border ${
-                          isActive
-                            ? "bg-gradient-to-r from-indigo-600 to-indigo-700 text-white border-indigo-400/50 ring-2 ring-indigo-500/30 shadow-indigo-600/30"
-                            : "bg-slate-900 border-white/10 text-slate-400 hover:text-white hover:border-white/25 hover:bg-slate-800"
-                        }`}
-                      >
-                        <span className="text-sm">{stepIcon}</span>
-                        <div className="text-left">
-                          <span className="block leading-none">{st.name}</span>
-                          <span
-                            className={`text-[9px] font-mono block mt-0.5 ${
-                              isActive ? "text-indigo-200" : "text-slate-500"
-                            }`}
-                          >
-                            /{st.slug || st.id}
-                          </span>
-                        </div>
-
-                        {isActive && (
-                          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse ml-0.5" />
-                        )}
-
-                        {/* ACTIONS RAPIDES SUR L'ÉTAPE */}
-                        <div className="flex items-center gap-1 ml-1 opacity-0 group-hover/step:opacity-100 transition-opacity">
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleRenameStep(st.id);
-                            }}
-                            className="p-1 rounded hover:bg-black/30 text-slate-300 hover:text-white"
-                            title="Renommer cette page"
-                          >
-                            <Edit3 className="w-3 h-3" />
-                          </button>
-                          {steps.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteStep(st.id);
-                              }}
-                              className="p-1 rounded hover:bg-rose-500/30 text-slate-400 hover:text-rose-400"
-                              title="Supprimer cette page du tunnel"
-                            >
-                              <X className="w-3 h-3" />
-                            </button>
-                          )}
-                        </div>
-                      </div>
-
-                      {i < steps.length - 1 && (
-                        <span className="text-slate-600 font-bold text-xs px-0.5">
-                          →
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            <button
-              onClick={() => setShowAddStepModal(true)}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white border border-indigo-400/30 text-xs font-bold transition-all cursor-pointer whitespace-nowrap shadow-md shadow-indigo-600/20"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>+ Nouvelle Page</span>
-            </button>
-          </div>
-
           <div className="absolute right-4 bottom-6 z-30 flex flex-col gap-2">
             <button
               onClick={() => scrollTo("top")}
@@ -3034,7 +3762,7 @@ export function FunnelEditor({
 
           <div
             ref={scrollContainerRef}
-            className={`w-full transition-all duration-300 rounded-3xl overflow-y-auto shadow-2xl border border-white/10 max-h-[calc(100vh-140px)] ${
+            className={`w-full transition-all duration-300 rounded-3xl overflow-y-auto shadow-2xl border border-white/10 h-full max-h-[calc(100vh-76px)] ${
               device === "mobile"
                 ? "max-w-[390px] ring-8 ring-slate-900"
                 : device === "tablet"
@@ -3073,9 +3801,169 @@ export function FunnelEditor({
                 const target = steps.find((s) => s.slug === stepSlug || s.id === stepSlug);
                 if (target) handleSwitchStep(target.id);
               }}
+              onInsertWidget={handleInsertWidgetAt}
             />
           </div>
         </div>
+
+        {/* 4. RAIL LATÉRAL DROIT : TIMELINE DU TUNNEL & PIPELINE VERTICAL */}
+        <aside className="w-60 xl:w-64 border-l border-white/10 bg-[#070913] flex flex-col shrink-0 z-20 h-full select-none">
+          {/* En-tête du Rail Vertical */}
+          <div className="p-3.5 border-b border-white/10 flex items-center justify-between bg-slate-950/60 backdrop-blur-sm shrink-0">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
+                <Layers className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="text-xs font-black text-white tracking-wide">Pages du Tunnel</h3>
+                <span className="text-[10px] text-slate-400 font-semibold">
+                  {steps.length} page{steps.length > 1 ? "s" : ""} connectée{steps.length > 1 ? "s" : ""}
+                </span>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setShowAddStepModal(true)}
+              className="p-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-all cursor-pointer shadow-sm shadow-indigo-600/20"
+              title="Ajouter une nouvelle page au tunnel"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Liste des Étapes Verticales Connectées */}
+          <div className="flex-1 overflow-y-auto p-3 space-y-2">
+            {steps.map((st, i) => {
+              const isActive = st.id === activeStepId;
+              const stepIcon =
+                st.pageType === "capture"
+                  ? "🧲"
+                  : st.pageType === "sales"
+                  ? "🚀"
+                  : st.pageType === "checkout"
+                  ? "🛒"
+                  : st.pageType === "thank_you"
+                  ? "🎉"
+                  : "📄";
+
+              const typeBadge =
+                st.pageType === "capture"
+                  ? "Capture"
+                  : st.pageType === "sales"
+                  ? "Vente"
+                  : st.pageType === "checkout"
+                  ? "Paiement"
+                  : st.pageType === "thank_you"
+                  ? "Merci"
+                  : "Page";
+
+              return (
+                <div key={st.id} className="relative group">
+                  {/* Connecteur vertical entre étapes */}
+                  {i < steps.length - 1 && (
+                    <div className="absolute left-5 top-11 bottom--2 w-0.5 bg-gradient-to-b from-indigo-500/50 via-indigo-500/20 to-transparent z-0 pointer-events-none" />
+                  )}
+
+                  <div
+                    onClick={() => handleSwitchStep(st.id)}
+                    className={`relative z-10 p-2.5 rounded-2xl border transition-all cursor-pointer ${
+                      isActive
+                        ? "bg-slate-900/95 border-indigo-500 ring-2 ring-indigo-500/30 shadow-lg shadow-indigo-950/50"
+                        : "bg-slate-950/60 border-white/5 hover:border-white/20 hover:bg-slate-900/50 text-slate-400"
+                    }`}
+                  >
+                    <div className="flex items-start gap-2.5">
+                      {/* Numéro & Icône de l'étape */}
+                      <div
+                        className={`w-7 h-7 rounded-xl flex items-center justify-center text-sm shrink-0 border ${
+                          isActive
+                            ? "bg-indigo-600 border-indigo-400 text-white shadow-md shadow-indigo-600/40"
+                            : "bg-slate-900 border-white/10 text-slate-300"
+                        }`}
+                      >
+                        {stepIcon}
+                      </div>
+
+                      {/* Infos de l'étape */}
+                      <div className="flex-1 min-w-0 text-left">
+                        <div className="flex items-center justify-between gap-1">
+                          <span
+                            className={`text-[10px] font-bold uppercase tracking-wider truncate ${
+                              isActive ? "text-indigo-400" : "text-slate-500"
+                            }`}
+                          >
+                            Étape {i + 1} • {typeBadge}
+                          </span>
+                          {isActive && (
+                            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                          )}
+                        </div>
+
+                        <div className="font-extrabold text-xs text-white truncate mt-0.5">
+                          {st.name}
+                        </div>
+
+                        <div
+                          className={`text-[9px] font-mono truncate mt-0.5 ${
+                            isActive ? "text-indigo-300" : "text-slate-500"
+                          }`}
+                        >
+                          /{st.slug || st.id}
+                        </div>
+                      </div>
+
+                      {/* Actions Rapides */}
+                      <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRenameStep(st.id);
+                          }}
+                          className="p-1 rounded-md hover:bg-slate-800 text-slate-400 hover:text-white"
+                          title="Renommer la page"
+                        >
+                          <Edit3 className="w-3 h-3" />
+                        </button>
+                        {steps.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteStep(st.id);
+                            }}
+                            className="p-1 rounded-md hover:bg-rose-500/20 text-slate-400 hover:text-rose-400"
+                            title="Supprimer la page"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Pied du Rail : Bouton Ajouter + Astuce */}
+          <div className="p-3 border-t border-white/10 bg-slate-950/80 space-y-2.5 shrink-0">
+            <button
+              onClick={() => setShowAddStepModal(true)}
+              className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-indigo-600/25 transition-all cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>+ Ajouter une Page</span>
+            </button>
+
+            <div className="p-2 rounded-xl bg-slate-900/60 border border-white/5 text-[10px] text-slate-400 leading-tight flex items-start gap-1.5">
+              <span className="text-amber-400 text-xs shrink-0">💡</span>
+              <span>
+                Liez vos boutons d'action (CTA) pour rediriger automatiquement vers l'étape suivante du tunnel.
+              </span>
+            </div>
+          </div>
+        </aside>
       </div>
 
       {/* MODAL D'AJOUT D'UNE ÉTAPE AU TUNNEL */}
