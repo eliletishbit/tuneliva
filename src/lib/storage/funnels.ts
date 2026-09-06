@@ -22,6 +22,10 @@ export interface OrderRecord {
   paymentStatus?: "pending" | "paid" | "failed";
   orderStatus: "new" | "confirmed" | "shipped" | "delivered" | "cancelled";
   fedapayTransactionId?: string;
+  fedapaySubAccountId?: string;
+  platformFee?: number;
+  merchantNetAmount?: number;
+  commissionRate?: number;
   createdAt: string;
 }
 
@@ -229,6 +233,10 @@ export async function getAllOrders(userId?: string): Promise<OrderRecord[]> {
         paymentStatus: row.payment_status,
         orderStatus: row.order_status,
         fedapayTransactionId: row.fedapay_transaction_id,
+        fedapaySubAccountId: row.fedapay_sub_account_id,
+        platformFee: row.platform_fee ? Number(row.platform_fee) : undefined,
+        merchantNetAmount: row.merchant_net_amount ? Number(row.merchant_net_amount) : undefined,
+        commissionRate: row.commission_rate ? Number(row.commission_rate) : undefined,
         createdAt: row.created_at,
       }));
     }
@@ -272,6 +280,10 @@ export async function getOrderById(orderId: string): Promise<OrderRecord | null>
         paymentStatus: data.payment_status,
         orderStatus: data.order_status,
         fedapayTransactionId: data.fedapay_transaction_id,
+        fedapaySubAccountId: data.fedapay_sub_account_id,
+        platformFee: data.platform_fee ? Number(data.platform_fee) : undefined,
+        merchantNetAmount: data.merchant_net_amount ? Number(data.merchant_net_amount) : undefined,
+        commissionRate: data.commission_rate ? Number(data.commission_rate) : undefined,
         createdAt: data.created_at,
       };
     }
@@ -299,6 +311,10 @@ export async function saveOrder(order: Partial<OrderRecord>): Promise<OrderRecor
     paymentStatus: order.paymentStatus || "pending",
     orderStatus: order.orderStatus || "new",
     fedapayTransactionId: order.fedapayTransactionId,
+    fedapaySubAccountId: order.fedapaySubAccountId,
+    platformFee: order.platformFee,
+    merchantNetAmount: order.merchantNetAmount,
+    commissionRate: order.commissionRate,
     createdAt: order.createdAt || new Date().toISOString(),
   };
 
@@ -320,6 +336,10 @@ export async function saveOrder(order: Partial<OrderRecord>): Promise<OrderRecor
       payment_status: newOrder.paymentStatus,
       order_status: newOrder.orderStatus,
       fedapay_transaction_id: newOrder.fedapayTransactionId || null,
+      fedapay_sub_account_id: newOrder.fedapaySubAccountId || null,
+      platform_fee: newOrder.platformFee || 0,
+      merchant_net_amount: newOrder.merchantNetAmount || newOrder.totalAmount,
+      commission_rate: newOrder.commissionRate || 4.5,
       created_at: newOrder.createdAt,
       updated_at: new Date().toISOString(),
     });

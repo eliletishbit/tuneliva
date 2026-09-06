@@ -13,7 +13,9 @@ import {
   CheckCircle2,
   AlertCircle,
   MessageSquare,
-  ShieldCheck,
+  KeyRound,
+  Send,
+  ExternalLink,
 } from "lucide-react";
 
 function LoginForm() {
@@ -24,7 +26,7 @@ function LoginForm() {
   const supabase = createClient();
 
   const [authMode, setAuthMode] = useState<"signin" | "signup">("signin");
-  const [authMethod, setAuthMethod] = useState<"email" | "phone">("email");
+  const [authMethod, setAuthMethod] = useState<"password" | "magic_link" | "phone">("password");
 
   // Email form state
   const [email, setEmail] = useState("");
@@ -43,12 +45,18 @@ function LoginForm() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  // 1. CONNEXION / INSCRIPTION EMAIL
+  // Configuration alerts
+  const [googleConfigError, setGoogleConfigError] = useState(false);
+  const [phoneConfigError, setPhoneConfigError] = useState(false);
+
+  // 1. CONNEXION / INSCRIPTION EMAIL & MOT DE PASSE
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setErrorMessage(null);
     setSuccessMessage(null);
+    setGoogleConfigError(false);
+    setPhoneConfigError(false);
 
     try {
       if (authMode === "signup") {
@@ -68,7 +76,7 @@ function LoginForm() {
           router.push(redirectPath);
         } else {
           setSuccessMessage(
-            "Compte créé avec succès ! Si demandé, vérifiez votre boîte email pour valider votre compte."
+            "Compte créé avec succès ! Si un email de confirmation vous a été envoyé, cliquez sur le lien pour valider votre inscription."
           );
         }
       } else {
@@ -84,17 +92,59 @@ function LoginForm() {
       setErrorMessage(
         err.message === "Invalid login credentials"
           ? "Identifiants incorrects. Vérifiez votre email et mot de passe."
-          : err.message || "Une erreur est survenue."
+          : err.message || "Une erreur est survenue lors de l'authentification."
       );
     } finally {
       setLoading(false);
     }
   };
 
-  // 2. CONNEXION GOOGLE OAUTH
+  // 2. CONNEXION PAR LIEN MAGIQUE (EMAIL SANS MOT DE PASSE)
+  const handleMagicLink = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim()) {
+      setErrorMessage("Veuillez saisir votre adresse email.");
+      return;
+    }
+
+    setLoading(true);
+    setErrorMessage(null);
+    setSuccessMessage(null);
+    setGoogleConfigError(false);
+    setPhoneConfigError(false);
+
+    try {
+      const origin = window.location.origin;
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: `${origin}/auth/callback?next=${encodeURIComponent(
+            redirectPath
+          )}`,
+        },
+      });
+
+      if (error) throw error;
+
+      setSuccessMessage(
+        `Lien de connexion instantané envoyé à ${email} ! Consultez votre boîte de réception (et vos spams si besoin) et cliquez sur le lien pour vous connecter immédiatement.`
+      );
+    } catch (err: any) {
+      setErrorMessage(
+        err.message || "Impossible d'envoyer le lien de connexion sécurisé."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 3. CONNEXION GOOGLE OAUTH
   const handleGoogleAuth = async () => {
     setLoading(true);
     setErrorMessage(null);
+    setGoogleConfigError(false);
+    setPhoneConfigError(false);
+
     try {
       const origin = window.location.origin;
       const { error } = await supabase.auth.signInWithOAuth({
@@ -105,24 +155,44 @@ function LoginForm() {
           )}`,
         },
       });
-      if (error) throw error;
+
+      if (error) {
+        if (
+          error.message?.includes("provider is not enabled") ||
+          error.message?.includes("validation_failed") ||
+          (error as any).code === "validation_failed"
+        ) {
+          setGoogleConfigError(true);
+        } else {
+          setErrorMessage(error.message);
+        }
+      }
     } catch (err: any) {
-      setErrorMessage(err.message || "Erreur lors de la connexion avec Google");
+      if (
+        err.message?.includes("provider is not enabled") ||
+        err.message?.includes("validation_failed")
+      ) {
+        setGoogleConfigError(true);
+      } else {
+        setErrorMessage(err.message || "Erreur lors de la connexion avec Google.");
+      }
+    } finally {
       setLoading(false);
     }
   };
 
-  // 3. ENVOI OTP TÉLÉPHONE (WHATSAPP OU SMS)
+  // 4. ENVOI OTP TÉLÉPHONE (WHATSAPP OU SMS)
   const handleSendPhoneOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!phoneNumber.trim()) {
-      setErrorMessage("Veuillez saisir votre numéro de téléphone");
+      setErrorMessage("Veuillez saisir votre numéro de téléphone.");
       return;
     }
 
     setLoading(true);
     setErrorMessage(null);
     setSuccessMessage(null);
+    setPhoneConfigError(false);
 
     const fullPhone = `${phoneCountryCode}${phoneNumber.replace(/\s+/g, "")}`;
 
@@ -134,7 +204,18 @@ function LoginForm() {
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        if (
+          error.message?.toLowerCase().includes("unsupported phone provider") ||
+          error.message?.toLowerCase().includes("provider") ||
+          (error as any).code === "validation_failed"
+        ) {
+          setPhoneConfigError(true);
+        } else {
+          setErrorMessage(error.message);
+        }
+        return;
+      }
 
       setOtpSent(true);
       setSuccessMessage(
@@ -143,20 +224,26 @@ function LoginForm() {
         } au ${fullPhone}`
       );
     } catch (err: any) {
-      setErrorMessage(
-        err.message ||
-          "Impossible d'envoyer le code. Assurez-vous que le fournisseur de SMS/WhatsApp est configuré dans Supabase."
-      );
+      if (
+        err.message?.toLowerCase().includes("unsupported phone provider") ||
+        err.message?.toLowerCase().includes("provider")
+      ) {
+        setPhoneConfigError(true);
+      } else {
+        setErrorMessage(
+          err.message || "Impossible d'envoyer le code par SMS/WhatsApp."
+        );
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  // 4. VÉRIFICATION OTP
+  // 5. VÉRIFICATION OTP
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!otpCode.trim()) {
-      setErrorMessage("Veuillez saisir le code reçu");
+      setErrorMessage("Veuillez saisir le code à 6 chiffres reçu.");
       return;
     }
 
@@ -175,7 +262,7 @@ function LoginForm() {
       if (error) throw error;
       router.push(redirectPath);
     } catch (err: any) {
-      setErrorMessage(err.message || "Code invalide ou expiré");
+      setErrorMessage(err.message || "Code secret invalide ou expiré.");
     } finally {
       setLoading(false);
     }
@@ -187,25 +274,102 @@ function LoginForm() {
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-600/15 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-10 right-10 w-72 h-72 bg-emerald-600/10 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="w-full max-w-md bg-[#0A0D18]/90 border border-white/10 rounded-3xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl space-y-6 relative z-10">
-        {/* LOGO & EN-TÊTE */}
+      <div className="w-full max-w-md bg-[#0A0D18]/95 border border-white/10 rounded-3xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl space-y-6 relative z-10">
+        {/* LOGO & EN-TÊTE UNIVERSEL */}
         <div className="text-center space-y-2">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-600/20 border border-indigo-500/30 text-indigo-400 text-xs font-bold mb-1">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Tuneliva E-commerce Studio 2026</span>
+            <span>Tuneliva Studio</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-            {authMode === "signin" ? "Bon retour parmi nous" : "Créez votre compte"}
+            {authMode === "signin" ? "Connexion à votre espace" : "Créer votre compte"}
           </h1>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-400 leading-relaxed">
             {authMode === "signin"
-              ? "Accédez à vos tunnels de vente, commandes et chiffre d'affaires."
-              : "Rejoignez les meilleurs commerçants et lancez vos tunnels en 1 clic."}
+              ? "Gérez vos tunnels, billetteries, formations, lancements et commandes."
+              : "Créez vos tunnels de conversion haute performance en quelques clics."}
           </p>
         </div>
 
-        {/* MESSAGES D'ALERTE */}
-        {errorMessage && (
+        {/* ALERTE SPÉCIALE : ACTIVATION GOOGLE OAUTH */}
+        {googleConfigError && (
+          <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs space-y-2">
+            <div className="flex items-center gap-2 font-bold text-amber-200">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>Activation de Google OAuth requise dans Supabase</span>
+            </div>
+            <p className="text-[11px] text-amber-300/90 leading-relaxed">
+              Le fournisseur Google n'est pas encore activé dans votre console Supabase. Pour l'activer :
+            </p>
+            <ol className="list-decimal pl-4 space-y-1 text-[11px] text-slate-300">
+              <li>Rendez-vous dans votre tableau de bord Supabase &gt; Authentication &gt; Providers &gt; Google.</li>
+              <li>Activez le switch <strong>Enable Google provider</strong>.</li>
+              <li>Saisissez vos identifiants Client ID et Client Secret (Google Cloud).</li>
+            </ol>
+            <div className="pt-1 flex items-center justify-between">
+              <a
+                href="https://supabase.com/dashboard/project/lqmjupbtxjtbepmpdgsq/auth/providers"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 text-[11px] font-bold text-indigo-400 hover:underline"
+              >
+                <span>Ouvrir Supabase Providers</span>
+                <ExternalLink className="w-3 h-3" />
+              </a>
+              <button
+                type="button"
+                onClick={() => {
+                  setGoogleConfigError(false);
+                  setAuthMethod("password");
+                }}
+                className="text-[11px] font-bold text-white bg-indigo-600/60 hover:bg-indigo-600 px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
+              >
+                Utiliser Email & Mot de passe
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ALERTE SPÉCIALE : CONFIGURATION SMS / WHATSAPP REQUISE */}
+        {phoneConfigError && (
+          <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs space-y-2">
+            <div className="flex items-center gap-2 font-bold text-amber-200">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>Passerelle SMS / WhatsApp non configurée dans Supabase</span>
+            </div>
+            <p className="text-[11px] text-amber-300/90 leading-relaxed">
+              Pour envoyer de vrais SMS ou messages WhatsApp via Supabase, un fournisseur externe (Twilio, MessageBird, Vonage) doit être connecté dans <strong>Authentication &gt; Providers &gt; Phone</strong>.
+            </p>
+            <p className="text-[11px] text-slate-300 font-semibold">
+              👉 Pour vous connecter dès maintenant sans attendre de fournisseur SMS : utilisez l'authentification par <strong>Email &amp; Mot de passe</strong> ou le <strong>Lien Magique</strong> ci-dessous !
+            </p>
+            <div className="pt-1 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setPhoneConfigError(false);
+                  setAuthMethod("password");
+                }}
+                className="text-[11px] font-bold text-white bg-indigo-600 hover:bg-indigo-500 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+              >
+                Connexion Email &amp; Mot de passe
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setPhoneConfigError(false);
+                  setAuthMethod("magic_link");
+                }}
+                className="text-[11px] font-bold text-slate-300 hover:text-white bg-slate-900 border border-white/10 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+              >
+                Lien Magique
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* MESSAGES D'ALERTE GÉNÉRAUX */}
+        {errorMessage && !googleConfigError && !phoneConfigError && (
           <div className="p-3 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs flex items-start gap-2">
             <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
             <span>{errorMessage}</span>
@@ -220,53 +384,74 @@ function LoginForm() {
         )}
 
         {/* SÉLECTEUR DE MÉTHODE D'AUTHENTIFICATION */}
-        <div className="grid grid-cols-2 gap-1.5 p-1 rounded-2xl bg-slate-950 border border-white/10 text-xs font-bold">
+        <div className="grid grid-cols-3 gap-1 p-1 rounded-2xl bg-slate-950 border border-white/10 text-xs font-bold">
           <button
             type="button"
             onClick={() => {
-              setAuthMethod("email");
+              setAuthMethod("password");
               setErrorMessage(null);
+              setGoogleConfigError(false);
+              setPhoneConfigError(false);
             }}
-            className={`py-2 px-3 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
-              authMethod === "email"
+            className={`py-2 px-2 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer text-[11px] sm:text-xs ${
+              authMethod === "password"
                 ? "bg-indigo-600 text-white shadow-md"
                 : "text-slate-400 hover:text-white"
             }`}
           >
-            <Mail className="w-3.5 h-3.5" />
-            <span>Email</span>
+            <KeyRound className="w-3.5 h-3.5" />
+            <span>Mot de passe</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setAuthMethod("magic_link");
+              setErrorMessage(null);
+              setGoogleConfigError(false);
+              setPhoneConfigError(false);
+            }}
+            className={`py-2 px-2 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer text-[11px] sm:text-xs ${
+              authMethod === "magic_link"
+                ? "bg-indigo-600 text-white shadow-md"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            <Send className="w-3.5 h-3.5" />
+            <span>Lien Magique</span>
           </button>
           <button
             type="button"
             onClick={() => {
               setAuthMethod("phone");
               setErrorMessage(null);
+              setGoogleConfigError(false);
+              setPhoneConfigError(false);
             }}
-            className={`py-2 px-3 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
+            className={`py-2 px-2 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer text-[11px] sm:text-xs ${
               authMethod === "phone"
                 ? "bg-indigo-600 text-white shadow-md"
                 : "text-slate-400 hover:text-white"
             }`}
           >
             <Phone className="w-3.5 h-3.5" />
-            <span>Téléphone / OTP</span>
+            <span>Téléphone OTP</span>
           </button>
         </div>
 
         {/* 1. FORMULAIRE EMAIL & MOT DE PASSE */}
-        {authMethod === "email" && (
+        {authMethod === "password" && (
           <form onSubmit={handleEmailAuth} className="space-y-4">
             {authMode === "signup" && (
               <div className="space-y-1.5">
                 <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider block">
-                  Nom complet ou Nom commercial
+                  Nom complet ou Raison Sociale
                 </label>
                 <input
                   type="text"
                   required
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  placeholder="Ex: Amina Diallo"
+                  placeholder="Ex: Amina Diallo ou Agence Digitale"
                   className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-white/10 text-white text-xs focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                 />
               </div>
@@ -316,12 +501,12 @@ function LoginForm() {
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : authMode === "signin" ? (
                 <>
-                  <span>Se connecter</span>
+                  <span>Se connecter à Tuneliva</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               ) : (
                 <>
-                  <span>Créer mon compte vendeur</span>
+                  <span>Créer mon compte Tuneliva</span>
                   <Sparkles className="w-4 h-4" />
                 </>
               )}
@@ -329,7 +514,48 @@ function LoginForm() {
           </form>
         )}
 
-        {/* 2. FORMULAIRE TÉLÉPHONE / WHATSAPP OTP */}
+        {/* 2. FORMULAIRE LIEN MAGIQUE SANS MOT DE PASSE */}
+        {authMethod === "magic_link" && (
+          <form onSubmit={handleMagicLink} className="space-y-4">
+            <div className="p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-xs text-indigo-300 leading-relaxed">
+              ✨ <strong>Connexion 1-clic sans mot de passe :</strong> saisissez votre email et recevez un lien sécurisé d'accès direct dans votre boîte de réception.
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider block">
+                Votre Adresse Email
+              </label>
+              <div className="relative">
+                <Mail className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="votre@email.com"
+                  className="w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-slate-950 border border-white/10 text-white text-xs focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-indigo-600 hover:opacity-95 text-white text-xs font-black flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/30 transition-all cursor-pointer disabled:opacity-50"
+            >
+              {loading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <>
+                  <span>M'envoyer mon lien de connexion</span>
+                  <Send className="w-4 h-4" />
+                </>
+              )}
+            </button>
+          </form>
+        )}
+
+        {/* 3. FORMULAIRE TÉLÉPHONE / WHATSAPP OTP */}
         {authMethod === "phone" && (
           <div className="space-y-4">
             {!otpSent ? (
@@ -446,7 +672,7 @@ function LoginForm() {
                     {loading ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
                     ) : (
-                      <span>Valider & Entrer</span>
+                      <span>Valider &amp; Entrer</span>
                     )}
                   </button>
                 </div>
@@ -463,7 +689,7 @@ function LoginForm() {
           </span>
         </div>
 
-        {/* 3. BOUTON GOOGLE 1-CLIC */}
+        {/* BOUTON GOOGLE 1-CLIC */}
         <button
           type="button"
           onClick={handleGoogleAuth}
@@ -502,6 +728,8 @@ function LoginForm() {
                   setAuthMode("signup");
                   setErrorMessage(null);
                   setSuccessMessage(null);
+                  setGoogleConfigError(false);
+                  setPhoneConfigError(false);
                 }}
                 className="text-indigo-400 hover:text-indigo-300 font-bold hover:underline cursor-pointer"
               >
@@ -517,6 +745,8 @@ function LoginForm() {
                   setAuthMode("signin");
                   setErrorMessage(null);
                   setSuccessMessage(null);
+                  setGoogleConfigError(false);
+                  setPhoneConfigError(false);
                 }}
                 className="text-indigo-400 hover:text-indigo-300 font-bold hover:underline cursor-pointer"
               >

@@ -30,6 +30,9 @@ import {
   Eye,
   LogOut,
   User as UserIcon,
+  Wallet,
+  CreditCard,
+  Building,
 } from "lucide-react";
 
 export default function MerchantDashboard() {
@@ -76,8 +79,79 @@ export default function MerchantDashboard() {
     }
   };
 
+  // REVERSEMENTS & SOUS-COMPTES FEDAPAY
+  const [showPayoutModal, setShowPayoutModal] = useState(false);
+  const [payoutData, setPayoutData] = useState({
+    fullName: "",
+    businessName: "",
+    payoutMethod: "momo",
+    payoutMomoPhone: "",
+    payoutMomoOperator: "MTN",
+    payoutBankName: "",
+    payoutBankRib: "",
+    fedapaySubAccountId: "",
+    plan: "free",
+    commissionRate: 4.5,
+  });
+  const [payoutSaving, setPayoutSaving] = useState(false);
+  const [payoutSuccessMsg, setPayoutSuccessMsg] = useState<string | null>(null);
+
+  const fetchPayoutSettings = async () => {
+    try {
+      const res = await fetch("/api/merchant/payout-settings");
+      if (res.ok) {
+        const json = await res.json();
+        if (json.profile) {
+          setPayoutData({
+            fullName: json.profile.full_name || "",
+            businessName: json.profile.business_name || "",
+            payoutMethod: json.profile.payout_method || "momo",
+            payoutMomoPhone: json.profile.payout_momo_phone || "",
+            payoutMomoOperator: json.profile.payout_momo_operator || "MTN",
+            payoutBankName: json.profile.payout_bank_name || "",
+            payoutBankRib: json.profile.payout_bank_rib || "",
+            fedapaySubAccountId: json.profile.fedapay_sub_account_id || "",
+            plan: json.profile.plan || "free",
+            commissionRate: json.profile.commission_rate || 4.5,
+          });
+        }
+      }
+    } catch (e) {
+      console.warn("Erreur fetch payout settings:", e);
+    }
+  };
+
+  const handleSavePayoutSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPayoutSaving(true);
+    setPayoutSuccessMsg(null);
+    try {
+      const res = await fetch("/api/merchant/payout-settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payoutData),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.profile?.fedapay_sub_account_id) {
+          setPayoutData((prev) => ({
+            ...prev,
+            fedapaySubAccountId: json.profile.fedapay_sub_account_id,
+          }));
+        }
+        setPayoutSuccessMsg("Coordonnées de versement et sous-compte FedaPay synchronisés avec succès !");
+        setTimeout(() => setPayoutSuccessMsg(null), 4000);
+      }
+    } catch (e) {
+      console.error("Erreur sauvegarde payout:", e);
+    } finally {
+      setPayoutSaving(false);
+    }
+  };
+
   useEffect(() => {
     fetchDashboardData();
+    fetchPayoutSettings();
     const supabase = createClient();
     supabase.auth.getUser().then(({ data }) => {
       if (data?.user) {
@@ -212,6 +286,21 @@ export default function MerchantDashboard() {
     .filter((o) => o.orderStatus !== "cancelled")
     .reduce((acc, curr) => acc + (curr.totalAmount || 0), 0);
 
+  const totalPlatformFees = orders
+    .filter((o) => o.orderStatus !== "cancelled")
+    .reduce((acc, curr) => acc + (curr.platformFee || 0), 0);
+
+  const totalNetRevenue = orders
+    .filter((o) => o.orderStatus !== "cancelled")
+    .reduce(
+      (acc, curr) =>
+        acc +
+        (curr.merchantNetAmount !== undefined
+          ? curr.merchantNetAmount
+          : curr.totalAmount - (curr.platformFee || 0)),
+      0
+    );
+
   const deliveredCount = orders.filter((o) => o.orderStatus === "delivered").length;
   const deliveryRate =
     orders.length > 0 ? Math.round((deliveredCount / orders.length) * 100) : 100;
@@ -296,6 +385,18 @@ export default function MerchantDashboard() {
             )}
 
             <button
+              onClick={() => {
+                setShowPayoutModal(true);
+                fetchPayoutSettings();
+              }}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-white/10 hover:border-emerald-500/40 text-slate-200 hover:text-white font-bold text-xs transition-all cursor-pointer shadow-sm"
+              title="Gérer les versements Mobile Money / Banque et sous-compte FedaPay"
+            >
+              <Wallet className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="hidden sm:inline">Versements</span>
+            </button>
+
+            <button
               onClick={fetchDashboardData}
               className="p-2 rounded-xl bg-slate-900 border border-white/10 text-slate-300 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
               title="Actualiser les données"
@@ -338,35 +439,35 @@ export default function MerchantDashboard() {
           </div>
         </div>
 
-        {/* CARTES DE KPIS EN TEMPS RÉEL */}
+        {/* CARTES DE KPIS EN TEMPS RÉEL AVEC SPLIT DES COMMISSIONS */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="p-5 rounded-3xl bg-slate-950 border border-white/10 space-y-2 shadow-xl relative overflow-hidden">
             <div className="w-8 h-8 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center text-sm font-bold">
               💰
             </div>
-            <p className="text-xs text-slate-400 font-medium">Chiffre d'Affaires</p>
+            <p className="text-xs text-slate-400 font-medium">Ventes Brutes Encaissées</p>
             <p className="text-xl sm:text-2xl font-black font-mono text-white">
               {totalRevenue.toLocaleString("fr-FR")} <span className="text-xs text-slate-400">FCFA</span>
             </p>
           </div>
 
           <div className="p-5 rounded-3xl bg-slate-950 border border-white/10 space-y-2 shadow-xl">
-            <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-sm font-bold">
-              📦
+            <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-sm font-bold">
+              💵
             </div>
-            <p className="text-xs text-slate-400 font-medium">Total Commandes</p>
-            <p className="text-xl sm:text-2xl font-black font-mono text-white">
-              {orders.length}
+            <p className="text-xs text-slate-400 font-medium">Revenu Net Reversé</p>
+            <p className="text-xl sm:text-2xl font-black font-mono text-emerald-400">
+              {totalNetRevenue.toLocaleString("fr-FR")} <span className="text-xs text-slate-400">FCFA</span>
             </p>
           </div>
 
           <div className="p-5 rounded-3xl bg-slate-950 border border-white/10 space-y-2 shadow-xl">
-            <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-sm font-bold">
-              🚚
+            <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-sm font-bold">
+              🤝
             </div>
-            <p className="text-xs text-slate-400 font-medium">Taux de Livraison</p>
-            <p className="text-xl sm:text-2xl font-black font-mono text-emerald-400">
-              {deliveryRate}%
+            <p className="text-xs text-slate-400 font-medium">Commissions Tuneliva ({payoutData.commissionRate}%)</p>
+            <p className="text-xl sm:text-2xl font-black font-mono text-amber-400">
+              {totalPlatformFees.toLocaleString("fr-FR")} <span className="text-xs text-slate-400">FCFA</span>
             </p>
           </div>
 
@@ -376,7 +477,7 @@ export default function MerchantDashboard() {
             </div>
             <p className="text-xs text-slate-400 font-medium">Tunnels / Projets Actifs</p>
             <p className="text-xl sm:text-2xl font-black font-mono text-white">
-              {funnels.length}
+              {funnels.length} <span className="text-xs text-slate-400 font-normal">({orders.length} cmd)</span>
             </p>
           </div>
         </div>
@@ -745,9 +846,16 @@ export default function MerchantDashboard() {
                           <span className="font-semibold text-slate-200 block truncate max-w-xs">
                             {order.productName}
                           </span>
-                          <span className="font-bold text-amber-400 font-mono">
-                            {order.totalAmount.toLocaleString("fr-FR")} {order.currency}
-                          </span>
+                          <div className="space-y-0.5 mt-0.5">
+                            <span className="font-bold text-amber-400 font-mono text-xs block">
+                              {order.totalAmount.toLocaleString("fr-FR")} {order.currency}
+                            </span>
+                            {order.platformFee !== undefined && order.platformFee > 0 && (
+                              <span className="text-[10px] text-emerald-400 font-mono block">
+                                Net reçu : {(order.merchantNetAmount !== undefined ? order.merchantNetAmount : order.totalAmount - order.platformFee).toLocaleString("fr-FR")} {order.currency} (-{order.commissionRate || 4.5}%)
+                              </span>
+                            )}
+                          </div>
                         </td>
 
                         <td className="p-3.5">
@@ -808,6 +916,215 @@ export default function MerchantDashboard() {
             )}
           </div>
         </div>
+
+        {/* MODAL PARAMÈTRES DE VERSEMENT & SOUS-COMPTE FEDAPAY */}
+        {showPayoutModal && (
+          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-[#0A0D18] border border-white/15 rounded-3xl p-6 sm:p-8 max-w-lg w-full space-y-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+              <button
+                onClick={() => setShowPayoutModal(false)}
+                className="absolute top-5 right-5 p-2 rounded-xl bg-slate-900 border border-white/10 text-slate-400 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              <div className="space-y-1">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold">
+                  <Wallet className="w-3.5 h-3.5" />
+                  <span>Versements &amp; Sous-compte FedaPay</span>
+                </div>
+                <h2 className="text-xl font-black text-white">
+                  Paramètres de Versement
+                </h2>
+                <p className="text-xs text-slate-400">
+                  Configurez votre compte de réception pour recevoir automatiquement vos fonds lors des encaissements en ligne.
+                </p>
+              </div>
+
+              {/* CARTE MODÈLE ÉCONOMIQUE TRANSPARENT */}
+              <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-indigo-300">
+                    Plan Actuel : {payoutData.plan === "pro" ? "Pro Creator (2%)" : "Freemium Starter (4.5%)"}
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-200 text-[10px] font-bold">
+                    0 FCFA / mois
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-300 leading-relaxed">
+                  Pas de frais cachés : Tuneliva prélève uniquement <strong>{payoutData.commissionRate}%</strong> de commission sur les paiements en ligne. Vous encaissez <strong>{100 - payoutData.commissionRate}%</strong> net directement sur votre numéro MoMo ou compte bancaire.
+                </p>
+              </div>
+
+              {payoutSuccessMsg && (
+                <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 shrink-0" />
+                  <span>{payoutSuccessMsg}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleSavePayoutSettings} className="space-y-4 text-left">
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider block">
+                    Nom du Bénéficiaire ou Raison Sociale
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={payoutData.fullName}
+                    onChange={(e) =>
+                      setPayoutData((prev) => ({ ...prev, fullName: e.target.value }))
+                    }
+                    placeholder="Ex: Amina Diallo"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-white/10 text-white text-xs focus:border-indigo-500 focus:outline-none"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider block">
+                    Mode de Versement Préféré
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setPayoutData((prev) => ({ ...prev, payoutMethod: "momo" }))
+                      }
+                      className={`p-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 cursor-pointer ${
+                        payoutData.payoutMethod === "momo"
+                          ? "bg-emerald-500/20 border-emerald-500 text-emerald-300"
+                          : "bg-slate-950 border-white/10 text-slate-400"
+                      }`}
+                    >
+                      <span>📱 Mobile Money</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setPayoutData((prev) => ({ ...prev, payoutMethod: "bank" }))
+                      }
+                      className={`p-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 cursor-pointer ${
+                        payoutData.payoutMethod === "bank"
+                          ? "bg-indigo-500/20 border-indigo-500 text-indigo-300"
+                          : "bg-slate-950 border-white/10 text-slate-400"
+                      }`}
+                    >
+                      <span>🏦 Virement Bancaire</span>
+                    </button>
+                  </div>
+                </div>
+
+                {payoutData.payoutMethod === "momo" ? (
+                  <div className="space-y-3 p-3.5 rounded-2xl bg-slate-950 border border-white/10">
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-bold text-slate-400 block">
+                        Opérateur Mobile Money
+                      </label>
+                      <select
+                        value={payoutData.payoutMomoOperator}
+                        onChange={(e) =>
+                          setPayoutData((prev) => ({
+                            ...prev,
+                            payoutMomoOperator: e.target.value,
+                          }))
+                        }
+                        className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-white/10 text-white text-xs"
+                      >
+                        <option value="MTN">MTN Mobile Money (Bénin / CI)</option>
+                        <option value="Moov">Moov Money (Bénin / CI / Togo)</option>
+                        <option value="Wave">Wave (Côte d'Ivoire / Sénégal)</option>
+                        <option value="Orange">Orange Money (CI / Sénégal)</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-bold text-slate-400 block">
+                        Numéro de Téléphone Mobile Money
+                      </label>
+                      <input
+                        type="tel"
+                        required
+                        value={payoutData.payoutMomoPhone}
+                        onChange={(e) =>
+                          setPayoutData((prev) => ({
+                            ...prev,
+                            payoutMomoPhone: e.target.value,
+                          }))
+                        }
+                        placeholder="+229 97 00 00 00"
+                        className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-white/10 text-white text-xs font-mono"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3 p-3.5 rounded-2xl bg-slate-950 border border-white/10">
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-bold text-slate-400 block">
+                        Nom de l'Établissement Bancaire
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={payoutData.payoutBankName}
+                        onChange={(e) =>
+                          setPayoutData((prev) => ({
+                            ...prev,
+                            payoutBankName: e.target.value,
+                          }))
+                        }
+                        placeholder="Ex: Ecobank, BOA, SG, etc."
+                        className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-white/10 text-white text-xs"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-bold text-slate-400 block">
+                        IBAN / RIB de Versement
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={payoutData.payoutBankRib}
+                        onChange={(e) =>
+                          setPayoutData((prev) => ({
+                            ...prev,
+                            payoutBankRib: e.target.value,
+                          }))
+                        }
+                        placeholder="BJ00 0000 0000 0000 0000 0000"
+                        className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-white/10 text-white text-xs font-mono"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {payoutData.fedapaySubAccountId && (
+                  <div className="p-3 rounded-xl bg-slate-950 border border-emerald-500/20 text-slate-400 text-[11px] flex items-center justify-between">
+                    <span>Identifiant Sous-compte FedaPay :</span>
+                    <span className="font-mono text-emerald-400 font-bold">
+                      {payoutData.fedapaySubAccountId}
+                    </span>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={payoutSaving}
+                  className="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/30 transition-all cursor-pointer disabled:opacity-50"
+                >
+                  {payoutSaving ? (
+                    <span>Synchronisation avec FedaPay...</span>
+                  ) : (
+                    <>
+                      <span>Enregistrer mes Coordonnées de Versement</span>
+                      <Check className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

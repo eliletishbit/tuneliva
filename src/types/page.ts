@@ -9,7 +9,11 @@ export type FunnelPageType =
   | "capture"
   | "checkout"
   | "confirmation"
-  | "thank_you";
+  | "thank_you"
+  | "event_booking"
+  | "app_launch"
+  | "digital_product"
+  | "service";
 
 export type SectionPadding = "compact" | "normal" | "spacious" | "extra";
 
@@ -348,6 +352,35 @@ export interface MarketingPixelConfig {
   googleAnalyticsId?: string;
 }
 
+export interface TicketTier {
+  id: string;
+  name: string;
+  price: number;
+  regularPrice?: number;
+  features: string[];
+  stockLeft?: number;
+  isPopular?: boolean;
+}
+
+export interface EventBookingDetails {
+  eventDate?: string;
+  eventTime?: string;
+  eventLocation?: string;
+  eventType?: "online" | "in_person" | "hybrid";
+  speakerName?: string;
+  speakerRole?: string;
+  speakerAvatarUrl?: string;
+  ticketTiers?: TicketTier[];
+}
+
+export interface AppLaunchDetails {
+  releaseDateText?: string;
+  supportedPlatforms?: ("ios" | "android" | "web" | "mac" | "windows")[];
+  currentWaitlistCount?: number;
+  totalGoalCount?: number;
+  perks?: string[];
+}
+
 export interface FunnelPageData {
   id?: string;
   userId?: string;
@@ -362,4 +395,8 @@ export interface FunnelPageData {
   steps?: FunnelStep[];
   activeStepId?: string;
   marketing?: MarketingPixelConfig;
+  eventDetails?: EventBookingDetails;
+  appLaunchDetails?: AppLaunchDetails;
+  redirectActionType?: "whatsapp" | "online_checkout" | "external_url" | "download";
+  externalRedirectUrl?: string;
 }

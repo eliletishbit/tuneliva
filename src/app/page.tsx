@@ -30,36 +30,44 @@ import { generateSmartFunnel } from "@/lib/ai/smart-engine";
 
 const STARTER_TEMPLATES = [
   {
-    id: "ecommerce_light",
-    icon: ShoppingBag,
-    name: "Boutique E-commerce Épurée",
-    badge: "Mode Clair Pur",
-    desc: "Produits physiques, packs en vedette et paiement à la livraison.",
-    prompt: "Boutique Cosmétique Bio & Sérum Éclat avec livraison à Cotonou",
-  },
-  {
-    id: "service_artisan",
-    icon: Wrench,
-    name: "Artisan & Dépannage Urgent",
-    badge: "Bleu Pro & Orange",
-    desc: "Serrurerie, plomberie, électricité avec appel direct et WhatsApp 24/7.",
-    prompt: "Serrurier d'urgence à Cotonou intervention sous 15 minutes",
+    id: "event_masterclass",
+    icon: Sparkles,
+    name: "Événement & Billetterie VIP",
+    badge: "Masterclass & Live",
+    desc: "Conférence, concert, webinaire avec réservation de places et paiement direct sans COD.",
+    prompt: "Masterclass Stratégie & Intelligence Artificielle 2026 avec pass Standard et VIP en direct sur Zoom",
   },
   {
     id: "digital_academy",
     icon: Crown,
-    name: "Académie & Produit Digital",
-    badge: "Or Royal & Noir",
-    desc: "Formation, coaching et infoprenariat avec VSL et accès VIP.",
-    prompt: "Académie E-commerce et Produits Digitaux en Afrique",
+    name: "Formation & Produit Digital",
+    badge: "Académie en Ligne",
+    desc: "Cours vidéo, ebook et coaching avec accès instantané et paiement Mobile Money / CB.",
+    prompt: "Formation complète Produits Digitaux et Monétisation avec accès membre immédiat",
   },
   {
-    id: "fintech_momo",
-    icon: CreditCard,
-    name: "Fintech & Mobile Money",
-    badge: "Émeraude & Nuit",
-    desc: "Application, transfert d'argent, abonnements et comparateur de frais.",
-    prompt: "Application optimisation frais Mobile Money MTN Moov Wave",
+    id: "app_launch",
+    icon: Smartphone,
+    name: "Lancement d'App & SaaS",
+    badge: "Bêta Privée",
+    desc: "Liste d'attente VIP, précommandes et statut Membres Fondateurs.",
+    prompt: "Lancement application mobile fintech gestion de budget et épargne automatique pour l'international",
+  },
+  {
+    id: "service_artisan",
+    icon: Wrench,
+    name: "Artisan & Prestataire Pro",
+    badge: "PME & Dépannage",
+    desc: "Cabinet, serrurerie, plomberie avec appel direct et WhatsApp 24/7.",
+    prompt: "Serrurier d'urgence à Cotonou intervention sous 15 minutes",
+  },
+  {
+    id: "ecommerce_light",
+    icon: ShoppingBag,
+    name: "Boutique & E-commerce",
+    badge: "Produit Physique",
+    desc: "Produits physiques, packs en vedette et option paiement à la livraison.",
+    prompt: "Boutique Cosmétique Bio & Sérum Éclat avec livraison express",
   },
 ];
 
@@ -304,15 +312,15 @@ export default function HomePage() {
           </div>
 
           <h1 className="text-3xl sm:text-6xl font-black tracking-tight leading-tight sm:leading-tight">
-            Créez un tunnel de vente à couper le souffle{" "}
+            Donnez vie à vos tunnels &amp; pages de conversion{" "}
             <span className="bg-gradient-to-r from-indigo-400 via-amber-300 to-emerald-400 bg-clip-text text-transparent">
               en 10 secondes
             </span>
           </h1>
 
           <p className="text-sm sm:text-base text-slate-400 max-w-2xl mx-auto leading-relaxed">
-            Fini les outils lents, complexes et inadaptés. Tuneliva génère des pages haute conversion
-            avec <strong>Paiement à la livraison (COD)</strong>, <strong>Commandes WhatsApp</strong>, et encaissement combiné <strong>Mobile Money & Cartes Bancaires</strong>.
+            Pour les <strong>formateurs</strong>, <strong>créateurs</strong>, <strong>organisateurs d'événements</strong>, <strong>startups</strong>, <strong>artisans</strong> et <strong>entreprises</strong>.
+            Générez des pages haute conversion avec encaissement combiné <strong>Mobile Money &amp; Cartes Bancaires</strong>, redirection multicanale (Zoom, Téléchargement, Calendly) et <strong>COD</strong> pour les boutiques physiques.
           </p>
         </div>
 
@@ -325,10 +333,12 @@ export default function HomePage() {
                 Type :
               </span>
               {[
-                { id: "sales", label: "🚀 Page de Vente", desc: "Landing page haute conversion" },
-                { id: "capture", label: "🧲 Page de Capture", desc: "Opt-in WhatsApp / Email" },
-                { id: "checkout", label: "🛒 Page de Commande", desc: "Paiement direct & COD" },
-                { id: "thank_you", label: "🎉 Remerciement", desc: "Confirmation coursier" },
+                { id: "sales", label: "🚀 Page de Vente", desc: "Produit ou Service" },
+                { id: "event_booking", label: "🎟️ Événement & Billetterie", desc: "Pass VIP & Live" },
+                { id: "digital_product", label: "🎓 Formation & Coaching", desc: "Accès Immédiat" },
+                { id: "app_launch", label: "📱 Lancement d'App", desc: "Waitlist & Bêta" },
+                { id: "capture", label: "🧲 Page de Capture", desc: "Opt-in Lead" },
+                { id: "checkout", label: "🛒 Commande Directe", desc: "Paiement 1-clic" },
               ].map((t) => (
                 <button
                   key={t.id}
@@ -347,7 +357,7 @@ export default function HomePage() {
 
             <textarea
               rows={3}
-              placeholder="Décrivez votre offre (ex: Je vends une montre connectée étanche sport luxe à 25 000 FCFA avec livraison express à Cotonou et paiement à la livraison...)"
+              placeholder="Décrivez votre projet (ex: Masterclass Stratégie & IA 2026 avec pass Standard et VIP, ou Lancement application mobile fintech avec liste d'attente, ou Formation Produits Digitaux...)"
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               className="w-full p-3 bg-transparent text-white placeholder-slate-500 text-sm focus:outline-none resize-none"

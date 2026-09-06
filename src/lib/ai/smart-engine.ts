@@ -593,6 +593,353 @@ function buildEliteDesignFunnel(
         items: reviewsItems,
       },
     ];
+  } else if (pageType === "event_booking") {
+    sections = [
+      {
+        id: "hero-1",
+        type: "hero",
+        badgeText: "🎟️ ÉVÉNEMENT MAJEUR & MASTERCLASS VIP",
+        title: `${productName} : L'Événement Exclusif de l'Année`,
+        subtitle: "Rejoignez des centaines de passionnés et professionnels pour une session intensive d'apprentissage, d'échange et de networking de haut niveau.",
+        ctaText: "RÉSERVER MON BILLET MAINTENANT",
+        ctaSubtext: "⚡ Nombre de places strictement limité pour garantir la qualité des échanges",
+        imageUrl: stockImage,
+        trustPoints: [
+          "Accès en direct Zoom & Replay HD illimité",
+          "Session questions/réponses privées avec les intervenants",
+          "Certificat officiel de participation délivré",
+        ],
+      },
+      {
+        id: "floating-1",
+        type: "floating_cards",
+        cards: [
+          {
+            id: "c-1",
+            icon: "timer",
+            title: "Date & Horaires",
+            description: "Samedi 25 Octobre 2026 • De 14h00 à 18h30 GMT+1 en direct interactif.",
+          },
+          {
+            id: "c-2",
+            icon: "check",
+            title: "Intervenants Référents",
+            description: "Des experts de renommée internationale partagent leurs meilleures stratégies concrètes.",
+          },
+          {
+            id: "c-3",
+            icon: "shield",
+            title: "Replay & Ressources",
+            description: "Accès intégral aux enregistrements vidéo HD, fiches pratiques et supports présentés.",
+          },
+        ],
+      },
+      {
+        id: "steps-1",
+        type: "steps",
+        badgeText: "PROGRAMME DE L'ÉVÉNEMENT",
+        title: "Le Déroulement Complet de la Session",
+        subtitle: "Un contenu dense, orienté pratique et action immédiate :",
+        items: [
+          {
+            id: "st-1",
+            stepNumber: 1,
+            title: "Module 1 : Les Fondations & Clés Stratégiques",
+            description: "Comprendre les dynamiques actuelles et éviter les erreurs courantes qui coûtent cher.",
+          },
+          {
+            id: "st-2",
+            stepNumber: 2,
+            title: "Module 2 : Études de Cas & Démonstrations En Direct",
+            description: "Décorticage d'exemples réels et implémentation pas-à-pas sous vos yeux.",
+          },
+          {
+            id: "st-3",
+            stepNumber: 3,
+            title: "Module 3 : Mastermind & Questions/Réponses",
+            description: "Posez toutes vos questions en direct aux intervenants et développez votre réseau professionnel.",
+          },
+        ],
+      },
+      {
+        id: "pricing-1",
+        type: "pricing",
+        badgeText: "TARIF BILLETTERIE OFFICIEL",
+        title: "Choisissez Votre Formule d'Accès",
+        subtitle: "Tarif spécial Early Bird garanti jusqu'à épuisement des billets :",
+        offer: {
+          id: "offer-std",
+          name: "Pass Participant Officiel 2026",
+          salePrice,
+          regularPrice,
+          currency,
+          features: [
+            "Accès direct à l'événement en direct",
+            "Support de présentation PDF complet",
+            "Accès au salon d'échange participant",
+            "Certificat officiel de participation",
+          ],
+          stockLeft: 12,
+        },
+        guaranteeText: "Garantie 100% satisfait ou remboursé sous 48h si l'événement ne répond pas à vos attentes",
+      },
+      {
+        id: "order-1",
+        type: "order_form",
+        title: "Réservez Votre Place Immédiatement",
+        subtitle: "Paiement 100% sécurisé par Mobile Money ou Carte Bancaire. Vos billets électroniques vous seront envoyés par Email :",
+        whatsappEnabled: true,
+        whatsappNumber: "+22997000000",
+        codEnabled: false,
+        momoEnabled: true,
+        cardEnabled: true,
+        onlinePaymentEnabled: true,
+        cities: ["Billet Électronique (Envoi par Email)"],
+      },
+      {
+        id: "faq-1",
+        type: "faq",
+        badgeText: "QUESTIONS BILLETTERIE",
+        title: "Questions Fréquentes sur l'Événement",
+        subtitle: "Tout ce qu'il faut savoir avant de réserver :",
+        items: [
+          {
+            id: "q-1",
+            question: "Et si je ne suis pas disponible à l'heure du direct ?",
+            answer: "Aucun souci ! Tous les participants inscrits reçoivent l'enregistrement intégral en vidéo HD sous 24h avec accès à vie.",
+          },
+          {
+            id: "q-2",
+            question: "Comment vais-je recevoir mon lien d'accès ?",
+            answer: "Dès votre paiement validé, vous recevrez une confirmation immédiate par email et par WhatsApp contenant votre lien de connexion personnel Zoom.",
+          },
+          {
+            id: "q-3",
+            question: "Quels sont les moyens de paiement acceptés ?",
+            answer: "Vous pouvez régler facilement et en toute sécurité par Mobile Money (MTN, Moov, Wave, Orange) ou par Carte Bancaire Visa / Mastercard.",
+          },
+        ],
+      },
+    ];
+  } else if (pageType === "app_launch") {
+    sections = [
+      {
+        id: "hero-1",
+        type: "hero",
+        badgeText: "🚀 LANCEMENT BÊTA & ACCÈS ANTICIPÉ 2026",
+        title: `${productName} : L'Innovation Que Vous Attendiez`,
+        subtitle: "Gagnez du temps, simplifiez vos processus et rejoignez la nouvelle génération d'utilisateurs. Réservez votre accès en avant-première.",
+        ctaText: "REJOINDRE LA LISTE D'ATTENTE VIP",
+        ctaSubtext: "🎁 Avantages exclusifs réservés aux 500 premiers membres fondateurs",
+        imageUrl: stockImage,
+        trustPoints: [
+          "Disponible prochainement sur iOS, Android et Web",
+          "Zéro engagement • Aucun frais caché",
+          "Accès prioritaire aux fonctionnalités bêta",
+        ],
+      },
+      {
+        id: "floating-1",
+        type: "floating_cards",
+        cards: [
+          {
+            id: "c-1",
+            icon: "timer",
+            title: "Gain de Temps x3",
+            description: "Une interface fluide et intuitive pensée pour vous faire gagner de précieuses heures chaque semaine.",
+          },
+          {
+            id: "c-2",
+            icon: "shield",
+            title: "Sécurité Maximale",
+            description: "Chiffrement de bout en bout de vos données et respect strict de votre vie privée.",
+          },
+          {
+            id: "c-3",
+            icon: "check",
+            title: "Synchronisation Cloud",
+            description: "Retrouvez votre espace sur votre téléphone, tablette et ordinateur en temps réel.",
+          },
+        ],
+      },
+      {
+        id: "features-1",
+        type: "features",
+        badgeText: "FONCTIONNALITÉS CLÉS",
+        title: "Conçu pour répondre à vos besoins réels",
+        subtitle: "Découvrez les piliers qui rendent cette application unique :",
+        items: [
+          {
+            id: "f-1",
+            title: "Automatisation Intelligente",
+            description: "Laissez la technologie s'occuper des tâches répétitives pour vous concentrer sur ce qui compte.",
+          },
+          {
+            id: "f-2",
+            title: "Statistiques & Tableaux de Bord",
+            description: "Visualisez vos indicateurs clés en un coup d'œil grâce à des graphiques clairs et personnalisables.",
+          },
+          {
+            id: "f-3",
+            title: "Intégrations Multi-Outils",
+            description: "Connectez vos outils existants en quelques clics sans aucune ligne de code.",
+          },
+        ],
+      },
+      {
+        id: "capture-1",
+        type: "capture_form",
+        badgeText: "ACCÈS PRIVILÉGIÉ",
+        title: "Rejoignez la Liste d'Attente VIP",
+        subtitle: "Inscrivez-vous pour être alerté en priorité lors de l'ouverture des accès :",
+        buttonText: "REJOINDRE LES MEMBRES FONDATEURS",
+        collectName: true,
+        collectEmail: true,
+        collectPhone: true,
+      },
+      {
+        id: "faq-1",
+        type: "faq",
+        badgeText: "FOIRE AUX QUESTIONS",
+        title: "Questions sur le Lancement",
+        subtitle: "Tout ce que vous voulez savoir sur le projet :",
+        items: [
+          {
+            id: "q-1",
+            question: "Quand l'application sera-t-elle accessible au grand public ?",
+            answer: "La phase bêta privée démarre dans les prochaines semaines pour les inscrits sur la liste d'attente, suivie du lancement officiel.",
+          },
+          {
+            id: "q-2",
+            question: "Quels sont les avantages d'être Membre Fondateur ?",
+            answer: "Les membres fondateurs bénéficient d'un accès préférentiel gratuit, de badges exclusifs et d'un tarif bloqué à vie sur les options avancées.",
+          },
+        ],
+      },
+    ];
+  } else if (pageType === "digital_product") {
+    sections = [
+      {
+        id: "hero-1",
+        type: "hero",
+        badgeText: "🎓 FORMATION EN LIGNE & PRODUIT DIGITAL",
+        title: headline,
+        subtitle: subtitle || "Apprenez pas à pas avec une méthode concrète et éprouvée. Accédez instantanément à l'espace membre et téléchargez toutes les ressources.",
+        ctaText: "ACCÉDER À LA FORMATION MAINTENANT",
+        ctaSubtext: "⚡ Accès immédiat 24h/24 • Garantie 30 jours satisfait ou remboursé",
+        imageUrl: stockImage,
+        trustPoints: [
+          "Accès à vie à tous les modules et mises à jour",
+          "Fichiers, modèles et templates téléchargeables",
+          "Support personnalisé pour répondre à vos questions",
+        ],
+      },
+      {
+        id: "floating-1",
+        type: "floating_cards",
+        cards: [
+          {
+            id: "c-1",
+            icon: "check",
+            title: "100% Concret",
+            description: "Zéro blabla théorique : des tutoriels pas-à-pas filmés en haute définition applicables dès aujourd'hui.",
+          },
+          {
+            id: "c-2",
+            icon: "timer",
+            title: "À Votre Rythme",
+            description: "Progressez à votre convenance depuis votre smartphone, tablette ou ordinateur sans contrainte d'horaires.",
+          },
+          {
+            id: "c-3",
+            icon: "shield",
+            title: "Garantie Totale",
+            description: "Testez pendant 30 jours. Si vous n'êtes pas entièrement satisfait, vous êtes 100% remboursé.",
+          },
+        ],
+      },
+      {
+        id: "steps-1",
+        type: "steps",
+        badgeText: "CURRICULUM DE LA FORMATION",
+        title: "Le Programme Complet Pas à Pas",
+        subtitle: "Tout ce dont vous avez besoin pour maîtriser le sujet de A à Z :",
+        items: [
+          {
+            id: "st-1",
+            stepNumber: 1,
+            title: "Partie 1 : Les Fondations & Stratégie Gagnante",
+            description: "Poser des bases solides et comprendre les mécanismes exacts du succès.",
+          },
+          {
+            id: "st-2",
+            stepNumber: 2,
+            title: "Partie 2 : Mise en Application & Déploiement",
+            description: "Copiez et adaptez nos modèles clés en main pour obtenir des résultats immédiats.",
+          },
+          {
+            id: "st-3",
+            stepNumber: 3,
+            title: "Partie 3 : Optimisation & Passage à l'Échelle",
+            description: "Automatiser et multiplier vos résultats sur le long terme avec nos stratégies avancées.",
+          },
+        ],
+      },
+      {
+        id: "pricing-1",
+        type: "pricing",
+        badgeText: "OFFRE SPÉCIALE D'ACCÈS",
+        title: "Rejoignez le Programme Aujourd'hui",
+        subtitle: "Profitez du tarif promotionnel avant la fermeture prochaine des inscriptions :",
+        offer: {
+          id: "offer-digital",
+          name: `${productName} – Accès Intégral VIP`,
+          salePrice,
+          regularPrice,
+          currency,
+          features: [
+            "Accès illimité à tous les modules vidéo",
+            "Mises à jour futures offertes à vie",
+            "Templates et fiches de travail téléchargeables",
+            "Groupe privé d'entraide et support prioritaire",
+          ],
+          stockLeft: 7,
+        },
+        guaranteeText: "Garantie 30 jours satisfait ou remboursé sans justification nécessaire",
+      },
+      {
+        id: "order-1",
+        type: "order_form",
+        title: "Validez Votre Accès en 1 Clic",
+        subtitle: "Paiement 100% sécurisé par Mobile Money ou Carte Bancaire. Vos identifiants vous sont délivrés instantanément :",
+        whatsappEnabled: true,
+        whatsappNumber: "+22997000000",
+        codEnabled: false,
+        momoEnabled: true,
+        cardEnabled: true,
+        onlinePaymentEnabled: true,
+        cities: ["Espace Membre Digital (Envoi instantané par Email)"],
+      },
+      {
+        id: "faq-1",
+        type: "faq",
+        badgeText: "QUESTIONS FRÉQUENTES",
+        title: "Toutes vos questions sur la formation",
+        subtitle: "Transparence totale pour vous lancer en toute confiance :",
+        items: [
+          {
+            id: "q-1",
+            question: "L'accès est-il limité dans le temps ?",
+            answer: "Non, vous bénéficiez d'un accès à vie à l'ensemble du contenu et à toutes les futures mises à jour ajoutées au programme.",
+          },
+          {
+            id: "q-2",
+            question: "Puis-je payer par Mobile Money ?",
+            answer: "Oui, le règlement s'effectue en quelques secondes avec votre numéro MTN, Moov, Wave ou Orange, ou par Carte Bancaire.",
+          },
+        ],
+      },
+    ];
   } else {
     // SALES (Landing page complète haute conversion)
     sections = [
@@ -761,5 +1108,47 @@ function buildEliteDesignFunnel(
       ...presetConfig,
     },
     sections,
+    eventDetails:
+      pageType === "event_booking"
+        ? {
+            eventDate: "Samedi 25 Octobre 2026",
+            eventTime: "14h00 - 18h30 GMT+1",
+            eventLocation: "En direct sur Zoom & Replay Privé",
+            eventType: "online",
+            ticketTiers: [
+              {
+                id: "tier-std",
+                name: "Pass Standard (Live + Fiches)",
+                price: salePrice,
+                regularPrice,
+                features: ["Accès au direct interactif", "Support PDF récapitulatif", "Session questions/réponses"],
+                isPopular: false,
+              },
+              {
+                id: "tier-vip",
+                name: "Pass VIP (Live + Replay à Vie + Coaching Privé)",
+                price: Math.round(salePrice * 1.8),
+                regularPrice: Math.round(regularPrice * 2),
+                features: [
+                  "Tous les accès du Pass Standard",
+                  "Replay vidéo HD illimité à vie",
+                  "Session de coaching privé en petit groupe",
+                  "Accès au salon d'échange VIP",
+                ],
+                isPopular: true,
+              },
+            ],
+          }
+        : undefined,
+    appLaunchDetails:
+      pageType === "app_launch"
+        ? {
+            releaseDateText: "Novembre 2026",
+            supportedPlatforms: ["ios", "android", "web"],
+            currentWaitlistCount: 1420,
+            totalGoalCount: 2000,
+            perks: ["Accès bêta anticipé", "Statut Membre Fondateur à vie", "Fonctionnalités avancées débloquées"],
+          }
+        : undefined,
   };
 }

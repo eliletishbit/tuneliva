@@ -14,6 +14,8 @@ export interface FedaPayTransactionParams {
   customerEmail?: string;
   callbackUrl?: string;
   customMetadata?: Record<string, any>;
+  subAccountId?: string;
+  merchantNetAmount?: number;
 }
 
 export function getFedaPayBaseUrl(): string {
@@ -42,15 +44,7 @@ export async function createFedaPayTransaction(params: FedaPayTransactionParams)
     process.env.FEDAPAY_CALLBACK_URL ||
     `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/payment/fedapay/callback`;
 
-  // 1. Créer la transaction FedaPay
-  const createRes = await fetch(`${baseUrl}/transactions`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "FedaPay-Account": accountId || "",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
+    const requestPayload: any = {
       description: params.description,
       amount: Math.round(params.amount),
       currency: { iso: params.currency || "XOF" },
@@ -71,8 +65,26 @@ export async function createFedaPayTransaction(params: FedaPayTransactionParams)
         },
       },
       custom_metadata: params.customMetadata || {},
-    }),
-  });
+    };
+
+    if (params.subAccountId && !params.subAccountId.startsWith("sub_fed_")) {
+      requestPayload.sub_accounts = [
+        {
+          id: params.subAccountId,
+          amount: Math.round(params.merchantNetAmount || params.amount),
+        },
+      ];
+    }
+
+    const createRes = await fetch(`${baseUrl}/transactions`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "FedaPay-Account": accountId || "",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(requestPayload),
+    });
 
   if (!createRes.ok) {
     const errData = await createRes.text();

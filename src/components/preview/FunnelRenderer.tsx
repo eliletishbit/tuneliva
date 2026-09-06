@@ -22,6 +22,7 @@ import {
   FunnelSection,
   ProductItem,
   ProductVariant,
+  TicketTier,
 } from "@/types/page";
 import {
   CheckCircle2,
@@ -351,18 +352,31 @@ export function FunnelRenderer({
     fontFamily: theme.fontFamily ? `${theme.fontFamily}, sans-serif` : undefined,
   };
 
-  // Formulaire de commande
+  // Formulaire de commande & Inscription
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
+  const [customerEmail, setCustomerEmail] = useState("");
   const [customerCity, setCustomerCity] = useState(branding?.address?.city || "Cotonou");
   const [customerAddress, setCustomerAddress] = useState("");
   const [orderSubmitting, setOrderSubmitting] = useState(false);
   const [orderDone, setOrderDone] = useState(false);
 
+  // Sélecteurs spécifiques (Billetterie / App / Digital)
+  const [selectedTicketTierId, setSelectedTicketTierId] = useState(
+    data.eventDetails?.ticketTiers?.[0]?.id || "tier-std"
+  );
+  const [selectedAppPlatform, setSelectedAppPlatform] = useState<"ios" | "android" | "web">("ios");
+
   // Prix et Devise
   const pricingSection = sections.find((s) => s.type === "pricing") as PricingSection | undefined;
   const currentPrice = pricingSection?.offer.salePrice || 22000;
   const currency = pricingSection?.offer.currency || "XOF";
+
+  // Calcul du prix actif (dynamique selon billet si billetterie)
+  const selectedTicket = data.eventDetails?.ticketTiers?.find(
+    (t) => t.id === selectedTicketTierId
+  );
+  const activePrice = selectedTicket ? selectedTicket.price : currentPrice;
 
   const formatMoney = (amount: number, curr: CurrencyCode) => {
     if (curr === "XOF" || curr === "XAF") {
@@ -392,6 +406,19 @@ export function FunnelRenderer({
       alert("Veuillez renseigner votre nom et votre numéro de téléphone.");
       return;
     }
+
+    const isDigitalOrEvent = [
+      "event_booking",
+      "app_launch",
+      "digital_product",
+      "service",
+    ].includes(data.pageType);
+
+    if (isDigitalOrEvent && !customerEmail) {
+      alert("Veuillez renseigner votre adresse email pour recevoir vos accès ou billets.");
+      return;
+    }
+
     setOrderSubmitting(true);
 
     if (method === "momo" || method === "card") {
@@ -401,12 +428,13 @@ export function FunnelRenderer({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             funnelSlug: data.slug,
-            productName: data.projectName,
+            productName: selectedTicket ? `${data.projectName} - ${selectedTicket.name}` : data.projectName,
             customerName,
             customerPhone: momoPhone || customerPhone,
-            customerCity,
-            customerAddress,
-            amount: currentPrice,
+            customerEmail,
+            customerCity: isDigitalOrEvent ? "En ligne" : customerCity,
+            customerAddress: isDigitalOrEvent ? "" : customerAddress,
+            amount: activePrice,
             currency,
           }),
         });
@@ -430,12 +458,15 @@ export function FunnelRenderer({
         onOrderSuccess({
           customerName,
           customerPhone,
-          customerCity,
-          customerAddress,
-          productName: data.projectName,
-          amount: currentPrice,
+          customerEmail,
+          customerCity: isDigitalOrEvent ? "En ligne" : customerCity,
+          customerAddress: isDigitalOrEvent ? "" : customerAddress,
+          productName: selectedTicket ? `${data.projectName} - ${selectedTicket.name}` : data.projectName,
+          amount: activePrice,
           currency,
           paymentMethod: method,
+          ticketTier: selectedTicket?.name,
+          platform: selectedAppPlatform,
           paymentDetails:
             method === "momo"
               ? { operator: selectedMomoOperator, phone: momoPhone || customerPhone }
@@ -1292,6 +1323,13 @@ export function FunnelRenderer({
                 setCardExpiry,
                 cardCvc,
                 setCardCvc,
+                customerEmail,
+                setCustomerEmail,
+                selectedTicketTierId,
+                setSelectedTicketTierId,
+                selectedAppPlatform,
+                setSelectedAppPlatform,
+                activePrice,
               })}
 
               {/* Drop Zone après chaque section */}
@@ -2721,16 +2759,23 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
               )}
 
               {(() => {
-                const isCodActive = s.codEnabled !== false;
-                const isMomoActive = !!s.momoEnabled;
-                const isCardActive = !!s.cardEnabled;
+                const isDigitalOrEvent = [
+                  "event_booking",
+                  "app_launch",
+                  "digital_product",
+                  "service",
+                ].includes(data.pageType);
+
+                const isCodActive = !isDigitalOrEvent && s.codEnabled !== false;
+                const isMomoActive = isDigitalOrEvent ? true : !!s.momoEnabled;
+                const isCardActive = isDigitalOrEvent ? true : !!s.cardEnabled;
 
                 const activeMethods: ("cod" | "momo" | "card")[] = [];
                 if (isCodActive) activeMethods.push("cod");
                 if (isMomoActive) activeMethods.push("momo");
                 if (isCardActive) activeMethods.push("card");
 
-                if (activeMethods.length === 0) activeMethods.push("cod");
+                if (activeMethods.length === 0) activeMethods.push(isDigitalOrEvent ? "momo" : "cod");
 
                 const currentMethod: "cod" | "momo" | "card" =
                   ctx.selectedPaymentMethod && activeMethods.includes(ctx.selectedPaymentMethod)
@@ -2797,6 +2842,44 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                       }}
                       className="space-y-3.5 text-left"
                     >
+                      {/* SÉLECTION DE CATÉGORIE DE BILLET SI ÉVÉNEMENT */}
+                      {data.pageType === "event_booking" && data.eventDetails?.ticketTiers && data.eventDetails.ticketTiers.length > 0 && (
+                        <div className="space-y-2">
+                          <label className={`block text-xs font-bold ${headingClass}`}>
+                            🎟️ Catégorie de Billet / Accès :
+                          </label>
+                          <div className="grid grid-cols-1 gap-2">
+                            {data.eventDetails.ticketTiers.map((tier: TicketTier) => {
+                              const isSelected = (ctx.selectedTicketTierId || data.eventDetails!.ticketTiers![0].id) === tier.id;
+                              return (
+                                <button
+                                  key={tier.id}
+                                  type="button"
+                                  onClick={() => ctx.setSelectedTicketTierId?.(tier.id)}
+                                  className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                                    isSelected
+                                      ? "border-indigo-500 bg-indigo-600/15 ring-2 ring-indigo-500/40 shadow-sm"
+                                      : "border-white/10 bg-slate-950/60 hover:border-white/20"
+                                  }`}
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-xs font-bold text-white">{tier.name}</span>
+                                    <span className="text-xs font-extrabold text-emerald-400 font-mono">
+                                      {formatMoney(tier.price, currency)}
+                                    </span>
+                                  </div>
+                                  {tier.features && tier.features.length > 0 && (
+                                    <p className="text-[10px] text-slate-400 mt-1">
+                                      ✓ {tier.features.join(" • ")}
+                                    </p>
+                                  )}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
                       <div>
                         <label className={`block text-xs font-semibold mb-1 ${headingClass}`}>
                           Nom complet ou Prénom *
@@ -2833,43 +2916,69 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                         />
                       </div>
 
-                      <div>
-                        <label className={`block text-xs font-semibold mb-1 ${headingClass}`}>
-                          Ville de livraison *
-                        </label>
-                        <select
-                          value={ctx.customerCity}
-                          onChange={(e) => ctx.setCustomerCity(e.target.value)}
-                          className={`w-full px-4 py-3 rounded-xl border text-sm focus:outline-none ${
-                            ctx.isDark
-                              ? "bg-slate-950 border-white/10 text-white"
-                              : "bg-slate-50 border-slate-300 text-slate-900"
-                          }`}
-                        >
-                          {s.cities.map((city) => (
-                            <option key={city} value={city}>
-                              {city}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
+                      {/* EMAIL REQUIS POUR ÉVÉNEMENTS, PRODUITS DIGITAUX ET APPLICATIONS */}
+                      {isDigitalOrEvent ? (
+                        <div className="space-y-1.5">
+                          <label className={`block text-xs font-semibold ${headingClass}`}>
+                            Adresse Email (pour réception des billets ou accès VIP) *
+                          </label>
+                          <input
+                            type="email"
+                            required
+                            placeholder="votre@email.com"
+                            value={ctx.customerEmail}
+                            onChange={(e) => ctx.setCustomerEmail?.(e.target.value)}
+                            className={`w-full px-4 py-3 rounded-xl border text-sm focus:outline-none ${
+                              ctx.isDark
+                                ? "bg-slate-950 border-white/10 text-white"
+                                : "bg-slate-50 border-slate-300 text-slate-900"
+                            }`}
+                          />
+                          <p className="text-[10px] text-indigo-400">
+                            ✨ Vos accès personnels et confirmation vous seront envoyés immédiatement à cette adresse.
+                          </p>
+                        </div>
+                      ) : (
+                        <>
+                          <div>
+                            <label className={`block text-xs font-semibold mb-1 ${headingClass}`}>
+                              Ville de livraison *
+                            </label>
+                            <select
+                              value={ctx.customerCity}
+                              onChange={(e) => ctx.setCustomerCity(e.target.value)}
+                              className={`w-full px-4 py-3 rounded-xl border text-sm focus:outline-none ${
+                                ctx.isDark
+                                  ? "bg-slate-950 border-white/10 text-white"
+                                  : "bg-slate-50 border-slate-300 text-slate-900"
+                              }`}
+                            >
+                              {s.cities.map((city) => (
+                                <option key={city} value={city}>
+                                  {city}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
 
-                      <div>
-                        <label className={`block text-xs font-semibold mb-1 ${headingClass}`}>
-                          Quartier ou Adresse précise
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="Ex: Haie Vive, en face de la pharmacie"
-                          value={ctx.customerAddress}
-                          onChange={(e) => ctx.setCustomerAddress(e.target.value)}
-                          className={`w-full px-4 py-3 rounded-xl border text-sm focus:outline-none ${
-                            ctx.isDark
-                              ? "bg-slate-950 border-white/10 text-white"
-                              : "bg-slate-50 border-slate-300 text-slate-900"
-                          }`}
-                        />
-                      </div>
+                          <div>
+                            <label className={`block text-xs font-semibold mb-1 ${headingClass}`}>
+                              Quartier ou Adresse précise
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="Ex: Haie Vive, en face de la pharmacie"
+                              value={ctx.customerAddress}
+                              onChange={(e) => ctx.setCustomerAddress(e.target.value)}
+                              className={`w-full px-4 py-3 rounded-xl border text-sm focus:outline-none ${
+                                ctx.isDark
+                                  ? "bg-slate-950 border-white/10 text-white"
+                                  : "bg-slate-50 border-slate-300 text-slate-900"
+                              }`}
+                            />
+                          </div>
+                        </>
+                      )}
 
                       {/* SPÉCIFIQUE MOBILE MONEY */}
                       {currentMethod === "momo" && (
@@ -2964,7 +3073,13 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                         ) : (
                           <>
                             <span>
-                              {currentMethod === "momo"
+                              {data.pageType === "event_booking"
+                                ? `RÉSERVER MON BILLET (${formatMoney(ctx.activePrice || currentPrice, currency)})`
+                                : data.pageType === "digital_product"
+                                ? `ACCÉDER À LA FORMATION (${formatMoney(ctx.activePrice || currentPrice, currency)})`
+                                : data.pageType === "app_launch"
+                                ? `REJOINDRE LA LISTE D'ATTENTE (${formatMoney(ctx.activePrice || currentPrice, currency)})`
+                                : currentMethod === "momo"
                                 ? `PAYER AVEC ${(ctx.selectedMomoOperator || "MOMO").toUpperCase()} (${formatMoney(currentPrice, currency)})`
                                 : currentMethod === "card"
                                 ? `PAYER PAR CARTE (${formatMoney(currentPrice, currency)})`
@@ -2978,7 +3093,9 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                       <div className={`flex items-center justify-center gap-2 text-xs pt-1 ${mutedTextClass}`}>
                         <Lock className="w-3.5 h-3.5" />
                         <span>
-                          {currentMethod === "momo"
+                          {isDigitalOrEvent
+                            ? "Accès sécurisé et confirmation immédiate délivrés par Email & WhatsApp"
+                            : currentMethod === "momo"
                             ? "Paiement Mobile Money instantané et 100% sécurisé"
                             : currentMethod === "card"
                             ? "Paiement crypté SSL 256-bit garanti"
