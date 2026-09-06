@@ -1,5 +1,19 @@
 [
   {
+    "funnelSlug": "boutique-cosmetique-bio-serum",
+    "productName": "Boutique Cosmétique Bio & Sérum ...",
+    "customerName": "Kossi Toroko",
+    "customerPhone": "0167876543",
+    "customerCity": "Autre ville",
+    "customerAddress": "gbagoudo, maranatha",
+    "totalAmount": 22000,
+    "currency": "XOF",
+    "paymentMethod": "cod",
+    "orderStatus": "new",
+    "id": "cmd-2369",
+    "createdAt": "2026-09-04T16:01:07.363Z"
+  },
+  {
     "id": "cmd-101",
     "funnelSlug": "offre-speciale",
     "productName": "Pack Découverte",

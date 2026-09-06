@@ -342,7 +342,15 @@ export interface FunnelStep {
   nextStepSlug?: string;
 }
 
+export interface MarketingPixelConfig {
+  facebookPixelId?: string;
+  tiktokPixelId?: string;
+  googleAnalyticsId?: string;
+}
+
 export interface FunnelPageData {
+  id?: string;
+  userId?: string;
   projectName: string;
   slug: string;
   pageType: FunnelPageType;
@@ -353,4 +361,5 @@ export interface FunnelPageData {
   sections: FunnelSection[];
   steps?: FunnelStep[];
   activeStepId?: string;
+  marketing?: MarketingPixelConfig;
 }

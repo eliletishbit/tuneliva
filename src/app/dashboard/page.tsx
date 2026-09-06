@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { OrderRecord } from "@/lib/storage/funnels";
 import { FunnelPageData } from "@/types/page";
+import { createClient } from "@/lib/supabase/client";
 import {
   TrendingUp,
   PackageCheck,
@@ -27,9 +28,12 @@ import {
   ChevronLeft,
   X,
   Eye,
+  LogOut,
+  User as UserIcon,
 } from "lucide-react";
 
 export default function MerchantDashboard() {
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [orders, setOrders] = useState<OrderRecord[]>([]);
   const [funnels, setFunnels] = useState<FunnelPageData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -74,7 +78,19 @@ export default function MerchantDashboard() {
 
   useEffect(() => {
     fetchDashboardData();
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => {
+      if (data?.user) {
+        setCurrentUser(data.user);
+      }
+    });
   }, []);
+
+  const handleSignOut = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    window.location.href = "/login";
+  };
 
   // GESTION STATUT COMMANDE
   const handleUpdateStatus = async (orderId: string, newStatus: OrderRecord["orderStatus"]) => {
@@ -268,6 +284,17 @@ export default function MerchantDashboard() {
           </div>
 
           <div className="flex items-center gap-3">
+            {currentUser && (
+              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900 border border-white/10 text-xs">
+                <div className="w-5 h-5 rounded-full bg-indigo-600/30 text-indigo-400 flex items-center justify-center font-bold text-[10px]">
+                  {currentUser.email?.charAt(0).toUpperCase() || "V"}
+                </div>
+                <span className="text-slate-300 font-medium truncate max-w-[140px]">
+                  {currentUser.user_metadata?.full_name || currentUser.email}
+                </span>
+              </div>
+            )}
+
             <button
               onClick={fetchDashboardData}
               className="p-2 rounded-xl bg-slate-900 border border-white/10 text-slate-300 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
@@ -275,13 +302,24 @@ export default function MerchantDashboard() {
             >
               <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin text-indigo-400" : ""}`} />
             </button>
+
             <a
               href="/"
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 transition-all cursor-pointer"
+              className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 transition-all cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span>Nouveau Tunnel</span>
             </a>
+
+            {currentUser && (
+              <button
+                onClick={handleSignOut}
+                className="p-2 rounded-xl bg-slate-900 border border-white/10 text-slate-400 hover:text-rose-400 hover:border-rose-500/30 hover:bg-rose-500/10 transition-all cursor-pointer"
+                title="Se déconnecter"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            )}
           </div>
         </div>
       </header>

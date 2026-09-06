@@ -386,13 +386,43 @@ export function FunnelRenderer({
     handlePaymentSubmit(e, "cod");
   };
 
-  const handlePaymentSubmit = (e: React.FormEvent, method: "cod" | "momo" | "card") => {
+  const handlePaymentSubmit = async (e: React.FormEvent, method: "cod" | "momo" | "card") => {
     e.preventDefault();
     if (!customerName || !customerPhone) {
       alert("Veuillez renseigner votre nom et votre numéro de téléphone.");
       return;
     }
     setOrderSubmitting(true);
+
+    if (method === "momo" || method === "card") {
+      try {
+        const res = await fetch("/api/payment/fedapay/create", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            funnelSlug: data.slug,
+            productName: data.projectName,
+            customerName,
+            customerPhone: momoPhone || customerPhone,
+            customerCity,
+            customerAddress,
+            amount: currentPrice,
+            currency,
+          }),
+        });
+
+        if (res.ok) {
+          const resData = await res.json();
+          if (resData.checkoutUrl) {
+            window.location.href = resData.checkoutUrl;
+            return;
+          }
+        }
+      } catch (err) {
+        console.error("Erreur création paiement FedaPay:", err);
+      }
+    }
+
     setTimeout(() => {
       setOrderSubmitting(false);
       setOrderDone(true);

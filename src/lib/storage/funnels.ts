@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { FunnelPageData } from "@/types/page";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 const DATA_DIR = path.join(process.cwd(), ".data");
 const FUNNELS_FILE = path.join(DATA_DIR, "funnels.json");
@@ -9,6 +10,7 @@ const ORDERS_FILE = path.join(DATA_DIR, "orders.json");
 export interface OrderRecord {
   id: string;
   funnelSlug: string;
+  userId?: string;
   productName: string;
   customerName: string;
   customerPhone: string;
@@ -16,52 +18,107 @@ export interface OrderRecord {
   customerAddress?: string;
   totalAmount: number;
   currency: string;
-  paymentMethod: "cod" | "whatsapp" | "online";
+  paymentMethod: "cod" | "whatsapp" | "online" | "fedapay" | "momo" | "card";
+  paymentStatus?: "pending" | "paid" | "failed";
   orderStatus: "new" | "confirmed" | "shipped" | "delivered" | "cancelled";
+  fedapayTransactionId?: string;
   createdAt: string;
 }
 
 function ensureDataDir() {
   if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
+    try {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    } catch {
+      // Ignoré en environnement serverless read-only
+    }
   }
 }
 
-// ==========================================
-// TUNNELS DE VENTE (FUNNELS)
-// ==========================================
-export function getAllFunnels(): FunnelPageData[] {
-  ensureDataDir();
-  if (!fs.existsSync(FUNNELS_FILE)) {
-    return [];
+// ==============================================================================
+// 1. GESTION DES TUNNELS (SUPABASE POSTGRESQL + LOCAL FALLBACK)
+// ==============================================================================
+
+export async function getAllFunnels(userId?: string): Promise<FunnelPageData[]> {
+  try {
+    const supabase = createAdminClient();
+    let query = supabase
+      .from("funnels")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (userId) {
+      query = query.eq("user_id", userId);
+    }
+
+    const { data, error } = await query;
+    if (!error && data && data.length > 0) {
+      return data.map((row) => ({
+        ...row.data,
+        id: row.id,
+        slug: row.slug,
+        projectName: row.name,
+        pageType: row.page_type,
+        userId: row.user_id,
+      }));
+    }
+  } catch (e) {
+    console.warn("Supabase non disponible pour getAllFunnels, bascule locale:", e);
   }
+
+  // Fallback Fichier Local
+  ensureDataDir();
+  if (!fs.existsSync(FUNNELS_FILE)) return [];
   try {
     const raw = fs.readFileSync(FUNNELS_FILE, "utf-8");
     return JSON.parse(raw);
-  } catch (e) {
-    console.error("Erreur lecture funnels.json:", e);
+  } catch {
     return [];
   }
 }
 
-export function getFunnelBySlug(slug: string): FunnelPageData | null {
-  const funnels = getAllFunnels();
-  return funnels.find((f) => f.slug === slug) || null;
+export async function getFunnelBySlug(slug: string): Promise<FunnelPageData | null> {
+  try {
+    const supabase = createAdminClient();
+    const { data, error } = await supabase
+      .from("funnels")
+      .select("*")
+      .eq("slug", slug)
+      .maybeSingle();
+
+    if (!error && data) {
+      return {
+        ...data.data,
+        id: data.id,
+        slug: data.slug,
+        projectName: data.name,
+        pageType: data.page_type,
+        userId: data.user_id,
+      };
+    }
+  } catch (e) {
+    console.warn(`Supabase getFunnelBySlug (${slug}) fallback:`, e);
+  }
+
+  // Fallback Local
+  const localList = await getAllFunnels();
+  return localList.find((f) => f.slug === slug) || null;
 }
 
-export function saveFunnel(funnel: FunnelPageData): FunnelPageData {
-  ensureDataDir();
-  const funnels = getAllFunnels();
-
-  // Si le slug n'existe pas, on le dérive du nom de projet
+export async function saveFunnel(
+  funnel: FunnelPageData,
+  userId?: string
+): Promise<FunnelPageData> {
+  // Normalisation du slug
   let slug = funnel.slug;
   if (!slug || slug === "offre-speciale") {
-    slug = funnel.projectName
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "") || "offre-speciale";
+    slug =
+      funnel.projectName
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "") || "offre-speciale";
   }
 
   const updatedFunnel: FunnelPageData = {
@@ -69,127 +126,274 @@ export function saveFunnel(funnel: FunnelPageData): FunnelPageData {
     slug,
   };
 
-  const existingIndex = funnels.findIndex((f) => f.slug === slug);
-  if (existingIndex >= 0) {
-    funnels[existingIndex] = updatedFunnel;
-  } else {
-    funnels.push(updatedFunnel);
+  // 1. Sauvegarde dans Supabase PostgreSQL
+  try {
+    const supabase = createAdminClient();
+    const payload: any = {
+      name: funnel.projectName || "Tunnel de Vente",
+      slug,
+      page_type: funnel.pageType || "sales",
+      data: updatedFunnel,
+      is_published: true,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (userId) {
+      payload.user_id = userId;
+    }
+
+    const { data, error } = await supabase
+      .from("funnels")
+      .upsert(payload, { onConflict: "slug" })
+      .select()
+      .single();
+
+    if (!error && data) {
+      updatedFunnel.id = data.id;
+    }
+  } catch (e) {
+    console.warn("Erreur sauvegarde Supabase, persistance locale de secours:", e);
   }
 
-  fs.writeFileSync(FUNNELS_FILE, JSON.stringify(funnels, null, 2), "utf-8");
+  // 2. Mise à jour de la mémoire cache locale
+  try {
+    ensureDataDir();
+    const funnels = await getAllFunnels();
+    const existingIndex = funnels.findIndex((f) => f.slug === slug);
+    if (existingIndex >= 0) {
+      funnels[existingIndex] = updatedFunnel;
+    } else {
+      funnels.push(updatedFunnel);
+    }
+    fs.writeFileSync(FUNNELS_FILE, JSON.stringify(funnels, null, 2), "utf-8");
+  } catch {}
+
   return updatedFunnel;
 }
 
-export function deleteFunnel(slug: string): boolean {
-  ensureDataDir();
-  const funnels = getAllFunnels();
-  const filtered = funnels.filter((f) => f.slug !== slug);
-  if (filtered.length !== funnels.length) {
-    fs.writeFileSync(FUNNELS_FILE, JSON.stringify(filtered, null, 2), "utf-8");
-    return true;
-  }
-  return false;
-}
-
-// ==========================================
-// COMMANDES (ORDERS)
-// ==========================================
-export function getAllOrders(): OrderRecord[] {
-  ensureDataDir();
-  if (!fs.existsSync(ORDERS_FILE)) {
-    // Échantillons de démonstration pour que le tableau de bord soit vivant dès l'ouverture !
-    const demoOrders: OrderRecord[] = [
-      {
-        id: "cmd-101",
-        funnelSlug: "offre-speciale",
-        productName: "Pack Découverte",
-        customerName: "Amina Diallo",
-        customerPhone: "+22997123456",
-        customerCity: "Cotonou",
-        customerAddress: "Haie Vive, face Pharmacie",
-        totalAmount: 18000,
-        currency: "XOF",
-        paymentMethod: "cod",
-        orderStatus: "new",
-        createdAt: new Date(Date.now() - 1000 * 60 * 35).toISOString(), // Il y a 35 min
-      },
-      {
-        id: "cmd-102",
-        funnelSlug: "offre-speciale",
-        productName: "Pack Duo Privilège",
-        customerName: "Koffi Mensah",
-        customerPhone: "+22901532952",
-        customerCity: "Calavi",
-        customerAddress: "KPOTA, près du carrefour",
-        totalAmount: 29000,
-        currency: "XOF",
-        paymentMethod: "cod",
-        orderStatus: "confirmed",
-        createdAt: new Date(Date.now() - 1000 * 60 * 120).toISOString(), // Il y a 2h
-      },
-      {
-        id: "cmd-103",
-        funnelSlug: "offre-speciale",
-        productName: "Pack Découverte",
-        customerName: "Fatou Sow",
-        customerPhone: "+221776543210",
-        customerCity: "Dakar",
-        customerAddress: "Plateau, Rue Carnot",
-        totalAmount: 18000,
-        currency: "XOF",
-        paymentMethod: "whatsapp",
-        orderStatus: "delivered",
-        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), // Hier
-      },
-    ];
-    fs.writeFileSync(ORDERS_FILE, JSON.stringify(demoOrders, null, 2), "utf-8");
-    return demoOrders;
+export async function deleteFunnel(slug: string, userId?: string): Promise<boolean> {
+  try {
+    const supabase = createAdminClient();
+    let query = supabase.from("funnels").delete().eq("slug", slug);
+    if (userId) {
+      query = query.eq("user_id", userId);
+    }
+    await query;
+  } catch (e) {
+    console.warn("Erreur suppression Supabase:", e);
   }
 
   try {
+    ensureDataDir();
+    const funnels = await getAllFunnels();
+    const filtered = funnels.filter((f) => f.slug !== slug);
+    if (filtered.length !== funnels.length) {
+      fs.writeFileSync(FUNNELS_FILE, JSON.stringify(filtered, null, 2), "utf-8");
+      return true;
+    }
+  } catch {}
+
+  return true;
+}
+
+// ==============================================================================
+// 2. GESTION DES COMMANDES (SUPABASE POSTGRESQL + LOCAL FALLBACK)
+// ==============================================================================
+
+export async function getAllOrders(userId?: string): Promise<OrderRecord[]> {
+  try {
+    const supabase = createAdminClient();
+    let query = supabase
+      .from("orders")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (userId) {
+      query = query.eq("user_id", userId);
+    }
+
+    const { data, error } = await query;
+    if (!error && data && data.length > 0) {
+      return data.map((row) => ({
+        id: row.id,
+        funnelSlug: row.funnel_slug,
+        userId: row.user_id,
+        productName: row.product_name,
+        customerName: row.customer_name,
+        customerPhone: row.customer_phone,
+        customerCity: row.customer_city,
+        customerAddress: row.customer_address,
+        totalAmount: Number(row.total_amount),
+        currency: row.currency,
+        paymentMethod: row.payment_method,
+        paymentStatus: row.payment_status,
+        orderStatus: row.order_status,
+        fedapayTransactionId: row.fedapay_transaction_id,
+        createdAt: row.created_at,
+      }));
+    }
+  } catch (e) {
+    console.warn("Supabase getAllOrders fallback:", e);
+  }
+
+  // Fallback Local
+  ensureDataDir();
+  if (!fs.existsSync(ORDERS_FILE)) return [];
+  try {
     const raw = fs.readFileSync(ORDERS_FILE, "utf-8");
     return JSON.parse(raw);
-  } catch (e) {
-    console.error("Erreur lecture orders.json:", e);
+  } catch {
     return [];
   }
 }
 
-export function saveOrder(order: Omit<OrderRecord, "id" | "createdAt">): OrderRecord {
-  ensureDataDir();
-  const orders = getAllOrders();
+export async function getOrderById(orderId: string): Promise<OrderRecord | null> {
+  try {
+    const supabase = createAdminClient();
+    const { data, error } = await supabase
+      .from("orders")
+      .select("*")
+      .eq("id", orderId)
+      .maybeSingle();
+
+    if (!error && data) {
+      return {
+        id: data.id,
+        funnelSlug: data.funnel_slug,
+        userId: data.user_id,
+        productName: data.product_name,
+        customerName: data.customer_name,
+        customerPhone: data.customer_phone,
+        customerCity: data.customer_city,
+        customerAddress: data.customer_address,
+        totalAmount: Number(data.total_amount),
+        currency: data.currency,
+        paymentMethod: data.payment_method,
+        paymentStatus: data.payment_status,
+        orderStatus: data.order_status,
+        fedapayTransactionId: data.fedapay_transaction_id,
+        createdAt: data.created_at,
+      };
+    }
+  } catch (e) {
+    console.warn("Supabase getOrderById fallback:", e);
+  }
+
+  const all = await getAllOrders();
+  return all.find((o) => o.id === orderId) || null;
+}
+
+export async function saveOrder(order: Partial<OrderRecord>): Promise<OrderRecord> {
   const newOrder: OrderRecord = {
-    ...order,
-    id: `cmd-${Math.floor(1000 + Math.random() * 9000)}`,
-    createdAt: new Date().toISOString(),
+    id: order.id || `cmd-${Math.floor(1000 + Math.random() * 9000)}`,
+    funnelSlug: order.funnelSlug || "offre-speciale",
+    userId: order.userId,
+    productName: order.productName || "Article Officiel",
+    customerName: order.customerName || "Client Anonyme",
+    customerPhone: order.customerPhone || "+22900000000",
+    customerCity: order.customerCity || "Cotonou",
+    customerAddress: order.customerAddress || "",
+    totalAmount: order.totalAmount || 0,
+    currency: order.currency || "XOF",
+    paymentMethod: order.paymentMethod || "cod",
+    paymentStatus: order.paymentStatus || "pending",
+    orderStatus: order.orderStatus || "new",
+    fedapayTransactionId: order.fedapayTransactionId,
+    createdAt: order.createdAt || new Date().toISOString(),
   };
 
-  orders.unshift(newOrder);
-  fs.writeFileSync(ORDERS_FILE, JSON.stringify(orders, null, 2), "utf-8");
+  // 1. Sauvegarde dans Supabase
+  try {
+    const supabase = createAdminClient();
+    await supabase.from("orders").upsert({
+      id: newOrder.id,
+      funnel_slug: newOrder.funnelSlug,
+      user_id: newOrder.userId || null,
+      customer_name: newOrder.customerName,
+      customer_phone: newOrder.customerPhone,
+      customer_city: newOrder.customerCity,
+      customer_address: newOrder.customerAddress,
+      product_name: newOrder.productName,
+      total_amount: newOrder.totalAmount,
+      currency: newOrder.currency,
+      payment_method: newOrder.paymentMethod,
+      payment_status: newOrder.paymentStatus,
+      order_status: newOrder.orderStatus,
+      fedapay_transaction_id: newOrder.fedapayTransactionId || null,
+      created_at: newOrder.createdAt,
+      updated_at: new Date().toISOString(),
+    });
+  } catch (e) {
+    console.warn("Erreur insertion commande Supabase:", e);
+  }
+
+  // 2. Sauvegarde locale de secours
+  try {
+    ensureDataDir();
+    const orders = await getAllOrders();
+    orders.unshift(newOrder);
+    fs.writeFileSync(ORDERS_FILE, JSON.stringify(orders, null, 2), "utf-8");
+  } catch {}
+
   return newOrder;
 }
 
-export function updateOrderStatus(
+export async function updateOrderStatus(
   orderId: string,
-  newStatus: OrderRecord["orderStatus"]
-): OrderRecord | null {
-  ensureDataDir();
-  const orders = getAllOrders();
-  const orderIndex = orders.findIndex((o) => o.id === orderId);
-  if (orderIndex === -1) return null;
+  newStatus: OrderRecord["orderStatus"],
+  paymentStatus?: OrderRecord["paymentStatus"]
+): Promise<OrderRecord | null> {
+  // 1. Supabase update
+  try {
+    const supabase = createAdminClient();
+    const updatePayload: any = {
+      order_status: newStatus,
+      updated_at: new Date().toISOString(),
+    };
+    if (paymentStatus) {
+      updatePayload.payment_status = paymentStatus;
+    }
 
-  orders[orderIndex].orderStatus = newStatus;
-  fs.writeFileSync(ORDERS_FILE, JSON.stringify(orders, null, 2), "utf-8");
-  return orders[orderIndex];
+    await supabase.from("orders").update(updatePayload).eq("id", orderId);
+  } catch (e) {
+    console.warn("Erreur updateOrderStatus Supabase:", e);
+  }
+
+  // 2. Local update
+  try {
+    ensureDataDir();
+    const orders = await getAllOrders();
+    const idx = orders.findIndex((o) => o.id === orderId);
+    if (idx !== -1) {
+      orders[idx].orderStatus = newStatus;
+      if (paymentStatus) {
+        orders[idx].paymentStatus = paymentStatus;
+      }
+      fs.writeFileSync(ORDERS_FILE, JSON.stringify(orders, null, 2), "utf-8");
+      return orders[idx];
+    }
+  } catch {}
+
+  return getOrderById(orderId);
 }
 
-export function deleteOrder(orderId: string): boolean {
-  ensureDataDir();
-  const orders = getAllOrders();
-  const filtered = orders.filter((o) => o.id !== orderId);
-  if (filtered.length !== orders.length) {
-    fs.writeFileSync(ORDERS_FILE, JSON.stringify(filtered, null, 2), "utf-8");
-    return true;
+export async function deleteOrder(orderId: string): Promise<boolean> {
+  try {
+    const supabase = createAdminClient();
+    await supabase.from("orders").delete().eq("id", orderId);
+  } catch (e) {
+    console.warn("Erreur suppression commande Supabase:", e);
   }
-  return false;
+
+  try {
+    ensureDataDir();
+    const orders = await getAllOrders();
+    const filtered = orders.filter((o) => o.id !== orderId);
+    if (filtered.length !== orders.length) {
+      fs.writeFileSync(ORDERS_FILE, JSON.stringify(filtered, null, 2), "utf-8");
+      return true;
+    }
+  } catch {}
+
+  return true;
 }
