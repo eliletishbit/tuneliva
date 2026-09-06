@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -49,6 +49,33 @@ function LoginForm() {
   const [googleConfigError, setGoogleConfigError] = useState(false);
   const [phoneConfigError, setPhoneConfigError] = useState(false);
 
+  // Détection automatique de session active (ex: validation email / redirection hash / déjà connecté)
+  useEffect(() => {
+    let isMounted = true;
+    const checkActiveSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session && isMounted) {
+          window.location.href = redirectPath;
+        }
+      } catch (err) {
+        console.warn("Session check error:", err);
+      }
+    };
+    checkActiveSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if ((event === "SIGNED_IN" || event === "USER_UPDATED") && session && isMounted) {
+        window.location.href = redirectPath;
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
+  }, [redirectPath, supabase]);
+
   // 1. CONNEXION / INSCRIPTION EMAIL & MOT DE PASSE
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,11 +86,15 @@ function LoginForm() {
     setPhoneConfigError(false);
 
     try {
+      const origin = typeof window !== "undefined" ? window.location.origin : "";
       if (authMode === "signup") {
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
+            emailRedirectTo: `${origin}/auth/callback?next=${encodeURIComponent(
+              redirectPath
+            )}`,
             data: {
               full_name: fullName,
             },
@@ -73,20 +104,24 @@ function LoginForm() {
         if (error) throw error;
 
         if (data.session) {
-          router.push(redirectPath);
+          window.location.href = redirectPath;
         } else {
           setSuccessMessage(
             "Compte créé avec succès ! Si un email de confirmation vous a été envoyé, cliquez sur le lien pour valider votre inscription."
           );
         }
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
 
         if (error) throw error;
-        router.push(redirectPath);
+        if (data?.session) {
+          window.location.href = redirectPath;
+        } else {
+          router.push(redirectPath);
+        }
       }
     } catch (err: any) {
       setErrorMessage(

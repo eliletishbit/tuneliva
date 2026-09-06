@@ -1119,6 +1119,12 @@ export function FunnelEditor({
         return "❓";
       case "thank_you":
         return "🎉";
+      case "split_showcase":
+        return "🖼️";
+      case "interactive_slider":
+        return "🎠";
+      case "bento_grid":
+        return "🍱";
       default:
         return "📄";
     }
@@ -1322,6 +1328,124 @@ export function FunnelEditor({
             "Vous pourrez contrôler l'article avant de lui régler le montant.",
           ],
           whatsappSupportNumber: funnelData.branding?.whatsappNumber,
+        };
+        break;
+      case "split_showcase":
+        newSec = {
+          id: `split-${randId}`,
+          type: "split_showcase",
+          layoutDirection: "image_left",
+          badgeText: "INNOVATION & QUALITÉ",
+          title: "Une expérience supérieure conçue pour vos exigences",
+          subtitle: "Découvrez pourquoi nos clients choisissent cette solution au quotidien :",
+          imageUrl: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=1000&auto=format&fit=crop&q=80",
+          imageAlt: "Aperçu de qualité supérieure",
+          metricBadge: {
+            value: "+340%",
+            label: "Performance & Satisfaction",
+          },
+          highlights: [
+            {
+              id: `hl-${randId}-1`,
+              title: "Conception Robuste & Finition Premium",
+              description: "Matériaux haut de gamme certifiés pour durer dans le temps.",
+            },
+            {
+              id: `hl-${randId}-2`,
+              title: "Résultats Immédiats & Prise en Main Rapide",
+              description: "Pensé pour être opérationnel dès les premières minutes d'utilisation.",
+            },
+            {
+              id: `hl-${randId}-3`,
+              title: "Assistance VIP & Support Dédié 7j/7",
+              description: "Une équipe à vos côtés pour répondre à toutes vos questions.",
+            },
+          ],
+          ctaText: "COMMANDER MAINTENANT",
+          ctaLink: "#commander",
+        };
+        break;
+      case "interactive_slider":
+        newSec = {
+          id: `slider-${randId}`,
+          type: "interactive_slider",
+          badgeText: "AVIS VÉRIFIÉS 5 ÉTOILES",
+          title: "Ce que nos clients racontent",
+          subtitle: "Des résultats concrets observés par des personnes comme vous :",
+          sliderType: "testimonials",
+          items: [
+            {
+              id: `sl-${randId}-1`,
+              title: "Aïcha Traoré",
+              subtitle: "Entrepreneure, Cotonou",
+              description: "Une qualité irréprochable et une livraison express le jour même. Je recommande les yeux fermés !",
+              rating: 5,
+              tag: "Achat Vérifié",
+              imageUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80",
+            },
+            {
+              id: `sl-${randId}-2`,
+              title: "Jean-Marc Kouamé",
+              subtitle: "Directeur d'Agence, Abidjan",
+              description: "Le produit a dépassé toutes mes attentes. Le service client m'a assisté avec professionnalisme.",
+              rating: 5,
+              tag: "Client Fidèle",
+              imageUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80",
+            },
+            {
+              id: `sl-${randId}-3`,
+              title: "Sonia Lawson",
+              subtitle: "Consultante, Lomé",
+              description: "Rapport qualité/prix imbattable. Je ne m'en passe plus au quotidien !",
+              rating: 5,
+              tag: "Recommandé",
+              imageUrl: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&auto=format&fit=crop&q=80",
+            },
+          ],
+        };
+        break;
+      case "bento_grid":
+        newSec = {
+          id: `bento-${randId}`,
+          type: "bento_grid",
+          badgeText: "ÉCOSYSTÈME COMPLET",
+          title: "Tout ce dont vous avez besoin pour réussir",
+          subtitle: "Une architecture pensée dans les moindres détails :",
+          cards: [
+            {
+              id: `bc-${randId}-1`,
+              colSpan: "col-span-2",
+              tag: "PILIER MAJEUR",
+              metric: "100%",
+              title: "Technologie & Efficacité Maximale",
+              description: "Des fonctionnalités de pointe conçues pour vous faire gagner du temps et booster votre rentabilité.",
+              imageUrl: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&auto=format&fit=crop&q=80",
+            },
+            {
+              id: `bc-${randId}-2`,
+              colSpan: "col-span-1",
+              tag: "RÉASSURANCE",
+              metric: "0 Risque",
+              title: "Garantie Totale Satisfait ou Remboursé",
+              description: "Testez pendant 30 jours sans aucun risque financier.",
+            },
+            {
+              id: `bc-${randId}-3`,
+              colSpan: "col-span-1",
+              tag: "DISPONIBILITÉ",
+              metric: "24/7",
+              title: "Support Réactif & Proactif",
+              description: "Une équipe joignable en continu par WhatsApp et Email.",
+            },
+            {
+              id: `bc-${randId}-4`,
+              colSpan: "col-span-2",
+              tag: "RAPIDITÉ",
+              metric: "< 24h",
+              title: "Déploiement Express & Livraison Suivie",
+              description: "Recevez vos accès ou votre commande physique en un temps record.",
+            },
+          ],
         };
         break;
       default:
@@ -3223,6 +3347,65 @@ export function FunnelEditor({
               {/* ========================================================================= */}
               {activeTab === "design" && (
                 <div className="space-y-4">
+                  {/* SÉLECTEUR DE FORMAT DE LARGEUR (BOXED, FLUID, CANVAS) */}
+                  <div className="p-3.5 rounded-2xl bg-slate-950 border border-white/10 space-y-2.5 shadow-lg">
+                    <div className="flex items-center justify-between">
+                      <label className="font-bold text-slate-200 block uppercase tracking-wider text-[11px]">
+                        📐 Format d'affichage (Largeur de Page)
+                      </label>
+                      <span className="text-[10px] text-indigo-400 font-mono font-bold">Elementor Style</span>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-1.5">
+                      {[
+                        {
+                          id: "boxed",
+                          name: "Encadré",
+                          desc: "Conteneur centré",
+                          icon: "📦",
+                        },
+                        {
+                          id: "fluid",
+                          name: "Pleine Largeur",
+                          desc: "Prend tout l'écran",
+                          icon: "🖥️",
+                        },
+                        {
+                          id: "canvas",
+                          name: "Canvas Épuré",
+                          desc: "Plein écran épuré",
+                          icon: "🎨",
+                        },
+                      ].map((lw) => {
+                        const isSelected = (funnelData.theme.pageLayoutWidth || "boxed") === lw.id;
+                        return (
+                          <button
+                            key={lw.id}
+                            type="button"
+                            onClick={() => {
+                              setFunnelData((prev) => ({
+                                ...prev,
+                                theme: {
+                                  ...prev.theme,
+                                  pageLayoutWidth: lw.id as any,
+                                },
+                              }));
+                            }}
+                            className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer flex flex-col items-center gap-1 ${
+                              isSelected
+                                ? "border-indigo-500 bg-indigo-600/20 text-white ring-1 ring-indigo-500 shadow-md"
+                                : "border-white/5 bg-slate-900 text-slate-400 hover:border-white/20 hover:text-white"
+                            }`}
+                          >
+                            <span className="text-base">{lw.icon}</span>
+                            <span className="text-[11px] font-bold block">{lw.name}</span>
+                            <span className="text-[9px] text-slate-400 block leading-tight">{lw.desc}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
                   <div className="space-y-2">
                     <label className="font-bold text-slate-200 block uppercase tracking-wider text-[11px]">
                       👑 Identités Visuelles (11 Thèmes)
@@ -3723,6 +3906,39 @@ export function FunnelEditor({
                 >
                   <span className="font-bold text-xs text-white block">💬 Témoignages Clients</span>
                   <span className="text-[10px] text-slate-400 block">Avis 5 étoiles vérifiés</span>
+                </button>
+
+                <button
+                  onClick={() => addSection("split_showcase")}
+                  className="p-3.5 rounded-2xl bg-slate-950 border border-indigo-500/40 hover:border-indigo-400 text-left space-y-1 cursor-pointer"
+                >
+                  <span className="font-bold text-xs text-white block flex items-center gap-1.5">
+                    <span className="text-base">🖼️</span>
+                    <span>Super Bloc Split</span>
+                  </span>
+                  <span className="text-[10px] text-indigo-300 block">Image Gauche/Droite + Arguments</span>
+                </button>
+
+                <button
+                  onClick={() => addSection("interactive_slider")}
+                  className="p-3.5 rounded-2xl bg-slate-950 border border-indigo-500/40 hover:border-indigo-400 text-left space-y-1 cursor-pointer"
+                >
+                  <span className="font-bold text-xs text-white block flex items-center gap-1.5">
+                    <span className="text-base">🎠</span>
+                    <span>Slider Interactif</span>
+                  </span>
+                  <span className="text-[10px] text-indigo-300 block">Carrousel défilant avec flèches</span>
+                </button>
+
+                <button
+                  onClick={() => addSection("bento_grid")}
+                  className="p-3.5 rounded-2xl bg-slate-950 border border-indigo-500/40 hover:border-indigo-400 text-left space-y-1 cursor-pointer"
+                >
+                  <span className="font-bold text-xs text-white block flex items-center gap-1.5">
+                    <span className="text-base">🍱</span>
+                    <span>Grille Bento Moderne</span>
+                  </span>
+                  <span className="text-[10px] text-indigo-300 block">Style Apple & Stripe asymétrique</span>
                 </button>
               </div>
             </div>

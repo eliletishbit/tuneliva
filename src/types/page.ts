@@ -19,6 +19,8 @@ export type SectionPadding = "compact" | "normal" | "spacious" | "extra";
 
 export type SectionSurfaceVariant = "default" | "subtle" | "card_elevated" | "brand_tint";
 
+export type PageLayoutWidth = "boxed" | "fluid" | "canvas";
+
 export type DesignPreset =
   | "fintech_mint"
   | "luxury_gold"
@@ -305,6 +307,70 @@ export interface ThankYouSection extends BaseSectionProps {
   nextActionTargetStepSlug?: string;
 }
 
+export interface SplitHighlightItem {
+  id: string;
+  title: string;
+  description: string;
+  icon?: string;
+}
+
+export interface SplitShowcaseSection extends BaseSectionProps {
+  type: "split_showcase";
+  layoutDirection: "image_left" | "image_right";
+  badgeText?: string;
+  title: string;
+  subtitle: string;
+  imageUrl: string;
+  imageAlt?: string;
+  highlights: SplitHighlightItem[];
+  metricBadge?: {
+    value: string;
+    label: string;
+  };
+  ctaText?: string;
+  ctaLink?: string;
+}
+
+export interface SliderItem {
+  id: string;
+  title: string;
+  description: string;
+  subtitle?: string;
+  imageUrl?: string;
+  rating?: number;
+  tag?: string;
+}
+
+export interface InteractiveSliderSection extends BaseSectionProps {
+  type: "interactive_slider";
+  badgeText?: string;
+  title: string;
+  subtitle?: string;
+  sliderType: "testimonials" | "products" | "features";
+  items: SliderItem[];
+  autoplay?: boolean;
+}
+
+export interface BentoCardItem {
+  id: string;
+  colSpan: "col-span-1" | "col-span-2" | "col-span-3";
+  title: string;
+  description: string;
+  tag?: string;
+  icon?: string;
+  metric?: string;
+  imageUrl?: string;
+  gradient?: string;
+}
+
+export interface BentoGridSection extends BaseSectionProps {
+  type: "bento_grid";
+  badgeText?: string;
+  title: string;
+  subtitle?: string;
+  cards: BentoCardItem[];
+}
+
 export type FunnelSection =
   | HeroSection
   | FloatingTrustCardsSection
@@ -320,7 +386,10 @@ export type FunnelSection =
   | OrderFormConfig
   | CaptureFormSection
   | ThankYouSection
-  | FaqSection;
+  | FaqSection
+  | SplitShowcaseSection
+  | InteractiveSliderSection
+  | BentoGridSection;
 
 export interface ThemeConfig {
   preset: DesignPreset;
@@ -335,6 +404,7 @@ export interface ThemeConfig {
   isDarkTheme: boolean;
   bannerUrgencyText?: string;
   countdownMinutes?: number;
+  pageLayoutWidth?: PageLayoutWidth;
 }
 
 export interface FunnelStep {

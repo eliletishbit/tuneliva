@@ -943,7 +943,7 @@ function buildEliteDesignFunnel(
   } else {
     // SALES (Landing page complète haute conversion)
     sections = [
-      // 1. HERO SECTION AVEC UN VRAI TITRE VENDEUR (PAS LE TEXTE DU PROMPT)
+      // 1. HERO SECTION AVEC UN VRAI TITRE VENDEUR
       {
         id: "hero-1",
         type: "hero",
@@ -957,7 +957,42 @@ function buildEliteDesignFunnel(
         trustPoints: trustPoints,
       },
 
-      // 2. CARTES FLOTTANTES DE CONFIANCE
+      // 2. SUPER BLOC SPLIT (IMAGE GAUCHE / ARGUMENTS DROITE)
+      {
+        id: "split-1",
+        type: "split_showcase",
+        layoutDirection: "image_left",
+        badgeText: "⭐ CONCEPTION SUPÉRIEURE",
+        title: `Pourquoi ${productName} fait toute la différence`,
+        subtitle: "Une fabrication soignée qui allie durabilité, confort et performance pour votre quotidien :",
+        imageUrl: stockImage,
+        imageAlt: productName,
+        metricBadge: {
+          value: "99.4%",
+          label: "Taux de Satisfaction Client",
+        },
+        highlights: [
+          {
+            id: "hl-1",
+            title: "Finition Irréprochable & Matériaux Certifiés",
+            description: "Chaque exemplaire subit un contrôle qualité rigoureux avant toute expédition.",
+          },
+          {
+            id: "hl-2",
+            title: "Confort & Prise en Main Immédiate",
+            description: "Pensé pour répondre parfaitement à vos besoins dès les premières secondes d'usage.",
+          },
+          {
+            id: "hl-3",
+            title: "Assistance VIP & Garantie 30 Jours Incluses",
+            description: "Notre équipe locale vous accompagne en toute sérénité à chaque étape.",
+          },
+        ],
+        ctaText: "COMMANDER MAINTENANT",
+        ctaLink: "#commander",
+      },
+
+      // 3. CARTES FLOTTANTES DE CONFIANCE
       {
         id: "floating-1",
         type: "floating_cards",
@@ -978,19 +1013,9 @@ function buildEliteDesignFunnel(
             id: "c-3",
             icon: "shield",
             title: "Produit 100% Garanti",
-            description: "Matériaux certifiés conformes avec garantie d'échange sans discussion.",
+            description: "30 jours de garantie satisfait ou remboursé sans discussion.",
           },
         ],
-      },
-
-      // 3. SHOWCASE EXEMPLAIRES / PACKS
-      {
-        id: "showcase-1",
-        type: "product_showcase",
-        badgeText: "⭐ NOS OFFRES EN VEDETTE",
-        title: "Sélectionnez votre formule idéale",
-        subtitle: `Choisissez l'exemplaire adapté à votre besoin avec réduction immédiate à ${city} :`,
-        items: showcaseItems,
       },
 
       // 4. STATISTIQUES SOCIALES
@@ -1005,7 +1030,30 @@ function buildEliteDesignFunnel(
         ],
       },
 
-      // 5. COMMENT ÇA MARCHE ?
+      // 5. SLIDER INTERACTIF DE TÉMOIGNAGES
+      {
+        id: "slider-1",
+        type: "interactive_slider",
+        badgeText: "💬 AVIS CLIENTS 5 ÉTOILES",
+        title: "Ce que nos clients racontent",
+        subtitle: "Découvrez les retours d'expérience de personnes qui ont déjà sauté le pas :",
+        sliderType: "testimonials",
+        items: reviewsItems.map((r: any, i: number) => ({
+          id: `sl-${i + 1}`,
+          title: r.authorName,
+          subtitle: `${r.authorLocation} • Achat Vérifié`,
+          description: r.comment,
+          rating: 5,
+          tag: "Client Vérifié",
+          imageUrl: r.authorName.includes("Amina")
+            ? "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80"
+            : r.authorName.includes("Marc")
+            ? "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80"
+            : "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&auto=format&fit=crop&q=80",
+        })),
+      },
+
+      // 6. COMMENT ÇA MARCHE ?
       {
         id: "steps-1",
         type: "steps",
@@ -1034,7 +1082,51 @@ function buildEliteDesignFunnel(
         ],
       },
 
-      // 6. ZONE DE LIVRAISON / COUVERTURE
+      // 7. GRILLE BENTO MODERNE
+      {
+        id: "bento-1",
+        type: "bento_grid",
+        badgeText: "🏆 EXCELLENCE TUNELIVA",
+        title: "La sérénité totale à chaque commande",
+        subtitle: "Un service pensé pour vous apporter une sécurité maximale :",
+        cards: [
+          {
+            id: "bc-1",
+            colSpan: "col-span-2",
+            tag: "CONTRÔLE TOTAL",
+            metric: "0 Avance",
+            title: "Paiement 100% à la Livraison",
+            description: `Vous ne réglez rien en ligne si vous préférez ! Vous ouvrez et inspectez votre colis devant le livreur à ${city} avant de régler.`,
+            imageUrl: stockImage,
+          },
+          {
+            id: "bc-2",
+            colSpan: "col-span-1",
+            tag: "RAPIDITÉ",
+            metric: "24h",
+            title: "Expédition Express",
+            description: "Notre livreur vous contacte rapidement pour convenir de l'horaire idéal.",
+          },
+          {
+            id: "bc-3",
+            colSpan: "col-span-1",
+            tag: "CONFIANCE",
+            metric: "30 Jours",
+            title: "Garantie Satisfait ou Remboursé",
+            description: "Un souci ou une question ? Notre service client vous échange ou vous rembourse sans tracas.",
+          },
+          {
+            id: "bc-4",
+            colSpan: "col-span-2",
+            tag: "ASSISTANCE 7J/7",
+            metric: "< 15 min",
+            title: "Support WhatsApp Réactif",
+            description: "Des conseillers dévoués pour vous répondre en direct à la moindre question.",
+          },
+        ],
+      },
+
+      // 8. ZONE DE LIVRAISON / COUVERTURE
       {
         id: "area-1",
         type: "service_area",
@@ -1044,18 +1136,7 @@ function buildEliteDesignFunnel(
         mapImageUrl: "https://images.unsplash.com/photo-1524661135-423995f22d0b?w=1000&auto=format&fit=crop&q=80",
       },
 
-      // 7. AVIS CLIENTS
-      {
-        id: "reviews-1",
-        type: "social_proof",
-        badgeText: "💬 TÉMOIGNAGES VÉRIFIÉS",
-        title: "Ce que disent nos clients",
-        ratingAverage: 5,
-        totalReviewsText: "5/5 étoiles sur plus de 320 avis",
-        items: reviewsItems,
-      },
-
-      // 8. FORMULAIRE DE COMMANDE DIRECTE COD
+      // 9. FORMULAIRE DE COMMANDE DIRECTE COD
       {
         id: "order-1",
         type: "order_form",
@@ -1068,7 +1149,7 @@ function buildEliteDesignFunnel(
         cities: [city, "Communes et environs", "Autre ville"],
       },
 
-      // 9. FAQ ACCORDÉON
+      // 10. FAQ ACCORDÉON
       {
         id: "faq-1",
         type: "faq",
@@ -1106,6 +1187,7 @@ function buildEliteDesignFunnel(
     theme: {
       preset,
       ...presetConfig,
+      pageLayoutWidth: "fluid",
     },
     sections,
     eventDetails:

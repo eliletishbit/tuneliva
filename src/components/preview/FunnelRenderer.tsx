@@ -23,6 +23,12 @@ import {
   ProductItem,
   ProductVariant,
   TicketTier,
+  SplitShowcaseSection,
+  InteractiveSliderSection,
+  BentoGridSection,
+  SplitHighlightItem,
+  SliderItem,
+  BentoCardItem,
 } from "@/types/page";
 import {
   CheckCircle2,
@@ -31,6 +37,9 @@ import {
   MessageCircle,
   Star,
   ChevronDown,
+  ChevronUp,
+  ChevronLeft,
+  ChevronRight,
   Sparkles,
   Lock,
   ArrowRight,
@@ -53,6 +62,11 @@ import {
   Plus,
   CreditCard,
   Wallet,
+  Zap,
+  Award,
+  TrendingUp,
+  Layers,
+  Repeat,
 } from "lucide-react";
 
 interface FunnelRendererProps {
@@ -329,6 +343,43 @@ export function FunnelRenderer({
     return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
   };
 
+  // État des sliders interactifs & Déroulement vertical
+  const [activeSliderIndices, setActiveSliderIndices] = useState<Record<string, number>>({});
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (typeof window !== "undefined") {
+        setShowScrollTop(window.scrollY > 350);
+      }
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollToNextOrOffer = () => {
+    const orderEl = document.getElementById("commander") || document.getElementById("offre");
+    if (orderEl) {
+      orderEl.scrollIntoView({ behavior: "smooth" });
+    } else if (typeof window !== "undefined") {
+      window.scrollBy({ top: window.innerHeight * 0.8, behavior: "smooth" });
+    }
+  };
+
+  const scrollToTop = () => {
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  const layoutWidth = theme.pageLayoutWidth || "boxed";
+  const headerMaxClass =
+    layoutWidth === "fluid"
+      ? "w-full max-w-[96%] xl:max-w-[1550px] mx-auto"
+      : layoutWidth === "canvas"
+      ? "w-full px-4 sm:px-8"
+      : "max-w-6xl mx-auto w-full";
+
   const isMobile = deviceMode === "mobile";
   const isTablet = deviceMode === "tablet";
 
@@ -495,7 +546,7 @@ export function FunnelRenderer({
     if (variant === "centered_minimal") {
       return (
         <header
-          className={`border-b backdrop-blur-md px-4 sm:px-8 py-4 sm:py-5 max-w-6xl mx-auto w-full transition-all ${
+          className={`border-b backdrop-blur-md px-4 sm:px-8 py-4 sm:py-5 ${headerMaxClass} transition-all ${
             isDark ? "bg-[#07080D]/95 text-white" : "bg-white/95 text-slate-900 shadow-sm"
           }`}
           style={{
@@ -573,7 +624,7 @@ export function FunnelRenderer({
             className="px-3 sm:px-6 py-2 text-xs font-black text-white flex flex-wrap items-center justify-between gap-2 shadow-md"
             style={{ backgroundColor: theme.primaryColor }}
           >
-            <div className="flex items-center gap-2 max-w-6xl mx-auto w-full justify-between">
+            <div className={`flex items-center gap-2 ${headerMaxClass} justify-between`}>
               <div className="flex items-center gap-2">
                 <Flame className="w-4 h-4 text-amber-300 animate-pulse" />
                 <span className="tracking-wide uppercase text-[11px] sm:text-xs">
@@ -589,7 +640,7 @@ export function FunnelRenderer({
 
           {/* Main Header */}
           <header
-            className={`border-b px-3 sm:px-8 py-3 flex items-center justify-between max-w-6xl mx-auto w-full transition-colors ${
+            className={`border-b px-3 sm:px-8 py-3 flex items-center justify-between ${headerMaxClass} transition-colors ${
               isDark ? "bg-[#07080D]/90 text-white" : "bg-white/95 text-slate-900 shadow-sm"
             }`}
             style={{ borderColor: `${theme.primaryColor}30` }}
@@ -703,7 +754,7 @@ export function FunnelRenderer({
     return (
       <div className="w-full">
         <div
-          className={`px-3 sm:px-8 py-1.5 sm:py-2 border-b text-[11px] sm:text-xs flex flex-wrap items-center justify-between gap-2 max-w-6xl mx-auto w-full transition-colors ${
+          className={`px-3 sm:px-8 py-1.5 sm:py-2 border-b text-[11px] sm:text-xs flex flex-wrap items-center justify-between gap-2 ${headerMaxClass} transition-colors ${
             isDark ? "text-slate-300" : "text-slate-700"
           }`}
           style={{
@@ -728,7 +779,7 @@ export function FunnelRenderer({
         </div>
 
         <header
-          className={`border-b backdrop-blur-md px-3 sm:px-8 py-2.5 sm:py-3.5 flex items-center justify-between max-w-6xl mx-auto w-full transition-colors ${
+          className={`border-b backdrop-blur-md px-3 sm:px-8 py-2.5 sm:py-3.5 flex items-center justify-between ${headerMaxClass} transition-colors ${
             isDark ? "bg-[#07080D]/90" : "bg-white/95 shadow-sm"
           }`}
           style={{
@@ -891,7 +942,7 @@ export function FunnelRenderer({
             borderTopWidth: "2px",
           }}
         >
-          <div className="max-w-6xl mx-auto space-y-6">
+          <div className={`${headerMaxClass} space-y-6`}>
             {/* Grille de 4 cartes réassurance horizontales */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-left">
               <div className="p-3 rounded-2xl bg-slate-900/70 border border-white/10 flex items-center gap-3">
@@ -970,7 +1021,7 @@ export function FunnelRenderer({
           borderTopWidth: "2px",
         }}
       >
-        <div className={`max-w-6xl mx-auto grid ${grid3Cols} gap-6 sm:gap-8 text-left`}>
+        <div className={`${headerMaxClass} grid ${grid3Cols} gap-6 sm:gap-8 text-left`}>
           <div className="space-y-3">
             <h3 className="font-extrabold text-white text-sm sm:text-base">
               {branding?.businessName || data.projectName}
@@ -1021,7 +1072,7 @@ export function FunnelRenderer({
           </div>
         </div>
 
-        <div className="border-t border-white/10 mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-center">
+        <div className={`border-t border-white/10 mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-center ${headerMaxClass}`}>
           <p>© {new Date().getFullYear()} {branding?.businessName || data.projectName}. Tous droits réservés.</p>
           <p className="flex items-center justify-center gap-1.5">
             <span>Propulsé avec rapidité par</span>
@@ -1064,7 +1115,15 @@ export function FunnelRenderer({
       {renderHeader()}
 
       {/* 4. CORPS DU TUNNEL (AVEC DRAG & DROP DES SECTIONS ET DROP ZONES) */}
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-6 sm:py-10 space-y-10 sm:space-y-14 overflow-x-clip w-full box-border">
+      <main
+        className={
+          layoutWidth === "fluid"
+            ? "w-full max-w-[96%] xl:max-w-[1550px] mx-auto px-3 sm:px-6 lg:px-10 py-6 sm:py-12 space-y-10 sm:space-y-16 overflow-x-clip box-border"
+            : layoutWidth === "canvas"
+            ? "w-full px-3 sm:px-6 lg:px-8 py-4 sm:py-10 space-y-8 sm:space-y-12 overflow-x-clip box-border"
+            : "max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-6 sm:py-10 space-y-10 sm:space-y-14 overflow-x-clip w-full box-border"
+        }
+      >
         {/* Drop Zone tout en haut de la page */}
         <CanvasDropZone
           index={0}
@@ -1092,6 +1151,7 @@ export function FunnelRenderer({
             surfaceClass = "border shadow-lg";
           }
 
+          // Bridage adaptatif pour mobile (garantie zéro débordement et zéro écrasement)
           const customPaddingStyle: React.CSSProperties = {
             paddingTop:
               section.paddingTopPx !== undefined
@@ -1105,22 +1165,20 @@ export function FunnelRenderer({
                 : section.paddingVerticalPx !== undefined
                 ? `${section.paddingVerticalPx}px`
                 : "36px",
-            paddingLeft:
-              section.paddingLeftPx !== undefined
-                ? `${section.paddingLeftPx}px`
-                : section.paddingHorizontalPx !== undefined
-                ? `${section.paddingHorizontalPx}px`
-                : isMobile
-                ? "16px"
-                : "24px",
-            paddingRight:
-              section.paddingRightPx !== undefined
-                ? `${section.paddingRightPx}px`
-                : section.paddingHorizontalPx !== undefined
-                ? `${section.paddingHorizontalPx}px`
-                : isMobile
-                ? "16px"
-                : "24px",
+            paddingLeft: isMobile
+              ? `${Math.min(section.paddingLeftPx ?? section.paddingHorizontalPx ?? 16, 20)}px`
+              : section.paddingLeftPx !== undefined
+              ? `${section.paddingLeftPx}px`
+              : section.paddingHorizontalPx !== undefined
+              ? `${section.paddingHorizontalPx}px`
+              : "24px",
+            paddingRight: isMobile
+              ? `${Math.min(section.paddingRightPx ?? section.paddingHorizontalPx ?? 16, 20)}px`
+              : section.paddingRightPx !== undefined
+              ? `${section.paddingRightPx}px`
+              : section.paddingHorizontalPx !== undefined
+              ? `${section.paddingHorizontalPx}px`
+              : "24px",
             marginTop:
               section.marginTopPx !== undefined
                 ? `${section.marginTopPx}px`
@@ -1133,18 +1191,20 @@ export function FunnelRenderer({
                 : section.marginVerticalPx !== undefined
                 ? `${section.marginVerticalPx}px`
                 : undefined,
-            marginLeft:
-              section.marginLeftPx !== undefined
-                ? `${section.marginLeftPx}px`
-                : section.marginHorizontalPx !== undefined
-                ? `${section.marginHorizontalPx}px`
-                : undefined,
-            marginRight:
-              section.marginRightPx !== undefined
-                ? `${section.marginRightPx}px`
-                : section.marginHorizontalPx !== undefined
-                ? `${section.marginHorizontalPx}px`
-                : undefined,
+            marginLeft: isMobile
+              ? undefined
+              : section.marginLeftPx !== undefined
+              ? `${section.marginLeftPx}px`
+              : section.marginHorizontalPx !== undefined
+              ? `${section.marginHorizontalPx}px`
+              : undefined,
+            marginRight: isMobile
+              ? undefined
+              : section.marginRightPx !== undefined
+              ? `${section.marginRightPx}px`
+              : section.marginHorizontalPx !== undefined
+              ? `${section.marginHorizontalPx}px`
+              : undefined,
             borderRadius: section.borderRadiusPx !== undefined ? `${section.borderRadiusPx}px` : undefined,
             backgroundColor:
               section.customBgColor ||
@@ -1156,6 +1216,13 @@ export function FunnelRenderer({
                 ? `${theme.primaryColor}33`
                 : undefined,
           };
+
+          const defaultSectionWidth =
+            layoutWidth === "fluid"
+              ? "w-full max-w-7xl"
+              : layoutWidth === "canvas"
+              ? "w-full"
+              : "max-w-4xl";
 
           return (
             <div
@@ -1187,7 +1254,7 @@ export function FunnelRenderer({
                 setDragOverSectionIdx(null);
               }}
               className={`relative group/section transition-all cursor-pointer overflow-x-clip w-full box-border ${
-                section.maxWidthClass || "max-w-4xl"
+                section.maxWidthClass || defaultSectionWidth
               } mx-auto ${surfaceClass} ${
                 isBeingDragged ? "opacity-30 scale-95" : ""
               } ${
@@ -1330,6 +1397,9 @@ export function FunnelRenderer({
                 selectedAppPlatform,
                 setSelectedAppPlatform,
                 activePrice,
+                activeSliderIndices,
+                setActiveSliderIndices,
+                scrollToNextOrOffer,
               })}
 
               {/* Drop Zone après chaque section */}
@@ -1346,6 +1416,19 @@ export function FunnelRenderer({
 
       {/* 5. PIED DE PAGE (3 VARIATIONS DE DESIGN AVEC TYPO ADAPTÉE) */}
       {renderFooter()}
+
+      {/* BOUTON FLOTTANT DE RETOUR EN HAUT (SCROLL TO TOP) */}
+      {showScrollTop && (
+        <button
+          type="button"
+          onClick={scrollToTop}
+          className="fixed bottom-6 right-6 z-40 p-3 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white shadow-2xl shadow-indigo-600/50 border border-white/20 hover:scale-110 active:scale-95 transition-all cursor-pointer flex items-center justify-center backdrop-blur-md"
+          title="Retourner en haut de la page"
+          aria-label="Retourner en haut"
+        >
+          <ChevronUp className="w-5 h-5" />
+        </button>
+      )}
 
       {/* MODAL FICHE PRODUIT DÉTAILLÉE & VARIANTES */}
       {detailModalProduct && (
@@ -1504,6 +1587,7 @@ export function FunnelRenderer({
 function renderSectionContent(section: FunnelSection, ctx: any) {
   const {
     theme,
+    isDark,
     cardBgClass,
     headingClass,
     mutedTextClass,
@@ -1708,6 +1792,19 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                 />
               </div>
             ))}
+          </div>
+
+          {/* BOUTON DE DÉROULEMENT VERTICAL FLUIDE (SCROLL DOWN) */}
+          <div className="flex justify-center pt-2">
+            <button
+              type="button"
+              onClick={ctx.scrollToNextOrOffer}
+              className="px-4 py-2 rounded-full border border-white/20 bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white transition-all shadow-lg cursor-pointer flex items-center gap-2 text-xs font-semibold hover:scale-105 active:scale-95"
+              title="Dérouler la page vers la suite de l'offre"
+            >
+              <span>Découvrir la suite</span>
+              <ChevronDown className="w-3.5 h-3.5 animate-bounce text-indigo-400" />
+            </button>
           </div>
         </section>
       );
@@ -2786,12 +2883,12 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                   <div className="space-y-4">
                     {/* SÉLECTEUR D'ONGLETS DE PAIEMENT SI PLUS D'UN MOYEN AUTORISÉ */}
                     {activeMethods.length > 1 && (
-                      <div className="grid grid-cols-3 gap-1.5 p-1 rounded-2xl bg-slate-900/90 border border-white/10">
+                      <div className={`grid ${activeMethods.length === 2 ? "grid-cols-2" : "grid-cols-3"} gap-1 sm:gap-2 p-1 rounded-2xl bg-slate-900/90 border border-white/10`}>
                         {isCodActive && (
                           <button
                             type="button"
                             onClick={() => ctx.setSelectedPaymentMethod?.("cod")}
-                            className={`py-2 px-1 rounded-xl text-xs font-bold transition-all cursor-pointer flex flex-col items-center gap-0.5 ${
+                            className={`py-2 px-1 sm:px-2 rounded-xl text-[11px] sm:text-xs font-bold transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5 text-center ${
                               currentMethod === "cod"
                                 ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
                                 : "text-slate-400 hover:text-white"
@@ -2986,7 +3083,7 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                           <label className={`block text-xs font-bold text-indigo-300`}>
                             Sélectionnez votre Opérateur Mobile Money :
                           </label>
-                          <div className="grid grid-cols-4 gap-1.5">
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                             {[
                               { name: "Wave", badge: "Wave", color: "bg-cyan-500/25 border-cyan-400 text-cyan-300" },
                               { name: "Orange", badge: "Orange", color: "bg-orange-500/25 border-orange-400 text-orange-300" },
@@ -2997,7 +3094,7 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                                 key={op.name}
                                 type="button"
                                 onClick={() => ctx.setSelectedMomoOperator?.(op.name)}
-                                className={`py-2 px-1 rounded-xl text-xs font-black border transition-all cursor-pointer ${
+                                className={`py-2.5 px-2 rounded-xl text-xs font-black border transition-all cursor-pointer ${
                                   ctx.selectedMomoOperator === op.name
                                     ? `${op.color} ring-2 ring-white/40 scale-105 shadow-md`
                                     : "bg-slate-900 border-white/10 text-slate-400 hover:text-white"
@@ -3192,6 +3289,527 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                           updateField("items", updated);
                         }}
                         isEditable={isEditable}
+                      />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      );
+    }
+
+    // ==========================================
+    // 14. SUPER BLOC SPLIT (IMAGE GAUCHE / DROITE RÉVERSIBLE)
+    // ==========================================
+    case "split_showcase": {
+      const s = section as SplitShowcaseSection;
+      const isImageLeft = s.layoutDirection === "image_left";
+
+      return (
+        <section className="relative w-full space-y-6">
+          {isEditable && isSectionSelected && (
+            <div className="flex items-center justify-between p-2.5 rounded-2xl bg-slate-900/95 border border-indigo-500/40 text-xs mb-4 shadow-xl">
+              <span className="text-slate-300 font-bold flex items-center gap-1.5">
+                <Layers className="w-3.5 h-3.5 text-indigo-400" />
+                Super Bloc Split : {isImageLeft ? "Image à Gauche" : "Image à Droite"}
+              </span>
+              <button
+                type="button"
+                onClick={() => updateField("layoutDirection", isImageLeft ? "image_right" : "image_left")}
+                className="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-black flex items-center gap-1.5 cursor-pointer shadow-md transition-all hover:scale-105"
+              >
+                <Repeat className="w-3.5 h-3.5" />
+                <span>{isImageLeft ? "Inverser (Image à Droite →)" : "Inverser (← Image à Gauche)"}</span>
+              </button>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">
+            {/* Colonne Image (Span 5 sur 12) */}
+            <div
+              className={`lg:col-span-5 relative group/img ${
+                isImageLeft ? "lg:order-1" : "lg:order-2"
+              }`}
+            >
+              <div className="relative rounded-3xl overflow-hidden border border-white/15 shadow-2xl bg-slate-950">
+                <img
+                  src={s.imageUrl || "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=1000&auto=format&fit=crop&q=80"}
+                  alt={s.imageAlt || s.title}
+                  className="w-full h-auto max-h-[500px] object-cover rounded-3xl transition-transform duration-500 group-hover/img:scale-105"
+                />
+
+                {/* Floating Metric Pill */}
+                {s.metricBadge && (
+                  <div
+                    className="absolute bottom-4 left-4 right-4 p-3.5 rounded-2xl border backdrop-blur-xl shadow-2xl flex items-center justify-between"
+                    style={{
+                      backgroundColor: isDark ? "rgba(11, 16, 32, 0.9)" : "rgba(255, 255, 255, 0.95)",
+                      borderColor: `${theme.primaryColor}40`,
+                    }}
+                  >
+                    <div>
+                      <div className="text-[11px] font-semibold text-slate-400">{s.metricBadge.label}</div>
+                      <div className="text-xl sm:text-2xl font-black font-mono tracking-tight" style={{ color: theme.primaryColor }}>
+                        {s.metricBadge.value}
+                      </div>
+                    </div>
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-md"
+                      style={{ backgroundColor: theme.primaryColor }}
+                    >
+                      <TrendingUp className="w-5 h-5" />
+                    </div>
+                  </div>
+                )}
+
+                {/* Image Picker Button */}
+                {isEditable && onOpenImagePicker && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onOpenImagePicker(s.id);
+                    }}
+                    className="absolute top-4 right-4 p-2.5 rounded-xl bg-black/85 hover:bg-black text-white border border-white/20 shadow-xl cursor-pointer"
+                    title="Changer l'image"
+                  >
+                    <Camera className="w-4 h-4 text-yellow-400" />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Colonne Contenu & Arguments (Span 7 sur 12) */}
+            <div
+              className={`lg:col-span-7 space-y-6 ${
+                isImageLeft ? "lg:order-2" : "lg:order-1"
+              }`}
+            >
+              <div className="space-y-3">
+                {s.badgeText && (
+                  <span
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black tracking-wider uppercase shadow-sm border"
+                    style={{
+                      backgroundColor: `${theme.primaryColor}1A`,
+                      color: theme.primaryColor,
+                      borderColor: `${theme.primaryColor}40`,
+                    }}
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <InlineText
+                      value={s.badgeText}
+                      onSave={(val) => updateField("badgeText", val)}
+                      isEditable={isEditable}
+                    />
+                  </span>
+                )}
+
+                <h2
+                  className="text-2xl sm:text-4xl font-black leading-tight tracking-tight break-words"
+                  style={customTitleStyle}
+                >
+                  <InlineText
+                    value={s.title}
+                    onSave={(val) => updateField("title", val)}
+                    isEditable={isEditable}
+                  />
+                </h2>
+
+                <p
+                  className="text-sm sm:text-base leading-relaxed break-words"
+                  style={customTextStyle}
+                >
+                  <InlineText
+                    value={s.subtitle}
+                    onSave={(val) => updateField("subtitle", val)}
+                    isEditable={isEditable}
+                  />
+                </p>
+              </div>
+
+              {/* Highlights List */}
+              {s.highlights && s.highlights.length > 0 && (
+                <div className="space-y-3 pt-2">
+                  {s.highlights.map((hl, hlIdx) => (
+                    <div
+                      key={hl.id || hlIdx}
+                      className={`p-3.5 rounded-2xl border transition-all ${cardBgClass} flex items-start gap-3.5`}
+                    >
+                      <div
+                        className="w-8 h-8 rounded-xl shrink-0 flex items-center justify-center text-white shadow-sm mt-0.5"
+                        style={{ backgroundColor: theme.primaryColor }}
+                      >
+                        <Check className="w-4 h-4" />
+                      </div>
+                      <div className="space-y-0.5 flex-1 min-w-0">
+                        <h4 className={`text-sm font-bold break-words ${headingClass}`}>
+                          <InlineText
+                            value={hl.title}
+                            onSave={(val) => {
+                              const updated = [...s.highlights];
+                              updated[hlIdx] = { ...updated[hlIdx], title: val };
+                              updateField("highlights", updated);
+                            }}
+                            isEditable={isEditable}
+                          />
+                        </h4>
+                        <p className={`text-xs leading-relaxed break-words ${mutedTextClass}`}>
+                          <InlineText
+                            value={hl.description}
+                            onSave={(val) => {
+                              const updated = [...s.highlights];
+                              updated[hlIdx] = { ...updated[hlIdx], description: val };
+                              updateField("highlights", updated);
+                            }}
+                            isEditable={isEditable}
+                          />
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Action CTA */}
+              {s.ctaText && (
+                <div className="pt-2">
+                  <a
+                    href={s.ctaLink || "#commander"}
+                    className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl text-white font-black text-sm shadow-xl transition-transform hover:scale-105 active:scale-95"
+                    style={{
+                      background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.accentColor || theme.primaryColor})`,
+                      boxShadow: `0 10px 25px ${theme.primaryColor}40`,
+                    }}
+                  >
+                    <span>{s.ctaText}</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </a>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    // ==========================================
+    // 15. SLIDER / CARROUSEL INTERACTIF
+    // ==========================================
+    case "interactive_slider": {
+      const s = section as InteractiveSliderSection;
+      const items = s.items || [];
+      const currentIdx = ctx.activeSliderIndices?.[s.id] || 0;
+      const activeItem = items[currentIdx] || items[0];
+
+      const handleNext = () => {
+        if (items.length <= 1) return;
+        ctx.setActiveSliderIndices?.((prev: any) => ({
+          ...prev,
+          [s.id]: (currentIdx + 1) % items.length,
+        }));
+      };
+
+      const handlePrev = () => {
+        if (items.length <= 1) return;
+        ctx.setActiveSliderIndices?.((prev: any) => ({
+          ...prev,
+          [s.id]: (currentIdx - 1 + items.length) % items.length,
+        }));
+      };
+
+      return (
+        <section className="relative w-full space-y-6">
+          <div className="text-center max-w-3xl mx-auto space-y-2">
+            {s.badgeText && (
+              <span
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black tracking-wider uppercase border"
+                style={{
+                  backgroundColor: `${theme.primaryColor}1A`,
+                  color: theme.primaryColor,
+                  borderColor: `${theme.primaryColor}40`,
+                }}
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <InlineText
+                  value={s.badgeText}
+                  onSave={(val) => updateField("badgeText", val)}
+                  isEditable={isEditable}
+                />
+              </span>
+            )}
+            <h2
+              className="text-2xl sm:text-4xl font-black tracking-tight break-words"
+              style={customTitleStyle}
+            >
+              <InlineText
+                value={s.title}
+                onSave={(val) => updateField("title", val)}
+                isEditable={isEditable}
+              />
+            </h2>
+            {s.subtitle && (
+              <p className="text-sm sm:text-base leading-relaxed break-words" style={customTextStyle}>
+                <InlineText
+                  value={s.subtitle}
+                  onSave={(val) => updateField("subtitle", val)}
+                  isEditable={isEditable}
+                />
+              </p>
+            )}
+          </div>
+
+          {/* Slider Container */}
+          <div className="relative max-w-4xl mx-auto">
+            {activeItem && (
+              <div
+                className={`p-6 sm:p-10 rounded-3xl border transition-all duration-300 shadow-2xl relative overflow-hidden ${cardBgClass}`}
+              >
+                <div
+                  className="absolute top-0 left-0 right-0 h-1.5"
+                  style={{
+                    background: `linear-gradient(90deg, ${theme.primaryColor}, ${theme.accentColor || theme.primaryColor})`,
+                  }}
+                />
+
+                {s.sliderType === "testimonials" && (
+                  <div className="flex items-center gap-1 mb-4">
+                    {[1, 2, 3, 4, 5].map((st) => (
+                      <Star
+                        key={st}
+                        className="w-4 h-4 fill-amber-400 text-amber-400"
+                      />
+                    ))}
+                  </div>
+                )}
+
+                {activeItem.tag && (
+                  <span
+                    className="inline-block px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider mb-4 border"
+                    style={{
+                      backgroundColor: `${theme.primaryColor}1A`,
+                      color: theme.primaryColor,
+                      borderColor: `${theme.primaryColor}30`,
+                    }}
+                  >
+                    {activeItem.tag}
+                  </span>
+                )}
+
+                <p className={`text-base sm:text-xl font-medium italic leading-relaxed mb-6 break-words ${mutedTextClass}`}>
+                  "{activeItem.description}"
+                </p>
+
+                <div className="flex items-center justify-between pt-4 border-t border-white/10 gap-2">
+                  <div className="flex items-center gap-3 min-w-0">
+                    {activeItem.imageUrl ? (
+                      <img
+                        src={activeItem.imageUrl}
+                        alt={activeItem.title}
+                        className="w-12 h-12 rounded-full object-cover shrink-0 border-2"
+                        style={{ borderColor: theme.primaryColor }}
+                      />
+                    ) : (
+                      <div
+                        className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md shrink-0"
+                        style={{ backgroundColor: theme.primaryColor }}
+                      >
+                        {activeItem.title.slice(0, 2).toUpperCase()}
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <h4 className={`text-sm sm:text-base font-bold truncate ${headingClass}`}>
+                        {activeItem.title}
+                      </h4>
+                      {activeItem.subtitle && (
+                        <p className="text-xs text-slate-400 font-medium truncate">
+                          {activeItem.subtitle}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Navigation Arrows */}
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      type="button"
+                      onClick={handlePrev}
+                      className="p-2 rounded-xl border border-white/15 bg-slate-900/80 hover:bg-slate-800 text-white cursor-pointer transition-all hover:scale-105 active:scale-95"
+                      title="Précédent"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleNext}
+                      className="p-2 rounded-xl border border-white/15 bg-slate-900/80 hover:bg-slate-800 text-white cursor-pointer transition-all hover:scale-105 active:scale-95"
+                      title="Suivant"
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Pagination Dots */}
+            {items.length > 1 && (
+              <div className="flex items-center justify-center gap-2 pt-4">
+                {items.map((it, dotIdx) => (
+                  <button
+                    key={it.id || dotIdx}
+                    type="button"
+                    onClick={() =>
+                      ctx.setActiveSliderIndices?.((prev: any) => ({
+                        ...prev,
+                        [s.id]: dotIdx,
+                      }))
+                    }
+                    className={`h-2 rounded-full transition-all cursor-pointer ${
+                      dotIdx === currentIdx
+                        ? "w-6"
+                        : "w-2 bg-slate-600/50 hover:bg-slate-500"
+                    }`}
+                    style={
+                      dotIdx === currentIdx
+                        ? { backgroundColor: theme.primaryColor }
+                        : undefined
+                    }
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+      );
+    }
+
+    // ==========================================
+    // 16. GRILLE BENTO MODERNE
+    // ==========================================
+    case "bento_grid": {
+      const s = section as BentoGridSection;
+      const cards = s.cards || [];
+
+      return (
+        <section className="relative w-full space-y-6">
+          <div className="text-center max-w-3xl mx-auto space-y-2">
+            {s.badgeText && (
+              <span
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black tracking-wider uppercase border"
+                style={{
+                  backgroundColor: `${theme.primaryColor}1A`,
+                  color: theme.primaryColor,
+                  borderColor: `${theme.primaryColor}40`,
+                }}
+              >
+                <Zap className="w-3.5 h-3.5" />
+                <InlineText
+                  value={s.badgeText}
+                  onSave={(val) => updateField("badgeText", val)}
+                  isEditable={isEditable}
+                />
+              </span>
+            )}
+            <h2
+              className="text-2xl sm:text-4xl font-black tracking-tight break-words"
+              style={customTitleStyle}
+            >
+              <InlineText
+                value={s.title}
+                onSave={(val) => updateField("title", val)}
+                isEditable={isEditable}
+              />
+            </h2>
+            {s.subtitle && (
+              <p className="text-sm sm:text-base leading-relaxed break-words" style={customTextStyle}>
+                <InlineText
+                  value={s.subtitle}
+                  onSave={(val) => updateField("subtitle", val)}
+                  isEditable={isEditable}
+                />
+              </p>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 w-full">
+            {cards.map((c, cIdx) => {
+              const isWide = c.colSpan === "col-span-2";
+              return (
+                <div
+                  key={c.id || cIdx}
+                  className={`rounded-3xl p-6 sm:p-7 border relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl flex flex-col justify-between ${
+                    isWide ? "md:col-span-2" : "md:col-span-1"
+                  } ${cardBgClass}`}
+                >
+                  <div
+                    className="absolute -top-16 -right-16 w-36 h-36 rounded-full blur-2xl opacity-20 pointer-events-none"
+                    style={{ backgroundColor: theme.primaryColor }}
+                  />
+
+                  <div className="space-y-3 relative z-10">
+                    <div className="flex items-center justify-between gap-2">
+                      {c.tag && (
+                        <span
+                          className="px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider border"
+                          style={{
+                            backgroundColor: `${theme.primaryColor}18`,
+                            color: theme.primaryColor,
+                            borderColor: `${theme.primaryColor}35`,
+                          }}
+                        >
+                          {c.tag}
+                        </span>
+                      )}
+                      <div
+                        className="w-9 h-9 rounded-xl flex items-center justify-center text-white shadow-sm"
+                        style={{ backgroundColor: theme.primaryColor }}
+                      >
+                        <Award className="w-4 h-4" />
+                      </div>
+                    </div>
+
+                    {c.metric && (
+                      <div
+                        className="text-3xl sm:text-4xl font-black font-mono tracking-tight"
+                        style={{ color: theme.primaryColor }}
+                      >
+                        {c.metric}
+                      </div>
+                    )}
+
+                    <h3 className={`text-base sm:text-lg font-black break-words ${headingClass}`}>
+                      <InlineText
+                        value={c.title}
+                        onSave={(val) => {
+                          const updated = [...cards];
+                          updated[cIdx] = { ...updated[cIdx], title: val };
+                          updateField("cards", updated);
+                        }}
+                        isEditable={isEditable}
+                      />
+                    </h3>
+
+                    <p className={`text-xs sm:text-sm leading-relaxed break-words ${mutedTextClass}`}>
+                      <InlineText
+                        value={c.description}
+                        onSave={(val) => {
+                          const updated = [...cards];
+                          updated[cIdx] = { ...updated[cIdx], description: val };
+                          updateField("cards", updated);
+                        }}
+                        isEditable={isEditable}
+                      />
+                    </p>
+                  </div>
+
+                  {c.imageUrl && (
+                    <div className="mt-4 rounded-2xl overflow-hidden border border-white/10 shadow-md">
+                      <img
+                        src={c.imageUrl}
+                        alt={c.title}
+                        className="w-full h-36 object-cover hover:scale-105 transition-transform duration-300"
                       />
                     </div>
                   )}
