@@ -1215,6 +1215,7 @@ export function FunnelRenderer({
               section.sectionSurfaceVariant === "brand_tint"
                 ? `${theme.primaryColor}33`
                 : undefined,
+            color: section.customTextColor || undefined,
           };
 
           const defaultSectionWidth =
@@ -1917,7 +1918,7 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                       </div>
 
                       <div>
-                        <h3 className={`font-bold text-base sm:text-lg ${headingClass}`}>
+                        <h3 className={`font-bold text-base sm:text-lg ${headingClass}`} style={customTitleStyle}>
                           <InlineText
                             value={item.name}
                             onSave={(val) => {
@@ -1928,7 +1929,7 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                             isEditable={isEditable}
                           />
                         </h3>
-                        <p className={`text-xs mt-1 leading-relaxed line-clamp-2 ${mutedTextClass}`}>
+                        <p className={`text-xs mt-1 leading-relaxed line-clamp-2 ${mutedTextClass}`} style={customTextStyle}>
                           <InlineText
                             value={item.description}
                             onSave={(val) => {
@@ -2069,7 +2070,7 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                   <Check className="w-6 h-6" />
                 )}
               </div>
-              <h3 className={`font-bold text-base sm:text-lg ${headingClass}`}>
+              <h3 className={`font-bold text-base sm:text-lg ${headingClass}`} style={customTitleStyle}>
                 <InlineText
                   value={card.title}
                   onSave={(val) => {
@@ -2080,7 +2081,7 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                   isEditable={isEditable}
                 />
               </h3>
-              <p className={`text-xs sm:text-sm leading-relaxed ${mutedTextClass}`}>
+              <p className={`text-xs sm:text-sm leading-relaxed ${mutedTextClass}`} style={customTextStyle}>
                 <InlineText
                   value={card.description}
                   onSave={(val) => {
@@ -2112,14 +2113,14 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                 isEditable={isEditable}
               />
             </span>
-            <h2 className={`text-2xl sm:text-4xl font-extrabold ${headingClass}`}>
+            <h2 className={`text-2xl sm:text-4xl font-extrabold ${headingClass}`} style={customTitleStyle}>
               <InlineText
                 value={s.title}
                 onSave={(val) => updateField("title", val)}
                 isEditable={isEditable}
               />
             </h2>
-            <p className={`text-xs sm:text-sm max-w-xl mx-auto ${mutedTextClass}`}>
+            <p className={`text-xs sm:text-sm max-w-xl mx-auto ${mutedTextClass}`} style={customTextStyle}>
               <InlineText
                 value={s.subtitle}
                 onSave={(val) => updateField("subtitle", val)}
@@ -2155,7 +2156,7 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                 >
                   <PhoneCall className="w-5 h-5" />
                 </div>
-                <h3 className={`font-bold text-base sm:text-lg ${headingClass}`}>
+                <h3 className={`font-bold text-base sm:text-lg ${headingClass}`} style={customTitleStyle}>
                   <InlineText
                     value={step.title}
                     onSave={(val) => {
@@ -2166,7 +2167,7 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                     isEditable={isEditable}
                   />
                 </h3>
-                <p className={`text-xs sm:text-sm leading-relaxed ${mutedTextClass}`}>
+                <p className={`text-xs sm:text-sm leading-relaxed ${mutedTextClass}`} style={customTextStyle}>
                   <InlineText
                     value={step.description}
                     onSave={(val) => {
@@ -2222,7 +2223,7 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                     isEditable={isEditable}
                   />
                 </span>
-                <span className={`text-xs sm:text-sm font-semibold block mt-1 ${mutedTextClass}`}>
+                <span className={`text-xs sm:text-sm font-semibold block mt-1 ${mutedTextClass}`} style={customTextStyle}>
                   <InlineText
                     value={item.label}
                     onSave={(val) => {
@@ -2261,14 +2262,14 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                 isEditable={isEditable}
               />
             </span>
-            <h2 className={`text-2xl sm:text-4xl font-extrabold ${headingClass}`}>
+            <h2 className={`text-2xl sm:text-4xl font-extrabold ${headingClass}`} style={customTitleStyle}>
               <InlineText
                 value={s.title}
                 onSave={(val) => updateField("title", val)}
                 isEditable={isEditable}
               />
             </h2>
-            <p className={`text-xs sm:text-sm max-w-xl mx-auto ${mutedTextClass}`}>
+            <p className={`text-xs sm:text-sm max-w-xl mx-auto ${mutedTextClass}`} style={customTextStyle}>
               <InlineText
                 value={s.subtitle}
                 onSave={(val) => updateField("subtitle", val)}
@@ -2313,7 +2314,7 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                     isEditable={isEditable}
                   />
                 </h3>
-                <p className={`text-xs sm:text-sm leading-relaxed ${mutedTextClass}`}>
+                <p className={`text-xs sm:text-sm leading-relaxed ${mutedTextClass}`} style={customTextStyle}>
                   <InlineText
                     value={item.description}
                     onSave={(val) => {
@@ -2346,14 +2347,14 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                 isEditable={isEditable}
               />
             </span>
-            <h2 className={`text-2xl sm:text-4xl font-extrabold ${headingClass}`}>
+            <h2 className={`text-2xl sm:text-4xl font-extrabold ${headingClass}`} style={customTitleStyle}>
               <InlineText
                 value={s.title}
                 onSave={(val) => updateField("title", val)}
                 isEditable={isEditable}
               />
             </h2>
-            <p className={`text-xs sm:text-sm max-w-xl mx-auto ${mutedTextClass}`}>
+            <p className={`text-xs sm:text-sm max-w-xl mx-auto ${mutedTextClass}`} style={customTextStyle}>
               <InlineText
                 value={s.subtitle}
                 onSave={(val) => updateField("subtitle", val)}
@@ -2386,7 +2387,7 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                 >
                   {idx + 1}
                 </div>
-                <h3 className={`font-bold text-base sm:text-lg ${headingClass}`}>
+                <h3 className={`font-bold text-base sm:text-lg ${headingClass}`} style={customTitleStyle}>
                   <InlineText
                     value={item.title}
                     onSave={(val) => {
@@ -2397,7 +2398,7 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                     isEditable={isEditable}
                   />
                 </h3>
-                <p className={`text-xs sm:text-sm leading-relaxed ${mutedTextClass}`}>
+                <p className={`text-xs sm:text-sm leading-relaxed ${mutedTextClass}`} style={customTextStyle}>
                   <InlineText
                     value={item.description}
                     onSave={(val) => {
@@ -2614,7 +2615,7 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
             </span>
           )}
           {s.title && (
-            <h2 className={`text-2xl sm:text-4xl font-extrabold ${headingClass}`}>
+            <h2 className={`text-2xl sm:text-4xl font-extrabold ${headingClass}`} style={customTitleStyle}>
               <InlineText
                 value={s.title}
                 onSave={(val) => updateField("title", val)}
@@ -2623,7 +2624,7 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
             </h2>
           )}
           {s.subtitle && (
-            <p className={`text-xs sm:text-sm max-w-xl mx-auto ${mutedTextClass}`}>
+            <p className={`text-xs sm:text-sm max-w-xl mx-auto ${mutedTextClass}`} style={customTextStyle}>
               <InlineText
                 value={s.subtitle}
                 onSave={(val) => updateField("subtitle", val)}
@@ -2653,20 +2654,36 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
     }
 
     // ==========================================
-    // 10. ZONE D'INTERVENTION
+    // 10. ZONE D'INTERVENTION (GOOGLE MAPS INTERACTIF)
     // ==========================================
     case "service_area": {
       const s = section as ServiceAreaSection;
+      const isGoogleMaps = (s.mapMode || "google_maps") === "google_maps";
+      const mapQuery = s.mapAddress || s.zoneText || "Cotonou, Bénin";
+      const mapZoom = s.mapZoom || 13;
+      const googleMapsEmbedUrl = `https://maps.google.com/maps?q=${encodeURIComponent(
+        mapQuery
+      )}&t=&z=${mapZoom}&ie=UTF8&iwloc=&output=embed`;
+
       return (
         <section className="space-y-4 text-center max-w-3xl mx-auto">
-          <h2 className={`text-2xl sm:text-3xl font-extrabold ${headingClass}`}>
+          {s.badgeText && (
+            <span className="text-xs font-bold uppercase tracking-wider" style={{ color: theme.primaryColor }}>
+              <InlineText
+                value={s.badgeText}
+                onSave={(val) => updateField("badgeText", val)}
+                isEditable={isEditable}
+              />
+            </span>
+          )}
+          <h2 className={`text-2xl sm:text-3xl font-extrabold ${headingClass}`} style={customTitleStyle}>
             <InlineText
               value={s.title}
               onSave={(val) => updateField("title", val)}
               isEditable={isEditable}
             />
           </h2>
-          <p className={`text-xs sm:text-sm flex items-center justify-center gap-1.5 ${mutedTextClass}`}>
+          <p className={`text-xs sm:text-sm flex items-center justify-center gap-1.5 ${mutedTextClass}`} style={customTextStyle}>
             <MapPin className="w-4 h-4 text-indigo-500 shrink-0" />
             <InlineText
               value={s.zoneText}
@@ -2675,38 +2692,74 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
             />
           </p>
 
-          <div
-            onClick={(e) => {
-              if (isEditable && onOpenImagePicker) {
-                e.stopPropagation();
-                onOpenImagePicker(s.id);
-              }
-            }}
-            className="rounded-3xl overflow-hidden border border-slate-200/30 shadow-lg aspect-[16/9] relative bg-slate-900 group cursor-pointer"
-          >
-            <img
-              src={s.mapImageUrl}
-              alt="Carte zone"
-              className="w-full h-full object-cover opacity-85 group-hover:opacity-100 transition-opacity"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent flex items-end justify-center p-4">
-              <span className="px-4 py-2 rounded-xl bg-black/80 text-white text-xs font-bold backdrop-blur-md">
-                📍 {s.subtitle || "Zone de couverture garantie"}
-              </span>
+          {isGoogleMaps ? (
+            <div className="rounded-3xl overflow-hidden border border-slate-200/30 shadow-2xl aspect-[16/9] relative bg-slate-900 group">
+              <iframe
+                src={googleMapsEmbedUrl}
+                className="w-full h-full border-0"
+                loading="lazy"
+                allowFullScreen
+                title={`Zone d'intervention Google Maps - ${mapQuery}`}
+              />
+              <div className="absolute bottom-3 left-3 pointer-events-none z-10">
+                <span className="px-3.5 py-1.5 rounded-xl bg-black/85 text-white text-xs font-bold backdrop-blur-md shadow-lg flex items-center gap-1.5 border border-white/10">
+                  <MapPin className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+                  <span>{s.subtitle || s.zoneText || "Zone de couverture garantie"}</span>
+                </span>
+              </div>
+              {isEditable && (
+                <div className="absolute top-3 right-3 flex items-center gap-2 z-20">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      ctx.onSelectSection?.(s.id);
+                      ctx.onOpenSettings?.();
+                    }}
+                    className="px-3 py-1.5 rounded-xl bg-black/85 hover:bg-black text-white text-xs font-bold border border-white/20 backdrop-blur-md flex items-center gap-1.5 cursor-pointer shadow-lg"
+                    title="Régler l'adresse ou le zoom dans l'inspecteur"
+                  >
+                    <MapPin className="w-3.5 h-3.5 text-indigo-400" />
+                    <span>📍 Régler la carte ({mapQuery})</span>
+                  </button>
+                </div>
+              )}
             </div>
-            {isEditable && (
-              <button
-                onClick={(e) => {
+          ) : (
+            <div
+              onClick={(e) => {
+                if (isEditable && onOpenImagePicker) {
                   e.stopPropagation();
-                  onOpenImagePicker?.(s.id);
-                }}
-                className="absolute top-3 right-3 px-3 py-1.5 rounded-xl bg-black/80 text-white text-xs font-bold border border-white/20 backdrop-blur-md flex items-center gap-1 cursor-pointer"
-              >
-                <Camera className="w-3.5 h-3.5" />
-                <span>Changer la carte</span>
-              </button>
-            )}
-          </div>
+                  onOpenImagePicker(s.id);
+                }
+              }}
+              className="rounded-3xl overflow-hidden border border-slate-200/30 shadow-lg aspect-[16/9] relative bg-slate-900 group cursor-pointer"
+            >
+              <img
+                src={s.mapImageUrl || "https://images.unsplash.com/photo-1524661135-423995f22d0b?w=1000&auto=format&fit=crop&q=80"}
+                alt="Carte zone"
+                className="w-full h-full object-cover opacity-85 group-hover:opacity-100 transition-opacity"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent flex items-end justify-center p-4">
+                <span className="px-4 py-2 rounded-xl bg-black/80 text-white text-xs font-bold backdrop-blur-md">
+                  📍 {s.subtitle || "Zone de couverture garantie"}
+                </span>
+              </div>
+              {isEditable && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onOpenImagePicker?.(s.id);
+                  }}
+                  className="absolute top-3 right-3 px-3 py-1.5 rounded-xl bg-black/80 text-white text-xs font-bold border border-white/20 backdrop-blur-md flex items-center gap-1 cursor-pointer"
+                >
+                  <Camera className="w-3.5 h-3.5" />
+                  <span>Changer la carte</span>
+                </button>
+              )}
+            </div>
+          )}
         </section>
       );
     }
@@ -2733,14 +2786,14 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                 isEditable={isEditable}
               />
             </span>
-            <h2 className={`text-2xl sm:text-4xl font-extrabold ${headingClass}`}>
+            <h2 className={`text-2xl sm:text-4xl font-extrabold ${headingClass}`} style={customTitleStyle}>
               <InlineText
                 value={s.title}
                 onSave={(val) => updateField("title", val)}
                 isEditable={isEditable}
               />
             </h2>
-            <p className={`text-xs sm:text-sm ${mutedTextClass}`}>
+            <p className={`text-xs sm:text-sm ${mutedTextClass}`} style={customTextStyle}>
               <InlineText
                 value={s.subtitle}
                 onSave={(val) => updateField("subtitle", val)}
@@ -2756,7 +2809,7 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
               </div>
             )}
 
-            <h3 className={`text-lg font-bold ${headingClass}`}>{s.offer.name}</h3>
+            <h3 className={`text-lg font-bold ${headingClass}`} style={customTitleStyle}>{s.offer.name}</h3>
 
             <div className="space-y-1">
               <div className="text-slate-400 line-through text-sm">
@@ -2774,7 +2827,7 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
               {s.offer.features.map((feat, idx) => (
                 <div key={idx} className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                  <span className={mutedTextClass}>{feat}</span>
+                  <span className={mutedTextClass} style={customTextStyle}>{feat}</span>
                 </div>
               ))}
             </div>
@@ -2787,7 +2840,7 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
               COMMANDER MAINTENANT
             </a>
 
-            <div className={`text-xs flex items-center justify-center gap-1.5 ${mutedTextClass}`}>
+            <div className={`text-xs flex items-center justify-center gap-1.5 ${mutedTextClass}`} style={customTextStyle}>
               <ShieldCheck className="w-4 h-4 text-emerald-500" />
               <span>{s.guaranteeText}</span>
             </div>
@@ -2816,14 +2869,14 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
           </div>
 
           <div className="space-y-2">
-            <h2 className={`text-2xl sm:text-3xl font-extrabold ${headingClass}`}>
+            <h2 className={`text-2xl sm:text-3xl font-extrabold ${headingClass}`} style={customTitleStyle}>
               <InlineText
                 value={s.title}
                 onSave={(val) => updateField("title", val)}
                 isEditable={isEditable}
               />
             </h2>
-            <p className={`text-xs sm:text-sm ${mutedTextClass}`}>
+            <p className={`text-xs sm:text-sm ${mutedTextClass}`} style={customTextStyle}>
               <InlineText
                 value={s.subtitle}
                 onSave={(val) => updateField("subtitle", val)}
@@ -3224,14 +3277,14 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                 isEditable={isEditable}
               />
             </span>
-            <h2 className={`text-2xl sm:text-3xl font-bold ${headingClass}`}>
+            <h2 className={`text-2xl sm:text-3xl font-bold ${headingClass}`} style={customTitleStyle}>
               <InlineText
                 value={s.title}
                 onSave={(val) => updateField("title", val)}
                 isEditable={isEditable}
               />
             </h2>
-            <p className={`text-xs sm:text-sm ${mutedTextClass}`}>
+            <p className={`text-xs sm:text-sm ${mutedTextClass}`} style={customTextStyle}>
               <InlineText
                 value={s.subtitle}
                 onSave={(val) => updateField("subtitle", val)}
@@ -3261,6 +3314,7 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                   <button
                     onClick={() => ctx.setOpenFaqId(isOpen ? null : item.id)}
                     className={`w-full p-4 pt-5 text-left flex items-center justify-between gap-3 text-xs sm:text-base font-semibold transition-colors cursor-pointer ${headingClass}`}
+                    style={customTitleStyle}
                   >
                     <span>
                       <InlineText
@@ -3280,7 +3334,7 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                     />
                   </button>
                   {isOpen && (
-                    <div className={`p-4 pt-0 text-xs sm:text-sm leading-relaxed border-t border-slate-200/20 ${mutedTextClass}`}>
+                    <div className={`p-4 pt-0 text-xs sm:text-sm leading-relaxed border-t border-slate-200/20 ${mutedTextClass}`} style={customTextStyle}>
                       <InlineText
                         value={item.answer}
                         onSave={(val) => {
@@ -3444,7 +3498,7 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                         <Check className="w-4 h-4" />
                       </div>
                       <div className="space-y-0.5 flex-1 min-w-0">
-                        <h4 className={`text-sm font-bold break-words ${headingClass}`}>
+                        <h4 className={`text-sm font-bold break-words ${headingClass}`} style={customTitleStyle}>
                           <InlineText
                             value={hl.title}
                             onSave={(val) => {
@@ -3455,7 +3509,7 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                             isEditable={isEditable}
                           />
                         </h4>
-                        <p className={`text-xs leading-relaxed break-words ${mutedTextClass}`}>
+                        <p className={`text-xs leading-relaxed break-words ${mutedTextClass}`} style={customTextStyle}>
                           <InlineText
                             value={hl.description}
                             onSave={(val) => {
@@ -3597,7 +3651,7 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                   </span>
                 )}
 
-                <p className={`text-base sm:text-xl font-medium italic leading-relaxed mb-6 break-words ${mutedTextClass}`}>
+                <p className={`text-base sm:text-xl font-medium italic leading-relaxed mb-6 break-words ${mutedTextClass}`} style={customTextStyle}>
                   "{activeItem.description}"
                 </p>
 
@@ -3779,7 +3833,7 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                       </div>
                     )}
 
-                    <h3 className={`text-base sm:text-lg font-black break-words ${headingClass}`}>
+                    <h3 className={`text-base sm:text-lg font-black break-words ${headingClass}`} style={customTitleStyle}>
                       <InlineText
                         value={c.title}
                         onSave={(val) => {
@@ -3791,7 +3845,7 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                       />
                     </h3>
 
-                    <p className={`text-xs sm:text-sm leading-relaxed break-words ${mutedTextClass}`}>
+                    <p className={`text-xs sm:text-sm leading-relaxed break-words ${mutedTextClass}`} style={customTextStyle}>
                       <InlineText
                         value={c.description}
                         onSave={(val) => {

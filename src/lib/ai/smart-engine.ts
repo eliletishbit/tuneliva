@@ -1126,13 +1126,16 @@ function buildEliteDesignFunnel(
         ],
       },
 
-      // 8. ZONE DE LIVRAISON / COUVERTURE
+      // 8. ZONE DE LIVRAISON / COUVERTURE (GOOGLE MAPS)
       {
         id: "area-1",
         type: "service_area",
         title: "Notre zone de livraison & d'intervention",
         subtitle: "Zone de couverture garantie avec expédition suivie",
         zoneText: `${city}, communes et environs immédiats`,
+        mapMode: "google_maps",
+        mapAddress: city,
+        mapZoom: 13,
         mapImageUrl: "https://images.unsplash.com/photo-1524661135-423995f22d0b?w=1000&auto=format&fit=crop&q=80",
       },
 

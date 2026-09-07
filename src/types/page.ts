@@ -185,7 +185,10 @@ export interface ServiceAreaSection extends BaseSectionProps {
   title: string;
   subtitle: string;
   zoneText: string;
-  mapImageUrl: string;
+  mapImageUrl?: string;
+  mapMode?: "google_maps" | "image";
+  mapAddress?: string;
+  mapZoom?: number;
 }
 
 export interface PainPointItem {

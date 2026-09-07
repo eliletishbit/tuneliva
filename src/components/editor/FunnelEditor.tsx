@@ -1160,6 +1160,9 @@ export function FunnelEditor({
           zoneText:
             funnelData.branding?.address?.serviceZone ||
             "Cotonou, Calavi, Porto-Novo et villes environnantes",
+          mapMode: "google_maps",
+          mapAddress: "Cotonou, Bénin",
+          mapZoom: 13,
           mapImageUrl:
             "https://images.unsplash.com/photo-1524661135-423995f22d0b?w=1000&auto=format&fit=crop&q=80",
         };
@@ -2549,26 +2552,114 @@ export function FunnelEditor({
 
                         {openInspectorAccordions.content && (
                           <div className="p-3 pt-0 space-y-3 border-t border-white/5">
-                            {selectedSection.type === "service_area" && (
-                              <div className="space-y-2 pt-1">
-                                <label className="block text-[11px] font-bold text-slate-300">
-                                  Villes & Zone d'Intervention
-                                </label>
-                                <textarea
-                                  rows={2}
-                                  value={(selectedSection as ServiceAreaSection).zoneText || ""}
-                                  onChange={(e) => updateSelectedSection({ zoneText: e.target.value })}
-                                  className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-white/10 text-white text-xs"
-                                />
-                                <button
-                                  onClick={() => openImagePicker(selectedSection.id)}
-                                  className="w-full py-2 px-3 rounded-xl bg-slate-900 border border-white/10 text-slate-300 font-bold flex items-center justify-center gap-1.5 cursor-pointer hover:border-indigo-500"
-                                >
-                                  <ImageIcon className="w-3.5 h-3.5 text-yellow-400" />
-                                  <span>Changer la carte géographique</span>
-                                </button>
-                              </div>
-                            )}
+                            {selectedSection.type === "service_area" && (() => {
+                              const sec = selectedSection as ServiceAreaSection;
+                              const isGoogleMaps = (sec.mapMode || "google_maps") === "google_maps";
+                              return (
+                                <div className="space-y-3 pt-1">
+                                  <div className="space-y-1.5">
+                                    <label className="block text-[11px] font-bold text-slate-300">
+                                      Type d'affichage de la carte
+                                    </label>
+                                    <div className="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-slate-900 border border-white/10">
+                                      <button
+                                        type="button"
+                                        onClick={() => updateSelectedSection({ mapMode: "google_maps" })}
+                                        className={`py-1.5 px-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                                          isGoogleMaps
+                                            ? "bg-indigo-600 text-white shadow-sm"
+                                            : "text-slate-400 hover:text-white"
+                                        }`}
+                                      >
+                                        🗺️ Google Maps
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => updateSelectedSection({ mapMode: "image" })}
+                                        className={`py-1.5 px-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                                          !isGoogleMaps
+                                            ? "bg-indigo-600 text-white shadow-sm"
+                                            : "text-slate-400 hover:text-white"
+                                        }`}
+                                      >
+                                        🖼️ Image simple
+                                      </button>
+                                    </div>
+                                  </div>
+
+                                  {isGoogleMaps ? (
+                                    <>
+                                      <div className="space-y-1.5">
+                                        <label className="block text-[11px] font-bold text-slate-300">
+                                          Adresse ou Ville repère Google Maps
+                                        </label>
+                                        <input
+                                          type="text"
+                                          value={sec.mapAddress || sec.zoneText || ""}
+                                          onChange={(e) =>
+                                            updateSelectedSection({
+                                              mapAddress: e.target.value,
+                                              zoneText: e.target.value,
+                                            })
+                                          }
+                                          placeholder="Ex: Cotonou, Bénin ou Abidjan, Plateau"
+                                          className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-white/10 text-white text-xs focus:border-indigo-500 focus:outline-none"
+                                        />
+                                        <p className="text-[10px] text-slate-400">
+                                          Saisissez un quartier, une ville, une commune ou un pays (mise à jour instantanée).
+                                        </p>
+                                      </div>
+
+                                      <div className="space-y-1.5">
+                                        <div className="flex items-center justify-between text-[11px] font-bold text-slate-300">
+                                          <span>Niveau de Zoom de la carte</span>
+                                          <span className="text-indigo-400 font-mono text-xs">
+                                            {sec.mapZoom || 13}/18
+                                          </span>
+                                        </div>
+                                        <input
+                                          type="range"
+                                          min={8}
+                                          max={18}
+                                          value={sec.mapZoom || 13}
+                                          onChange={(e) =>
+                                            updateSelectedSection({
+                                              mapZoom: parseInt(e.target.value, 10),
+                                            })
+                                          }
+                                          className="w-full cursor-pointer accent-indigo-500"
+                                        />
+                                        <div className="flex justify-between text-[9px] text-slate-500">
+                                          <span>Région (8)</span>
+                                          <span>Ville (13)</span>
+                                          <span>Rues (18)</span>
+                                        </div>
+                                      </div>
+                                    </>
+                                  ) : (
+                                    <div className="space-y-2">
+                                      <label className="block text-[11px] font-bold text-slate-300">
+                                        Texte de la Zone de Couverture
+                                      </label>
+                                      <input
+                                        type="text"
+                                        value={sec.zoneText || ""}
+                                        onChange={(e) => updateSelectedSection({ zoneText: e.target.value })}
+                                        className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-white/10 text-white text-xs"
+                                      />
+                                      <button
+                                        type="button"
+                                        onClick={() => openImagePicker(selectedSection.id)}
+                                        className="w-full py-2 px-3 rounded-xl bg-slate-900 border border-white/10 text-slate-300 font-bold flex items-center justify-center gap-1.5 cursor-pointer hover:border-indigo-500"
+                                      >
+                                        <ImageIcon className="w-3.5 h-3.5 text-yellow-400" />
+                                        <span>Changer l'image de la carte</span>
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })()}
 
                             {selectedSection.type === "hero" && (
                               <>

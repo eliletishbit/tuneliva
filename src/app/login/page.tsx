@@ -33,9 +33,10 @@ function LoginForm() {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
 
-  // Phone OTP state
+  // Phone auth state
   const [phoneCountryCode, setPhoneCountryCode] = useState("+229");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [phoneAuthType, setPhoneAuthType] = useState<"password" | "otp">("password");
   const [otpSent, setOtpSent] = useState(false);
   const [otpCode, setOtpCode] = useState("");
   const [otpChannel, setOtpChannel] = useState<"sms" | "whatsapp">("whatsapp");
@@ -181,6 +182,16 @@ function LoginForm() {
     setPhoneConfigError(false);
 
     try {
+      // Vérification préalable pour éviter la redirection directe vers le JSON 400 brut de Supabase
+      const checkRes = await fetch("/api/auth/check-google", { cache: "no-store" });
+      const checkData = await checkRes.json();
+
+      if (!checkData.enabled) {
+        setGoogleConfigError(true);
+        setLoading(false);
+        return;
+      }
+
       const origin = window.location.origin;
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
@@ -216,7 +227,85 @@ function LoginForm() {
     }
   };
 
-  // 4. ENVOI OTP TÉLÉPHONE (WHATSAPP OU SMS)
+  // 4. CONNEXION & INSCRIPTION DIRECTE TÉLÉPHONE + MOT DE PASSE (SANS FOURNISSEUR SMS EXTERNE)
+  const handlePhoneAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!phoneNumber.trim()) {
+      setErrorMessage("Veuillez saisir votre numéro de téléphone.");
+      return;
+    }
+    if (!password || password.length < 6) {
+      setErrorMessage("Le mot de passe doit comporter au moins 6 caractères.");
+      return;
+    }
+
+    setLoading(true);
+    setErrorMessage(null);
+    setSuccessMessage(null);
+    setPhoneConfigError(false);
+
+    const fullPhone = `${phoneCountryCode}${phoneNumber.replace(/\s+/g, "")}`;
+    const cleanDigits = fullPhone.replace(/[^0-9]/g, "");
+    const syntheticEmail = `phone_${cleanDigits}@phone.tuneliva.com`;
+
+    try {
+      if (authMode === "signup") {
+        const res = await fetch("/api/auth/phone", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "signup",
+            phone: fullPhone,
+            password,
+            fullName,
+          }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || "Impossible de créer le compte.");
+        }
+
+        // Connexion immédiate pour obtenir les cookies et la session Supabase
+        const { data: signinData, error: signinErr } = await supabase.auth.signInWithPassword({
+          email: syntheticEmail,
+          password,
+        });
+
+        if (signinErr) throw signinErr;
+
+        if (signinData?.session) {
+          window.location.href = redirectPath;
+        } else {
+          router.push(redirectPath);
+        }
+      } else {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: syntheticEmail,
+          password,
+        });
+
+        if (error) {
+          if (error.message === "Invalid login credentials") {
+            throw new Error("Numéro de téléphone ou mot de passe incorrect.");
+          }
+          throw error;
+        }
+
+        if (data?.session) {
+          window.location.href = redirectPath;
+        } else {
+          router.push(redirectPath);
+        }
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message || "Erreur d'authentification par téléphone.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 5. ENVOI OTP TÉLÉPHONE (OPTIONNEL WHATSAPP OU SMS)
   const handleSendPhoneOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!phoneNumber.trim()) {
@@ -376,28 +465,29 @@ function LoginForm() {
               Pour envoyer de vrais SMS ou messages WhatsApp via Supabase, un fournisseur externe (Twilio, MessageBird, Vonage) doit être connecté dans <strong>Authentication &gt; Providers &gt; Phone</strong>.
             </p>
             <p className="text-[11px] text-slate-300 font-semibold">
-              👉 Pour vous connecter dès maintenant sans attendre de fournisseur SMS : utilisez l'authentification par <strong>Email &amp; Mot de passe</strong> ou le <strong>Lien Magique</strong> ci-dessous !
+              👉 Pour continuer sans attendre de passerelle SMS : connectez-vous ou créez votre compte par <strong>Téléphone &amp; Mot de passe</strong> ou <strong>Email</strong> !
             </p>
-            <div className="pt-1 flex items-center gap-2">
+            <div className="pt-1 flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setPhoneConfigError(false);
+                  setAuthMethod("phone");
+                  setPhoneAuthType("password");
+                }}
+                className="text-[11px] font-bold text-white bg-indigo-600 hover:bg-indigo-500 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+              >
+                Téléphone &amp; Mot de passe
+              </button>
               <button
                 type="button"
                 onClick={() => {
                   setPhoneConfigError(false);
                   setAuthMethod("password");
                 }}
-                className="text-[11px] font-bold text-white bg-indigo-600 hover:bg-indigo-500 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
-              >
-                Connexion Email &amp; Mot de passe
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setPhoneConfigError(false);
-                  setAuthMethod("magic_link");
-                }}
                 className="text-[11px] font-bold text-slate-300 hover:text-white bg-slate-900 border border-white/10 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
               >
-                Lien Magique
+                Email &amp; Mot de passe
               </button>
             </div>
           </div>
@@ -469,7 +559,7 @@ function LoginForm() {
             }`}
           >
             <Phone className="w-3.5 h-3.5" />
-            <span>Téléphone OTP</span>
+            <span>Téléphone</span>
           </button>
         </div>
 
@@ -590,10 +680,111 @@ function LoginForm() {
           </form>
         )}
 
-        {/* 3. FORMULAIRE TÉLÉPHONE / WHATSAPP OTP */}
+        {/* 3. FORMULAIRE TÉLÉPHONE */}
         {authMethod === "phone" && (
           <div className="space-y-4">
-            {!otpSent ? (
+            {phoneAuthType === "password" ? (
+              <form onSubmit={handlePhoneAuth} className="space-y-4">
+                {authMode === "signup" && (
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider block">
+                      Nom complet ou Raison Sociale
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      placeholder="Ex: Amina Diallo ou Agence Digitale"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-white/10 text-white text-xs focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    />
+                  </div>
+                )}
+
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider block">
+                    Numéro de Téléphone
+                  </label>
+                  <div className="flex gap-2">
+                    <select
+                      value={phoneCountryCode}
+                      onChange={(e) => setPhoneCountryCode(e.target.value)}
+                      className="px-2.5 py-2.5 rounded-xl bg-slate-950 border border-white/10 text-white text-xs focus:border-indigo-500 focus:outline-none shrink-0"
+                    >
+                      <option value="+229">🇧🇯 +229 (Bénin)</option>
+                      <option value="+225">🇨🇮 +225 (Côte d'Ivoire)</option>
+                      <option value="+221">🇸🇳 +221 (Sénégal)</option>
+                      <option value="+228">🇹🇬 +228 (Togo)</option>
+                      <option value="+226">🇧🇫 +226 (Burkina)</option>
+                      <option value="+237">🇨🇲 +237 (Cameroun)</option>
+                      <option value="+223">🇲🇱 +223 (Mali)</option>
+                      <option value="+227">🇳🇪 +227 (Niger)</option>
+                      <option value="+33">🇫🇷 +33 (France)</option>
+                      <option value="+1">🇺🇸 +1 (USA/Canada)</option>
+                    </select>
+                    <input
+                      type="tel"
+                      required
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      placeholder="97 00 00 00"
+                      className="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-950 border border-white/10 text-white text-xs focus:border-indigo-500 focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider block">
+                    Mot de passe
+                  </label>
+                  <div className="relative">
+                    <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
+                    <input
+                      type="password"
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      minLength={6}
+                      className="w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-slate-950 border border-white/10 text-white text-xs focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-indigo-600 hover:opacity-95 text-white text-xs font-black flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/30 transition-all cursor-pointer disabled:opacity-50"
+                >
+                  {loading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : authMode === "signin" ? (
+                    <>
+                      <span>Se connecter avec mon Téléphone</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  ) : (
+                    <>
+                      <span>Créer mon compte avec mon Téléphone</span>
+                      <Sparkles className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+
+                <div className="text-center pt-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPhoneAuthType("otp");
+                      setPhoneConfigError(false);
+                    }}
+                    className="text-[11px] text-slate-400 hover:text-indigo-400 underline cursor-pointer"
+                  >
+                    Ou préférer un code OTP (SMS / WhatsApp)
+                  </button>
+                </div>
+              </form>
+            ) : !otpSent ? (
               <form onSubmit={handleSendPhoneOtp} className="space-y-4">
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider block">
@@ -673,6 +864,19 @@ function LoginForm() {
                     </>
                   )}
                 </button>
+
+                <div className="text-center pt-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPhoneAuthType("password");
+                      setPhoneConfigError(false);
+                    }}
+                    className="text-[11px] text-slate-400 hover:text-indigo-400 underline cursor-pointer"
+                  >
+                    ← Revenir à Téléphone &amp; Mot de passe
+                  </button>
+                </div>
               </form>
             ) : (
               <form onSubmit={handleVerifyOtp} className="space-y-4">
