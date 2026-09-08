@@ -1,1 +1,205 @@
-[]
+[
+  {
+    "projectName": "Tech Café Networking - 27 Sep 2026",
+    "slug": "tech-cafe-networking-27-sep-2026",
+    "pageType": "event_booking",
+    "metaTitle": "Tech Café Networking - 27 Sep 2026 | Édition Officielle 2026",
+    "metaDescription": "Boostez votre réseau tech autour d’un café – rencontrez, collaborez, innovez!. Livraison express à Cotonou et paiement sécurisé à la livraison.",
+    "branding": {
+      "businessName": "Tech Café Networking - 27 Sep 2026",
+      "tagline": "Qualité Certifiée & Service d'Excellence",
+      "whatsappNumber": "+22997000000",
+      "phone": "+229 01 53 29 52 82",
+      "socialLinks": {
+        "whatsapp": "https://wa.me/22997000000",
+        "facebook": "https://facebook.com",
+        "instagram": "https://instagram.com"
+      },
+      "address": {
+        "city": "Cotonou",
+        "country": "Bénin",
+        "fullAddress": "Centre Commercial, Haie Vive, Cotonou",
+        "serviceZone": "Zone d'intervention : Cotonou, Calavi, Porto-Novo et environs"
+      },
+      "footerBgColor": "#0A0D18"
+    },
+    "theme": {
+      "preset": "luxury_gold",
+      "primaryColor": "#EAB308",
+      "accentColor": "#F59E0B",
+      "pageBackground": "#F8FAFC",
+      "cardBackground": "#111115",
+      "cardBorderColor": "rgba(234, 179, 8, 0.22)",
+      "textColor": "#0F172A",
+      "textMutedColor": "#A1A1AA",
+      "fontFamily": "Plus Jakarta Sans",
+      "isDarkTheme": false,
+      "bannerUrgencyText": "⚠️ DÉJÀ 82% DES PLACES RÉSERVÉES POUR CETTE SESSION EXCLUSIVE !",
+      "countdownMinutes": 90,
+      "pageLayoutWidth": "fluid"
+    },
+    "sections": [
+      {
+        "id": "hero-1",
+        "type": "hero",
+        "badgeText": "🎟️ ÉVÉNEMENT MAJEUR & MASTERCLASS VIP",
+        "title": "Tech Café Networking - 27 Sep 2026 : L'Événement Exclusif de l'Année",
+        "subtitle": "Rejoignez des centaines de passionnés et professionnels pour une session intensive d'apprentissage, d'échange et de networking de haut niveau.",
+        "ctaText": "RÉSERVER MON BILLET MAINTENANT",
+        "ctaSubtext": "⚡ Nombre de places strictement limité pour garantir la qualité des échanges",
+        "imageUrl": "https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=800&auto=format&fit=crop&q=80",
+        "trustPoints": [
+          "Accès en direct Zoom & Replay HD illimité",
+          "Session questions/réponses privées avec les intervenants",
+          "Certificat officiel de participation délivré"
+        ]
+      },
+      {
+        "id": "floating-1",
+        "type": "floating_cards",
+        "cards": [
+          {
+            "id": "c-1",
+            "icon": "timer",
+            "title": "Date & Horaires",
+            "description": "Samedi 25 Octobre 2026 • De 14h00 à 18h30 GMT+1 en direct interactif."
+          },
+          {
+            "id": "c-2",
+            "icon": "check",
+            "title": "Intervenants Référents",
+            "description": "Des experts de renommée internationale partagent leurs meilleures stratégies concrètes."
+          },
+          {
+            "id": "c-3",
+            "icon": "shield",
+            "title": "Replay & Ressources",
+            "description": "Accès intégral aux enregistrements vidéo HD, fiches pratiques et supports présentés."
+          }
+        ]
+      },
+      {
+        "id": "steps-1",
+        "type": "steps",
+        "badgeText": "PROGRAMME DE L'ÉVÉNEMENT",
+        "title": "Le Déroulement Complet de la Session",
+        "subtitle": "Un contenu dense, orienté pratique et action immédiate :",
+        "items": [
+          {
+            "id": "st-1",
+            "stepNumber": 1,
+            "title": "Module 1 : Les Fondations & Clés Stratégiques",
+            "description": "Comprendre les dynamiques actuelles et éviter les erreurs courantes qui coûtent cher."
+          },
+          {
+            "id": "st-2",
+            "stepNumber": 2,
+            "title": "Module 2 : Études de Cas & Démonstrations En Direct",
+            "description": "Décorticage d'exemples réels et implémentation pas-à-pas sous vos yeux."
+          },
+          {
+            "id": "st-3",
+            "stepNumber": 3,
+            "title": "Module 3 : Mastermind & Questions/Réponses",
+            "description": "Posez toutes vos questions en direct aux intervenants et développez votre réseau professionnel."
+          }
+        ]
+      },
+      {
+        "id": "pricing-1",
+        "type": "pricing",
+        "badgeText": "TARIF BILLETTERIE OFFICIEL",
+        "title": "Choisissez Votre Formule d'Accès",
+        "subtitle": "Tarif spécial Early Bird garanti jusqu'à épuisement des billets :",
+        "offer": {
+          "id": "offer-std",
+          "name": "Pass Participant Officiel 2026",
+          "salePrice": 22000,
+          "regularPrice": 33000,
+          "currency": "XOF",
+          "features": [
+            "Accès direct à l'événement en direct",
+            "Support de présentation PDF complet",
+            "Accès au salon d'échange participant",
+            "Certificat officiel de participation"
+          ],
+          "stockLeft": 12
+        },
+        "guaranteeText": "Garantie 100% satisfait ou remboursé sous 48h si l'événement ne répond pas à vos attentes"
+      },
+      {
+        "id": "order-1",
+        "type": "order_form",
+        "title": "Réservez Votre Place Immédiatement",
+        "subtitle": "Paiement 100% sécurisé par Mobile Money ou Carte Bancaire. Vos billets électroniques vous seront envoyés par Email :",
+        "whatsappEnabled": true,
+        "whatsappNumber": "+22997000000",
+        "codEnabled": false,
+        "momoEnabled": true,
+        "cardEnabled": true,
+        "onlinePaymentEnabled": true,
+        "cities": [
+          "Billet Électronique (Envoi par Email)"
+        ]
+      },
+      {
+        "id": "faq-1",
+        "type": "faq",
+        "badgeText": "QUESTIONS BILLETTERIE",
+        "title": "Questions Fréquentes sur l'Événement",
+        "subtitle": "Tout ce qu'il faut savoir avant de réserver :",
+        "items": [
+          {
+            "id": "q-1",
+            "question": "Et si je ne suis pas disponible à l'heure du direct ?",
+            "answer": "Aucun souci ! Tous les participants inscrits reçoivent l'enregistrement intégral en vidéo HD sous 24h avec accès à vie."
+          },
+          {
+            "id": "q-2",
+            "question": "Comment vais-je recevoir mon lien d'accès ?",
+            "answer": "Dès votre paiement validé, vous recevrez une confirmation immédiate par email et par WhatsApp contenant votre lien de connexion personnel Zoom."
+          },
+          {
+            "id": "q-3",
+            "question": "Quels sont les moyens de paiement acceptés ?",
+            "answer": "Vous pouvez régler facilement et en toute sécurité par Mobile Money (MTN, Moov, Wave, Orange) ou par Carte Bancaire Visa / Mastercard."
+          }
+        ]
+      }
+    ],
+    "eventDetails": {
+      "eventDate": "Samedi 25 Octobre 2026",
+      "eventTime": "14h00 - 18h30 GMT+1",
+      "eventLocation": "En direct sur Zoom & Replay Privé",
+      "eventType": "online",
+      "ticketTiers": [
+        {
+          "id": "tier-std",
+          "name": "Pass Standard (Live + Fiches)",
+          "price": 22000,
+          "regularPrice": 33000,
+          "features": [
+            "Accès au direct interactif",
+            "Support PDF récapitulatif",
+            "Session questions/réponses"
+          ],
+          "isPopular": false
+        },
+        {
+          "id": "tier-vip",
+          "name": "Pass VIP (Live + Replay à Vie + Coaching Privé)",
+          "price": 39600,
+          "regularPrice": 66000,
+          "features": [
+            "Tous les accès du Pass Standard",
+            "Replay vidéo HD illimité à vie",
+            "Session de coaching privé en petit groupe",
+            "Accès au salon d'échange VIP"
+          ],
+          "isPopular": true
+        }
+      ]
+    },
+    "userId": "8a5db887-bd19-4d02-b671-064f048f65f9"
+  }
+]

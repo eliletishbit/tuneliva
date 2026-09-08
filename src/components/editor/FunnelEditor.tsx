@@ -61,6 +61,7 @@ import {
   ExternalLink,
   MessageCircle,
   Edit3,
+  Eye,
 } from "lucide-react";
 import confetti from "canvas-confetti";
 
@@ -525,6 +526,8 @@ export function FunnelEditor({
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [publishedUrl, setPublishedUrl] = useState<string | null>(null);
   const [showPublishModal, setShowPublishModal] = useState(false);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [previewDevice, setPreviewDevice] = useState<DeviceMode>("desktop");
   const [isPublishing, setIsPublishing] = useState(false);
   const [detailedMargins, setDetailedMargins] = useState(false);
 
@@ -789,8 +792,14 @@ export function FunnelEditor({
         if (sec.type === "hero") {
           return { ...sec, imageUrl: newUrl };
         }
+        if (sec.type === "split_showcase") {
+          return { ...sec, imageUrl: newUrl };
+        }
         if (sec.type === "service_area") {
           return { ...sec, mapImageUrl: newUrl };
+        }
+        if (sec.type === "video") {
+          return { ...sec, posterUrl: newUrl };
         }
         if (sec.type === "product_showcase" && typeof itemIndex === "number") {
           const updatedItems = [...(sec as ProductShowcaseSection).items];
@@ -799,6 +808,33 @@ export function FunnelEditor({
           }
           return { ...sec, items: updatedItems };
         }
+        if (sec.type === "interactive_slider" && typeof itemIndex === "number") {
+          const updatedItems = [...((sec as any).items || [])];
+          if (updatedItems[itemIndex]) {
+            updatedItems[itemIndex] = { ...updatedItems[itemIndex], imageUrl: newUrl };
+          }
+          return { ...sec, items: updatedItems };
+        }
+        if (sec.type === "bento_grid" && typeof itemIndex === "number") {
+          const updatedCards = [...((sec as any).cards || [])];
+          if (updatedCards[itemIndex]) {
+            updatedCards[itemIndex] = { ...updatedCards[itemIndex], imageUrl: newUrl };
+          }
+          return { ...sec, cards: updatedCards };
+        }
+        if (sec.type === "floating_cards" && typeof itemIndex === "number") {
+          const updatedCards = [...((sec as any).cards || [])];
+          if (updatedCards[itemIndex]) {
+            updatedCards[itemIndex] = { ...updatedCards[itemIndex], imageUrl: newUrl };
+          }
+          return { ...sec, cards: updatedCards };
+        }
+
+        // Cas générique si la section contient une propriété imageUrl
+        if ((sec as any).imageUrl !== undefined) {
+          return { ...sec, imageUrl: newUrl };
+        }
+
         return sec;
       }),
     }));
@@ -1612,6 +1648,18 @@ export function FunnelEditor({
             <PackageCheck className="w-4 h-4 text-emerald-400" />
             <span className="hidden lg:inline">Commandes</span>
           </a>
+
+          <button
+            onClick={() => {
+              setPreviewDevice(device);
+              setShowPreviewModal(true);
+            }}
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-cyan-500/30 bg-cyan-950/40 hover:bg-cyan-900/50 text-xs font-bold text-cyan-300 hover:text-white transition-all cursor-pointer shadow-sm shadow-cyan-500/10"
+            title="Prévisualiser la page en conditions réelles avant de publier"
+          >
+            <Eye className="w-4 h-4 text-cyan-400" />
+            <span className="hidden sm:inline">Prévisualiser</span>
+          </button>
 
           <button
             onClick={() => setShowSettings(!showSettings)}
@@ -4395,6 +4443,86 @@ export function FunnelEditor({
             >
               Fermer cette fenêtre
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DE PRÉVISUALISATION GRAND ÉCRAN EN CONDITIONS RÉELLES */}
+      {showPreviewModal && (
+        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex flex-col animate-in fade-in duration-200">
+          {/* Header de Prévisualisation */}
+          <div className="px-4 py-3 bg-slate-950 border-b border-white/10 flex items-center justify-between shrink-0">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse" />
+              <span className="text-xs font-bold text-white">Mode Prévisualisation Visiteur</span>
+              <span className="text-[11px] text-slate-400 hidden sm:inline">• Testez l'affichage réel et la responsivité sans modifier le contenu</span>
+            </div>
+
+            {/* Switcher Device */}
+            <div className="flex items-center bg-slate-900 border border-white/10 rounded-xl p-0.5">
+              <button
+                onClick={() => setPreviewDevice("mobile")}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  previewDevice === "mobile" ? "bg-indigo-600 text-white shadow-md" : "text-slate-400 hover:text-white"
+                }`}
+              >
+                <Smartphone className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Mobile (390px)</span>
+              </button>
+              <button
+                onClick={() => setPreviewDevice("tablet")}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  previewDevice === "tablet" ? "bg-indigo-600 text-white shadow-md" : "text-slate-400 hover:text-white"
+                }`}
+              >
+                <Tablet className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Tablette (768px)</span>
+              </button>
+              <button
+                onClick={() => setPreviewDevice("desktop")}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  previewDevice === "desktop" ? "bg-indigo-600 text-white shadow-md" : "text-slate-400 hover:text-white"
+                }`}
+              >
+                <Monitor className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Desktop</span>
+              </button>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowPreviewModal(false)}
+                className="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-white/10 text-xs font-bold transition-all cursor-pointer"
+              >
+                ✕ Fermer l'aperçu
+              </button>
+            </div>
+          </div>
+
+          {/* Corps de Prévisualisation */}
+          <div className="flex-1 overflow-y-auto p-2 sm:p-6 flex justify-center bg-[#07080D]">
+            <div
+              className={`w-full transition-all duration-300 shadow-2xl rounded-2xl overflow-hidden border border-white/10 bg-black ${
+                previewDevice === "mobile"
+                  ? "max-w-[390px] ring-8 ring-slate-900"
+                  : previewDevice === "tablet"
+                  ? "max-w-[768px] ring-8 ring-slate-900"
+                  : "max-w-6xl"
+              }`}
+            >
+              {previewDevice === "mobile" && (
+                <div className="sticky top-0 z-30 bg-black px-4 py-2 border-b border-white/10 flex items-center justify-between text-[11px] text-slate-400">
+                  <span className="font-bold text-white">9:41</span>
+                  <div className="w-20 h-4 rounded-full bg-slate-900 mx-auto" />
+                  <span>5G • 100%</span>
+                </div>
+              )}
+              <FunnelRenderer
+                data={funnelData}
+                isEditable={false}
+                deviceMode={previewDevice}
+              />
+            </div>
           </div>
         </div>
       )}

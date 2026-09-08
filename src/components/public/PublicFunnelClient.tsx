@@ -226,7 +226,6 @@ export function PublicFunnelClient({
       <FunnelRenderer
         data={displayData}
         isEditable={false}
-        deviceMode="desktop"
         onOrderSuccess={handleOrderSuccess}
       />
     </div>

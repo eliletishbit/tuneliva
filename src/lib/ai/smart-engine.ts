@@ -62,8 +62,14 @@ export function resolveBestStockImage(prompt: string): string {
   if (p.includes("miel") || p.includes("épice") || p.includes("thé") || p.includes("aliment") || p.includes("café")) {
     return CURATED_STOCK_IMAGES.honey_food[Math.floor(Math.random() * CURATED_STOCK_IMAGES.honey_food.length)];
   }
-  if (p.includes("formation") || p.includes("cours") || p.includes("business") || p.includes("ebook") || p.includes("coaching") || p.includes("tiktok") || p.includes("academie")) {
+  if (p.includes("formation") || p.includes("cours") || p.includes("business") || p.includes("ebook") || p.includes("coaching") || p.includes("tiktok") || p.includes("academie") || p.includes("masterclass") || p.includes("v0app")) {
     return CURATED_STOCK_IMAGES.coaching_education[Math.floor(Math.random() * CURATED_STOCK_IMAGES.coaching_education.length)];
+  }
+  if (p.includes("momo") || p.includes("transfert") || p.includes("finance") || p.includes("crypto") || p.includes("banque")) {
+    return CURATED_STOCK_IMAGES.fintech[0];
+  }
+  if (p.includes("ideogram") || p.includes("visual ai") || p.includes("studio ia") || p.includes("visuel")) {
+    return "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80";
   }
   return CURATED_STOCK_IMAGES.fashion[0];
 }
@@ -90,6 +96,12 @@ export function detectPresetFromPrompt(prompt: string): DesignPreset {
   }
   if (p.includes("momo") || p.includes("transfert") || p.includes("finance") || p.includes("crypto") || p.includes("banque")) {
     return "fintech_mint";
+  }
+  if (p.includes("creator") || p.includes("créateur") || p.includes("infopreneur")) {
+    return "rouge_passion";
+  }
+  if (p.includes("ideogram") || p.includes("visual") || p.includes("visuel") || p.includes("studio ia")) {
+    return "saas_indigo";
   }
   return "saas_indigo";
 }
@@ -940,8 +952,535 @@ function buildEliteDesignFunnel(
         ],
       },
     ];
+  } else if (p.toLowerCase().includes("momo") || p.toLowerCase().includes("momoopti") || p.toLowerCase().includes("comparateur")) {
+    // 1. MOMOOPTI (FINTECH SAAS - OBSIDIAN & MINT)
+    sections = [
+      {
+        id: "hero-1",
+        type: "hero",
+        badgeText: "⚡ MOMOOPTI • COMPARATEUR MOBILE MONEY N°1",
+        title: "Choisir le bon réseau pour payer moins",
+        subtitle: "Simulez instantanément vos commissions MTN MoMo, Moov Money, Wave et Celtiis. Économisez jusqu'à 45% sur chacun de vos transferts et encaissements.",
+        ctaText: "SIMULER MES COMMISSIONS EN DIRECT",
+        ctaSubtext: "📊 100% gratuit • Grilles tarifaires officielles 2026",
+        secondaryCtaText: "WhatsApp Direct",
+        imageUrl: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=1000&auto=format&fit=crop&q=80",
+        trustPoints: ["MTN MoMo", "Moov Money", "Wave Bénin & CI", "Celtiis Cash"],
+      },
+      {
+        id: "split-1",
+        type: "split_showcase",
+        layoutDirection: "image_right",
+        badgeText: "📊 ALGORITHME PRÉDICTIF",
+        title: "Comparez les commissions en temps réel",
+        subtitle: "Un simulateur transparent pensé pour les commerçants, agences et particuliers exigeants :",
+        imageUrl: "https://images.unsplash.com/photo-1563986768609-322da13575f3?w=1000&auto=format&fit=crop&q=80",
+        imageAlt: "Simulateur MomoOpti",
+        metricBadge: {
+          value: "+14.2%",
+          label: "Économie moyenne constatée",
+        },
+        highlights: [
+          {
+            id: "hl-1",
+            title: "Calcul Intelligent Multi-Opérateurs",
+            description: "Entrez un montant : notre moteur compare immédiatement les frais d'envoi et de retrait de chaque réseau.",
+          },
+          {
+            id: "hl-2",
+            title: "Zéro Frais Cachés ni Mauvaise Surprise",
+            description: "Visualisez exactement ce que reçoit votre destinataire sans déduction imprévue.",
+          },
+          {
+            id: "hl-3",
+            title: "API Marchands & Intégration Simplifiée",
+            description: "Intégrez le routage optimal des paiements dans votre site web ou système de caisse.",
+          },
+        ],
+        ctaText: "TESTER LA SIMULATION",
+        ctaLink: "#tarifs",
+      },
+      {
+        id: "bento-1",
+        type: "bento_grid",
+        badgeText: "💎 AVANTAGES EXCLUSIFS",
+        title: "Pourquoi des milliers d'utilisateurs font confiance à MomoOpti",
+        subtitle: "Une technologie éprouvée pour garder le contrôle total de vos flux financiers :",
+        cards: [
+          {
+            id: "bc-1",
+            colSpan: "col-span-2",
+            tag: "ACCÈS INSTANTANÉ",
+            metric: "0 FCFA",
+            title: "Simulateur 100% Libre & Gratuit",
+            description: "Accédez à toutes les fonctionnalités de comparaison sans carte bancaire ni formalités administratives lourdes.",
+            imageUrl: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=800&auto=format&fit=crop&q=80",
+          },
+          {
+            id: "bc-2",
+            colSpan: "col-span-1",
+            tag: "VITESSE",
+            metric: "< 1s",
+            title: "Calcul en Temps Réel",
+            description: "Résultats instantanés synchronisés aux grilles de tous les opérateurs.",
+          },
+          {
+            id: "bc-3",
+            colSpan: "col-span-1",
+            tag: "DISPONIBILITÉ",
+            metric: "99.98%",
+            title: "Haute Disponibilité",
+            description: "Transactions et vérifications fluides 24h/24 sans coupure.",
+          },
+        ],
+      },
+      {
+        id: "stats-1",
+        type: "stats",
+        badgeText: "IMPACT MESURÉ",
+        items: [
+          { id: "st-1", value: "24 800+", label: "Simulations effectuées" },
+          { id: "st-2", value: "-45%", label: "Économie max constatée" },
+          { id: "st-3", value: "4 Réseaux", label: "Connectés en direct" },
+        ],
+      },
+      {
+        id: "pricing-1",
+        type: "pricing",
+        badgeText: "OFFRE TRANSPARENTE",
+        title: "Choisissez votre formule MomoOpti",
+        subtitle: "Bénéficiez des alertes de surcoût et de l'accès API prioritaire :",
+        offer: {
+          id: "offer-momo",
+          name: "MomoOpti Pro & API Marchand 2026",
+          salePrice: 15000,
+          regularPrice: 30000,
+          currency: "XOF",
+          features: [
+            "Simulateur illimité pour tous les montants",
+            "Alertes hausses de tarifs opérateurs en direct",
+            "Clé API développeur (jusqu'à 10 000 requêtes/mois)",
+            "Assistance WhatsApp VIP 7j/7",
+          ],
+          stockLeft: 8,
+        },
+        guaranteeText: "Garantie 30 jours satisfait ou remboursé sans justificatif",
+      },
+      {
+        id: "order-1",
+        type: "order_form",
+        title: "Activez votre compte MomoOpti Pro",
+        subtitle: "Réglez en direct par Mobile Money ou Carte Bancaire et recevez vos accès par email :",
+        whatsappEnabled: true,
+        whatsappNumber: "+22997000000",
+        codEnabled: false,
+        momoEnabled: true,
+        cardEnabled: true,
+        onlinePaymentEnabled: true,
+        cities: ["Accès Immédiat en Ligne"],
+      },
+      {
+        id: "faq-1",
+        type: "faq",
+        badgeText: "FAQ",
+        title: "Questions Fréquentes sur MomoOpti",
+        subtitle: "Tout ce qu'il faut savoir sur notre simulateur :",
+        items: [
+          {
+            id: "q-1",
+            question: "Les grilles tarifaires sont-elles toujours fiables ?",
+            answer: "Oui, notre équipe met à jour les barèmes dès qu'un opérateur (MTN, Moov, Wave, Celtiis) publie une nouvelle grille officielle.",
+          },
+          {
+            id: "q-2",
+            question: "Puis-je intégrer le calcul sur mon propre site ou application ?",
+            answer: "Absolument ! La formule Pro inclut un accès API REST documenté et simple à intégrer en quelques minutes.",
+          },
+        ],
+      },
+    ];
+  } else if (p.toLowerCase().includes("v0app") || (p.toLowerCase().includes("masterclass") && p.toLowerCase().includes("ai")) || p.toLowerCase().includes("agentic")) {
+    // 2. V0APP (LIVE EVENT / MASTERCLASS AGENTIC AI)
+    sections = [
+      {
+        id: "hero-1",
+        type: "hero",
+        badgeText: "🔴 DIRECT EXCLUSIF • SAMEDI 25 OCTOBRE 2026",
+        title: "The Art of Agentic AI – Live Masterclass 2026",
+        subtitle: "3 heures intensives pour concevoir, orchestrer et monétiser des systèmes d'agents IA autonomes sans théorie superflue.",
+        ctaText: "RÉSERVER MA PLACE EN DIRECT",
+        ctaSubtext: "⚡ 50 places exclusives pour garantir des échanges directs de qualité",
+        secondaryCtaText: "WhatsApp Direct",
+        imageUrl: "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=1000&auto=format&fit=crop&q=80",
+        trustPoints: ["+3 482 participants certifiés", "Accès Zoom direct + Replay 4K à vie", "Templates & Prompts offerts"],
+      },
+      {
+        id: "split-1",
+        type: "split_showcase",
+        layoutDirection: "image_left",
+        badgeText: "🎤 INTERVENANT RÉFÉRENT",
+        title: "Apprenez auprès d'un praticien de terrain",
+        subtitle: "Une approche pragmatique axée sur le code réel et les applications concrètes à forte valeur commerciale :",
+        imageUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&auto=format&fit=crop&q=80",
+        imageAlt: "Intervenant Masterclass",
+        metricBadge: {
+          value: "4.98/5",
+          label: "Satisfaction moyenne participants",
+        },
+        highlights: [
+          {
+            id: "hl-1",
+            title: "Architecture Multi-Agents Moderne",
+            description: "Comment coordonner des subagents spécialisés, gérer la mémoire et prévenir les dérives de contexte.",
+          },
+          {
+            id: "hl-2",
+            title: "Démonstrations en Direct Pas-à-Pas",
+            description: "Création d'un système complet sous vos yeux avec intégration d'outils externes et exécution réelle.",
+          },
+          {
+            id: "hl-3",
+            title: "Salon d'Échange VIP & Réseau",
+            description: "Session questions-réponses privées pour résoudre directement les blocages de vos projets.",
+          },
+        ],
+        ctaText: "DÉCOUVRIR LE PROGRAMME",
+        ctaLink: "#programme",
+      },
+      {
+        id: "steps-1",
+        type: "steps",
+        badgeText: "LE PROGRAMME DE LA SESSION",
+        title: "3 Modules pour Maîtriser les Agents IA",
+        subtitle: "Un contenu dense, actionnable et orienté résultat immédiat :",
+        items: [
+          {
+            id: "st-1",
+            stepNumber: 1,
+            title: "Module 1 : Fondations & Outillage MCP",
+            description: "Comprendre les protocoles de communication et outiller vos agents pour agir dans le monde réel.",
+          },
+          {
+            id: "st-2",
+            stepNumber: 2,
+            title: "Module 2 : Orchestration & Workflows Commerciaux",
+            description: "Concevoir des pipelines autonomes capables de traiter des tâches complexes de bout en bout.",
+          },
+          {
+            id: "st-3",
+            stepNumber: 3,
+            title: "Module 3 : Monétisation & Déploiement Client",
+            description: "Vendre des solutions agentiques à des entreprises ou automatiser vos propres processus.",
+          },
+        ],
+      },
+      {
+        id: "stats-1",
+        type: "stats",
+        badgeText: "AUTORITÉ & COMMUNAUTÉ",
+        items: [
+          { id: "st-1", value: "3 482+", label: "Participants formés" },
+          { id: "st-2", value: "4.98/5", label: "Note des participants" },
+          { id: "st-3", value: "100%", label: "Replay HD & Code inclus" },
+        ],
+      },
+      {
+        id: "pricing-1",
+        type: "pricing",
+        badgeText: "BILLETTERIE OFFICIELLE",
+        title: "Réservez votre place pour le direct",
+        subtitle: "Tarif spécial Early Bird garanti jusqu'à épuisement des billets :",
+        offer: {
+          id: "offer-event",
+          name: "Pass Masterclass VIP + Replay 4K",
+          salePrice: 25000,
+          regularPrice: 50000,
+          currency: "XOF",
+          features: [
+            "Accès au direct interactif Zoom",
+            "Replay vidéo 4K à vie sans limitation",
+            "Pack complet de prompts et code source",
+            "Certificat de participation officiel",
+            "Accès au groupe privé des alumni",
+          ],
+          stockLeft: 14,
+        },
+        guaranteeText: "Garantie 100% satisfait ou remboursé sous 48h si la masterclass ne vous apporte pas entière satisfaction",
+      },
+      {
+        id: "order-1",
+        type: "order_form",
+        title: "Validez votre inscription",
+        subtitle: "Règlement sécurisé par Mobile Money ou Carte Bancaire. Vos identifiants Zoom vous sont transmis par email :",
+        whatsappEnabled: true,
+        whatsappNumber: "+22997000000",
+        codEnabled: false,
+        momoEnabled: true,
+        cardEnabled: true,
+        onlinePaymentEnabled: true,
+        cities: ["Billet Électronique (Envoi instantané par Email)"],
+      },
+    ];
+  } else if (p.toLowerCase().includes("creator") || p.toLowerCase().includes("créateur") || p.toLowerCase().includes("infopreneur")) {
+    // 3. CREATOR HUB (PLATEFORME CRÉATEURS & MONÉTISATION)
+    sections = [
+      {
+        id: "hero-1",
+        type: "hero",
+        badgeText: "⚡ LA SUITE TOUT-EN-UN DES CRÉATEURS D'ÉLITE",
+        title: "Monétisez votre audience sans barrière technique",
+        subtitle: "Vendez vos formations, coachings, templates et fichiers avec encaissement instantané Mobile Money et Cartes Bancaires en un clic.",
+        ctaText: "LANCER MON TUNNEL DE VENTE",
+        ctaSubtext: "🚀 Configuration en 2 minutes • Zéro frais d'abonnement mensuel",
+        secondaryCtaText: "WhatsApp",
+        imageUrl: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1000&auto=format&fit=crop&q=80",
+        trustPoints: ["Encaissement MoMo & Cartes", "Livraison automatique 24/7", "Zéro commission cachée"],
+      },
+      {
+        id: "bento-1",
+        type: "bento_grid",
+        badgeText: "🔥 ARSENAL COMPLET DU CRÉATEUR",
+        title: "Tout ce dont vous avez besoin pour vendre plus",
+        subtitle: "Conçu pour maximiser vos revenus en Afrique et à l'international :",
+        cards: [
+          {
+            id: "bc-1",
+            colSpan: "col-span-2",
+            tag: "ENCAISSEMENT HYBRIDE",
+            metric: "100%",
+            title: "Mobile Money & Cartes Réunis",
+            description: "Vos abonnés en Afrique paient par MTN, Moov ou Wave. Vos clients de la diaspora paient par Carte Bancaire. Vous encaissez tout au même endroit.",
+            imageUrl: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=800&auto=format&fit=crop&q=80",
+          },
+          {
+            id: "bc-2",
+            colSpan: "col-span-1",
+            tag: "LIVRAISON",
+            metric: "30s",
+            title: "Livraison Automatique",
+            description: "Vos clients reçoivent immédiatement leurs accès par email et WhatsApp, même pendant votre sommeil.",
+          },
+          {
+            id: "bc-3",
+            colSpan: "col-span-1",
+            tag: "SÉCURITÉ",
+            metric: "0 Fuite",
+            title: "Protection Anti-Piratage",
+            description: "Liens de téléchargement sécurisés et vidéos protégées contre le vol de contenu.",
+          },
+        ],
+      },
+      {
+        id: "split-1",
+        type: "split_showcase",
+        layoutDirection: "image_right",
+        badgeText: "💬 CONVERSIONS WHATSAPP",
+        title: "Transformez vos abonnés en acheteurs engagés",
+        subtitle: "Ne laissez plus aucun prospect repartir sans réponse grâce au bouton direct WhatsApp :",
+        imageUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80",
+        imageAlt: "Intégration WhatsApp Creator Hub",
+        metricBadge: {
+          value: "3.4x",
+          label: "Multiplicateur de conversion moyen",
+        },
+        highlights: [
+          {
+            id: "hl-1",
+            title: "Relances Amicales des Paniers Inachevés",
+            description: "Contactez en un clic les visiteurs qui ont entamé leur commande sans finaliser.",
+          },
+          {
+            id: "hl-2",
+            title: "Message de Commande Pré-Rempli",
+            description: "Le client clique et vous envoie directement le récapitulatif sans devoir rédiger un pavé.",
+          },
+          {
+            id: "hl-3",
+            title: "Paiement en Ligne ou Mobile Money Local",
+            description: "Laissez vos clients choisir leur moyen de règlement préféré sans friction.",
+          },
+        ],
+        ctaText: "COMMENCER À ENCAISSER",
+        ctaLink: "#tarifs",
+      },
+      {
+        id: "stats-1",
+        type: "stats",
+        badgeText: "STATISTIQUES DE LA COMMUNAUTÉ",
+        items: [
+          { id: "st-1", value: "+180M FCFA", label: "Encaissés par nos créateurs" },
+          { id: "st-2", value: "98.4%", label: "Satisfaction utilisateurs" },
+          { id: "st-3", value: "30s", label: "Temps moyen de livraison" },
+        ],
+      },
+      {
+        id: "pricing-1",
+        type: "pricing",
+        badgeText: "FORMULE DU CRÉATEUR",
+        title: "Lancez votre empire de produits digitaux",
+        subtitle: "Bénéficiez de la suite complète sans aucun abonnement récurrent imposé :",
+        offer: {
+          id: "offer-creator",
+          name: "Pack Créateur Digital Indépendant 2026",
+          salePrice: 19000,
+          regularPrice: 38000,
+          currency: "XOF",
+          features: [
+            "Tunnels de vente illimités pour tous vos produits",
+            "Encaissement hybride Mobile Money + Cartes Bancaires",
+            "Module de relance WhatsApp automatique",
+            "Hébergement ultra-rapide et nom de domaine offert",
+            "Assistance 7j/7 pour vos lancements",
+          ],
+          stockLeft: 9,
+        },
+        guaranteeText: "Garantie 30 jours satisfait ou remboursé sans aucune condition",
+      },
+      {
+        id: "order-1",
+        type: "order_form",
+        title: "Débloquez vos accès immédiats",
+        subtitle: "Réglez en direct par Mobile Money ou Carte Bancaire et commencez à vendre dans l'heure :",
+        whatsappEnabled: true,
+        whatsappNumber: "+22997000000",
+        codEnabled: false,
+        momoEnabled: true,
+        cardEnabled: true,
+        onlinePaymentEnabled: true,
+        cities: ["Accès Immédiat en Ligne"],
+      },
+    ];
+  } else if (p.toLowerCase().includes("ideogram") || p.toLowerCase().includes("visual ai") || p.toLowerCase().includes("studio ia") || p.toLowerCase().includes("visuel ia")) {
+    // 4. VISUAL AI STUDIO (IDEOGRAM STUDIO - HAUT DE GAMME, ÉPURÉ & AÉRÉ)
+    sections = [
+      {
+        id: "hero-1",
+        type: "hero",
+        badgeText: "✨ STUDIO CRÉATIF IA NOUVELLE GÉNÉRATION",
+        title: "Donnez vie à vos idées en haute définition",
+        subtitle: "Générez des visuels publicitaires percutants, des chartes graphiques et des mockups professionnels avec une précision typographique inédite.",
+        ctaText: "COMMENCER GRATUITEMENT",
+        ctaSubtext: "🎨 50 crédits de création offerts sans engagement ni carte bancaire",
+        secondaryCtaText: "WhatsApp",
+        imageUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1000&auto=format&fit=crop&q=80",
+        trustPoints: ["Rendu photoréaliste 4K", "Typographie intégrée parfaite", "Licence commerciale incluse"],
+      },
+      {
+        id: "bento-1",
+        type: "bento_grid",
+        badgeText: "⚡ LES PILIERS DE L'EXCELLENCE VISUELLE",
+        title: "La précision au service de vos marques",
+        subtitle: "Une technologie pensée pour les graphistes, agences et créateurs exigeants :",
+        cards: [
+          {
+            id: "bc-1",
+            colSpan: "col-span-2",
+            tag: "QUALITÉ NATIVE",
+            metric: "4K UHD",
+            title: "Textures Ultra-Réalistes",
+            description: "Des rendus nets et précis adaptés à l'impression grand format comme aux campagnes publicitaires sur les réseaux sociaux.",
+            imageUrl: "https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?w=800&auto=format&fit=crop&q=80",
+          },
+          {
+            id: "bc-2",
+            colSpan: "col-span-1",
+            tag: "TYPOGRAPHIE",
+            metric: "100%",
+            title: "Slogans & Logos Nettes",
+            description: "Notre modèle respecte fidèlement les mots et textes que vous inscrivez dans votre visuel.",
+          },
+          {
+            id: "bc-3",
+            colSpan: "col-span-1",
+            tag: "VITESSE",
+            metric: "< 3s",
+            title: "Génération Instantanée",
+            description: "Moins de 3 secondes pour exporter votre composition finale prête à diffuser.",
+          },
+        ],
+      },
+      {
+        id: "split-1",
+        type: "split_showcase",
+        layoutDirection: "image_left",
+        badgeText: "🚀 API & INTÉGRATION",
+        title: "Connectez le moteur de rendu à vos outils",
+        subtitle: "Automatisez la création de bannières publicitaires et de visuels e-commerce à l'échelle :",
+        imageUrl: "https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?w=800&auto=format&fit=crop&q=80",
+        imageAlt: "Intégration API Visual AI Studio",
+        metricBadge: {
+          value: "99.99%",
+          label: "Disponibilité de l'infrastructure",
+        },
+        highlights: [
+          {
+            id: "hl-1",
+            title: "SDK Développeurs Prêt à l'Emploi",
+            description: "Des bibliothèques simples pour Python, Node.js et cURL avec documentation interactive.",
+          },
+          {
+            id: "hl-2",
+            title: "Contrôle Stylistique Granulaire",
+            description: "Ajustez la lumière, l'angle de vue et la palette chromatique avec des paramètres simples.",
+          },
+          {
+            id: "hl-3",
+            title: "Droits Commerciaux Intégrals",
+            description: "Toutes vos créations vous appartiennent à 100% pour vos opérations marketing.",
+          },
+        ],
+        ctaText: "VOIR LES PLANS",
+        ctaLink: "#tarifs",
+      },
+      {
+        id: "stats-1",
+        type: "stats",
+        badgeText: "PERFORMANCE DU MOTEUR",
+        items: [
+          { id: "st-1", value: "1.2M+", label: "Images générées ce mois" },
+          { id: "st-2", value: "2.8s", label: "Temps moyen d'inférence" },
+          { id: "st-3", value: "100%", label: "Droits commerciaux inclus" },
+        ],
+      },
+      {
+        id: "pricing-1",
+        type: "pricing",
+        badgeText: "ABONNEMENT PRO",
+        title: "Passez à la vitesse supérieure",
+        subtitle: "Débloquez la génération haute résolution illimitée :",
+        offer: {
+          id: "offer-visual",
+          name: "Visual AI Studio Pro 2026",
+          salePrice: 12000,
+          regularPrice: 24000,
+          currency: "XOF",
+          features: [
+            "1 000 générations haute définition par mois",
+            "Résolution 4K native sans filigrane",
+            "File d'attente prioritaire ultra-rapide",
+            "Accès complet à l'API développeur",
+            "Licence commerciale pour revente et diffusion",
+          ],
+          stockLeft: 11,
+        },
+        guaranteeText: "Garantie 14 jours satisfait ou remboursé sans discussion",
+      },
+      {
+        id: "order-1",
+        type: "order_form",
+        title: "Activez votre forfait Studio Pro",
+        subtitle: "Réglez en toute sécurité par Mobile Money ou Carte Bancaire pour créditer votre compte instantanément :",
+        whatsappEnabled: true,
+        whatsappNumber: "+22997000000",
+        codEnabled: false,
+        momoEnabled: true,
+        cardEnabled: true,
+        onlinePaymentEnabled: true,
+        cities: ["Activation Instantanée en Ligne"],
+      },
+    ];
   } else {
-    // SALES (Landing page complète haute conversion)
+    // SALES (Landing page complète classique)
     sections = [
       // 1. HERO SECTION AVEC UN VRAI TITRE VENDEUR
       {

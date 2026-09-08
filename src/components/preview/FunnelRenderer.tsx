@@ -120,9 +120,15 @@ function InlineText({
   tag?: "span" | "h1" | "h2" | "h3" | "p";
   style?: React.CSSProperties;
 }) {
+  const safeWrapClass = "inline-block max-w-full break-words [overflow-wrap:anywhere]";
+
   if (!isEditable || !onSave) {
     const Component = tag;
-    return <Component className={className} style={style}>{value}</Component>;
+    return (
+      <Component className={`${safeWrapClass} ${className}`} style={style}>
+        {value}
+      </Component>
+    );
   }
 
   return (
@@ -137,7 +143,7 @@ function InlineText({
       }}
       onClick={(e) => e.stopPropagation()}
       style={style}
-      className={`${className} outline-none focus:ring-2 focus:ring-indigo-400 focus:bg-indigo-500/10 rounded-md px-1 transition-all cursor-text hover:ring-1 hover:ring-indigo-400/40`}
+      className={`${safeWrapClass} ${className} outline-none focus:ring-2 focus:ring-indigo-400 focus:bg-indigo-500/10 rounded-md px-1 transition-all cursor-text hover:ring-1 hover:ring-indigo-400/40`}
       title="Cliquez pour modifier directement ce texte"
     >
       {value}
@@ -372,6 +378,21 @@ export function FunnelRenderer({
     }
   };
 
+  const [isClientMobile, setIsClientMobile] = useState(false);
+  const [isClientTablet, setIsClientTablet] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (typeof window !== "undefined") {
+        setIsClientMobile(window.innerWidth < 640);
+        setIsClientTablet(window.innerWidth >= 640 && window.innerWidth < 1024);
+      }
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize, { passive: true });
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   const layoutWidth = theme.pageLayoutWidth || "boxed";
   const headerMaxClass =
     layoutWidth === "fluid"
@@ -380,12 +401,12 @@ export function FunnelRenderer({
       ? "w-full px-4 sm:px-8"
       : "max-w-6xl mx-auto w-full";
 
-  const isMobile = deviceMode === "mobile";
-  const isTablet = deviceMode === "tablet";
+  const isMobile = deviceMode === "mobile" || (!isEditable && isClientMobile);
+  const isTablet = deviceMode === "tablet" || (!isEditable && isClientTablet);
 
   // Grilles responsives strictes (zéro débordement)
   const grid3Cols = isMobile
-    ? "grid-cols-1 space-y-3"
+    ? "grid-cols-1 gap-4"
     : isTablet
     ? "grid-cols-1 sm:grid-cols-2 gap-4"
     : "grid-cols-1 md:grid-cols-3 gap-5";
@@ -1220,10 +1241,10 @@ export function FunnelRenderer({
 
           const defaultSectionWidth =
             layoutWidth === "fluid"
-              ? "w-full max-w-7xl"
+              ? "w-full max-w-[96%] xl:max-w-[1440px] px-2 sm:px-6"
               : layoutWidth === "canvas"
-              ? "w-full"
-              : "max-w-4xl";
+              ? "w-full px-4 sm:px-8"
+              : "w-full max-w-5xl xl:max-w-6xl px-3 sm:px-6";
 
           return (
             <div
@@ -1592,6 +1613,8 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
     cardBgClass,
     headingClass,
     mutedTextClass,
+    isMobile,
+    isTablet,
     grid3Cols,
     currentPrice,
     currency,
@@ -2203,7 +2226,7 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
             </div>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 w-full">
+          <div className={`grid ${isMobile ? "grid-cols-1 gap-3.5" : "grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4"} w-full`}>
             {(s.items || []).map((item, idx) => (
               <div
                 key={item.id || idx}
@@ -2476,7 +2499,7 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6 w-full max-w-6xl mx-auto">
+          <div className={`grid ${isMobile ? "grid-cols-1 gap-4" : "grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6"} w-full max-w-6xl mx-auto`}>
             {itemsToRender.map((rev, idx) => (
               <div
                 key={rev.id || idx}
@@ -2510,21 +2533,20 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                         updateField("items", updated);
                       }}
                       isEditable={isEditable}
-                      style={customTextStyle}
                     />"
                   </p>
                 </div>
 
-                <div className="flex items-center justify-between border-t border-slate-200/20 pt-3 mt-2">
+                <div className="flex items-center justify-between pt-3 border-t border-slate-200/10 text-xs">
                   <div className="flex items-center gap-2">
                     <div
-                      className="w-7 h-7 rounded-full flex items-center justify-center font-bold text-[10px] text-white shrink-0 shadow-sm"
+                      className="w-7 h-7 rounded-full flex items-center justify-center font-bold text-white text-[11px]"
                       style={{ backgroundColor: theme.primaryColor }}
                     >
-                      {(rev.authorName || "C").charAt(0).toUpperCase()}
+                      {rev.authorName.charAt(0)}
                     </div>
                     <div>
-                      <div className={`font-bold text-xs sm:text-sm ${headingClass}`} style={customTitleStyle}>
+                      <span className={`font-bold block ${headingClass}`} style={customTitleStyle}>
                         <InlineText
                           value={rev.authorName}
                           onSave={(val) => {
@@ -2533,10 +2555,19 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                             updateField("items", updated);
                           }}
                           isEditable={isEditable}
-                          style={customTitleStyle}
                         />
-                      </div>
-                      <div className="text-[10px] text-slate-400">{rev.authorLocation}</div>
+                      </span>
+                      <span className={`text-[10px] block ${mutedTextClass}`} style={customTextStyle}>
+                        <InlineText
+                          value={rev.authorLocation}
+                          onSave={(val) => {
+                            const updated = [...itemsToRender];
+                            updated[idx] = { ...updated[idx], authorLocation: val };
+                            updateField("items", updated);
+                          }}
+                          isEditable={isEditable}
+                        />
+                      </span>
                     </div>
                   </div>
                   <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-500 font-bold shrink-0">
@@ -2551,50 +2582,6 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
     }
 
     // ==========================================
-    // 8. STATS SECTION
-    // ==========================================
-    case "stats": {
-      const s = section as StatsSection;
-      return (
-        <section className={`rounded-3xl p-6 sm:p-8 border grid grid-cols-1 sm:grid-cols-3 gap-6 text-center ${cardBgClass}`}>
-          {s.items.map((st, idx) => (
-            <div key={st.id} className="space-y-1 relative group/card">
-              <CardReorderToolbar
-                idx={idx}
-                total={s.items.length}
-                onMoveLeft={() => reorderArray("items", idx, idx - 1)}
-                onMoveRight={() => reorderArray("items", idx, idx + 1)}
-                onDelete={() => deleteFromArray("items", idx)}
-                isSectionSelected={isSectionSelected}
-                isEditable={isEditable}
-              />
-              <div className="text-3xl sm:text-4xl font-black tracking-tight" style={{ color: theme.primaryColor }}>
-                <InlineText
-                  value={st.value}
-                  onSave={(val) => {
-                    const updated = [...s.items];
-                    updated[idx] = { ...updated[idx], value: val };
-                    updateField("items", updated);
-                  }}
-                  isEditable={isEditable}
-                />
-              </div>
-              <div className={`text-xs sm:text-sm font-semibold uppercase tracking-wider ${mutedTextClass}`}>
-                <InlineText
-                  value={st.label}
-                  onSave={(val) => {
-                    const updated = [...s.items];
-                    updated[idx] = { ...updated[idx], label: val };
-                    updateField("items", updated);
-                  }}
-                  isEditable={isEditable}
-                />
-              </div>
-            </div>
-          ))}
-        </section>
-      );
-    }
 
     // ==========================================
     // 9. SECTION VIDÉO
@@ -3380,40 +3367,40 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
             </div>
           )}
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">
+          <div className={`grid ${isMobile ? "grid-cols-1 gap-6" : "grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14"} items-center w-full`}>
             {/* Colonne Image (Span 5 sur 12) */}
             <div
-              className={`lg:col-span-5 relative group/img ${
-                isImageLeft ? "lg:order-1" : "lg:order-2"
+              className={`${isMobile ? "w-full" : "lg:col-span-5"} relative group/img ${
+                !isMobile && isImageLeft ? "lg:order-1" : !isMobile ? "lg:order-2" : ""
               }`}
             >
-              <div className="relative rounded-3xl overflow-hidden border border-white/15 shadow-2xl bg-slate-950">
+              <div className="relative rounded-3xl overflow-hidden border border-white/15 shadow-2xl bg-slate-950 w-full">
                 <img
                   src={s.imageUrl || "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=1000&auto=format&fit=crop&q=80"}
                   alt={s.imageAlt || s.title}
-                  className="w-full h-auto max-h-[500px] object-cover rounded-3xl transition-transform duration-500 group-hover/img:scale-105"
+                  className="w-full h-auto max-h-[380px] sm:max-h-[500px] object-cover rounded-3xl transition-transform duration-500 group-hover/img:scale-105"
                 />
 
                 {/* Floating Metric Pill */}
                 {s.metricBadge && (
                   <div
-                    className="absolute bottom-4 left-4 right-4 p-3.5 rounded-2xl border backdrop-blur-xl shadow-2xl flex items-center justify-between"
+                    className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4 p-2.5 sm:p-3.5 rounded-2xl border backdrop-blur-xl shadow-2xl flex items-center justify-between gap-2"
                     style={{
                       backgroundColor: isDark ? "rgba(11, 16, 32, 0.9)" : "rgba(255, 255, 255, 0.95)",
                       borderColor: `${theme.primaryColor}40`,
                     }}
                   >
-                    <div>
-                      <div className="text-[11px] font-semibold text-slate-400">{s.metricBadge.label}</div>
-                      <div className="text-xl sm:text-2xl font-black font-mono tracking-tight" style={{ color: theme.primaryColor }}>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[10px] sm:text-[11px] font-semibold text-slate-400 truncate">{s.metricBadge.label}</div>
+                      <div className="text-lg sm:text-2xl font-black font-mono tracking-tight truncate" style={{ color: theme.primaryColor }}>
                         {s.metricBadge.value}
                       </div>
                     </div>
                     <div
-                      className="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-md"
+                      className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-white shadow-md shrink-0"
                       style={{ backgroundColor: theme.primaryColor }}
                     >
-                      <TrendingUp className="w-5 h-5" />
+                      <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5" />
                     </div>
                   </div>
                 )}
@@ -3437,31 +3424,33 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
 
             {/* Colonne Contenu & Arguments (Span 7 sur 12) */}
             <div
-              className={`lg:col-span-7 space-y-6 ${
-                isImageLeft ? "lg:order-2" : "lg:order-1"
+              className={`${isMobile ? "w-full space-y-4" : "lg:col-span-7 space-y-6"} ${
+                !isMobile && isImageLeft ? "lg:order-2" : !isMobile ? "lg:order-1" : ""
               }`}
             >
-              <div className="space-y-3">
+              <div className="space-y-2.5 sm:space-y-3">
                 {s.badgeText && (
                   <span
-                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black tracking-wider uppercase shadow-sm border"
+                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] sm:text-xs font-black tracking-wider uppercase shadow-sm border max-w-full"
                     style={{
                       backgroundColor: `${theme.primaryColor}1A`,
                       color: theme.primaryColor,
                       borderColor: `${theme.primaryColor}40`,
                     }}
                   >
-                    <Sparkles className="w-3.5 h-3.5" />
-                    <InlineText
-                      value={s.badgeText}
-                      onSave={(val) => updateField("badgeText", val)}
-                      isEditable={isEditable}
-                    />
+                    <Sparkles className="w-3.5 h-3.5 shrink-0" />
+                    <span className="truncate">
+                      <InlineText
+                        value={s.badgeText}
+                        onSave={(val) => updateField("badgeText", val)}
+                        isEditable={isEditable}
+                      />
+                    </span>
                   </span>
                 )}
 
                 <h2
-                  className="text-2xl sm:text-4xl font-black leading-tight tracking-tight break-words"
+                  className="text-xl sm:text-3xl lg:text-4xl font-black leading-tight tracking-tight break-words"
                   style={customTitleStyle}
                 >
                   <InlineText
@@ -3472,7 +3461,7 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                 </h2>
 
                 <p
-                  className="text-sm sm:text-base leading-relaxed break-words"
+                  className="text-xs sm:text-sm sm:leading-relaxed leading-normal break-words"
                   style={customTextStyle}
                 >
                   <InlineText
@@ -3485,20 +3474,20 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
 
               {/* Highlights List */}
               {s.highlights && s.highlights.length > 0 && (
-                <div className="space-y-3 pt-2">
+                <div className="space-y-2.5 sm:space-y-3 pt-1 sm:pt-2 w-full">
                   {s.highlights.map((hl, hlIdx) => (
                     <div
                       key={hl.id || hlIdx}
-                      className={`p-3.5 rounded-2xl border transition-all ${cardBgClass} flex items-start gap-3.5`}
+                      className={`p-3 sm:p-3.5 rounded-2xl border transition-all ${cardBgClass} flex items-start gap-3 w-full`}
                     >
                       <div
-                        className="w-8 h-8 rounded-xl shrink-0 flex items-center justify-center text-white shadow-sm mt-0.5"
+                        className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl shrink-0 flex items-center justify-center text-white shadow-sm mt-0.5"
                         style={{ backgroundColor: theme.primaryColor }}
                       >
-                        <Check className="w-4 h-4" />
+                        <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                       </div>
                       <div className="space-y-0.5 flex-1 min-w-0">
-                        <h4 className={`text-sm font-bold break-words ${headingClass}`} style={customTitleStyle}>
+                        <h4 className={`text-xs sm:text-sm font-bold break-words leading-tight ${headingClass}`} style={customTitleStyle}>
                           <InlineText
                             value={hl.title}
                             onSave={(val) => {
@@ -3509,7 +3498,7 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                             isEditable={isEditable}
                           />
                         </h4>
-                        <p className={`text-xs leading-relaxed break-words ${mutedTextClass}`} style={customTextStyle}>
+                        <p className={`text-[11px] sm:text-xs leading-relaxed break-words ${mutedTextClass}`} style={customTextStyle}>
                           <InlineText
                             value={hl.description}
                             onSave={(val) => {
@@ -3528,17 +3517,17 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
 
               {/* Action CTA */}
               {s.ctaText && (
-                <div className="pt-2">
+                <div className="pt-2 w-full">
                   <a
                     href={s.ctaLink || "#commander"}
-                    className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl text-white font-black text-sm shadow-xl transition-transform hover:scale-105 active:scale-95"
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl text-white font-black text-xs sm:text-sm shadow-xl transition-transform hover:scale-105 active:scale-95 text-center"
                     style={{
                       background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.accentColor || theme.primaryColor})`,
                       boxShadow: `0 10px 25px ${theme.primaryColor}40`,
                     }}
                   >
                     <span>{s.ctaText}</span>
-                    <ArrowRight className="w-4 h-4" />
+                    <ArrowRight className="w-4 h-4 shrink-0" />
                   </a>
                 </div>
               )}
@@ -3787,14 +3776,14 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
             )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 w-full">
+          <div className={`grid ${isMobile ? "grid-cols-1 gap-4" : "grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6"} w-full`}>
             {cards.map((c, cIdx) => {
-              const isWide = c.colSpan === "col-span-2";
+              const isWide = !isMobile && c.colSpan === "col-span-2";
               return (
                 <div
                   key={c.id || cIdx}
-                  className={`rounded-3xl p-6 sm:p-7 border relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl flex flex-col justify-between ${
-                    isWide ? "md:col-span-2" : "md:col-span-1"
+                  className={`rounded-3xl p-5 sm:p-7 border relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl flex flex-col justify-between ${
+                    isWide ? "md:col-span-2" : "col-span-1"
                   } ${cardBgClass}`}
                 >
                   <div
@@ -3813,11 +3802,19 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                             borderColor: `${theme.primaryColor}35`,
                           }}
                         >
-                          {c.tag}
+                          <InlineText
+                            value={c.tag}
+                            onSave={(val) => {
+                              const updated = [...cards];
+                              updated[cIdx] = { ...updated[cIdx], tag: val };
+                              updateField("cards", updated);
+                            }}
+                            isEditable={isEditable}
+                          />
                         </span>
                       )}
                       <div
-                        className="w-9 h-9 rounded-xl flex items-center justify-center text-white shadow-sm"
+                        className="w-9 h-9 rounded-xl flex items-center justify-center text-white shadow-sm shrink-0"
                         style={{ backgroundColor: theme.primaryColor }}
                       >
                         <Award className="w-4 h-4" />
@@ -3829,7 +3826,15 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                         className="text-3xl sm:text-4xl font-black font-mono tracking-tight"
                         style={{ color: theme.primaryColor }}
                       >
-                        {c.metric}
+                        <InlineText
+                          value={c.metric}
+                          onSave={(val) => {
+                            const updated = [...cards];
+                            updated[cIdx] = { ...updated[cIdx], metric: val };
+                            updateField("cards", updated);
+                          }}
+                          isEditable={isEditable}
+                        />
                       </div>
                     )}
 
@@ -3859,13 +3864,40 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                   </div>
 
                   {c.imageUrl && (
-                    <div className="mt-4 rounded-2xl overflow-hidden border border-white/10 shadow-md">
+                    <div className="mt-4 rounded-2xl overflow-hidden border border-white/10 shadow-md relative group/bentoimg">
                       <img
                         src={c.imageUrl}
                         alt={c.title}
-                        className="w-full h-36 object-cover hover:scale-105 transition-transform duration-300"
+                        className="w-full h-36 sm:h-44 object-cover hover:scale-105 transition-transform duration-300"
                       />
+                      {isEditable && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onOpenImagePicker?.(s.id, cIdx);
+                          }}
+                          className="absolute inset-0 bg-black/60 opacity-0 group-hover/bentoimg:opacity-100 transition-opacity flex items-center justify-center gap-2 text-white text-xs font-bold backdrop-blur-sm cursor-pointer"
+                        >
+                          <Camera className="w-4 h-4 text-yellow-400" />
+                          <span>Changer l'image</span>
+                        </button>
+                      )}
                     </div>
+                  )}
+
+                  {!c.imageUrl && isEditable && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onOpenImagePicker?.(s.id, cIdx);
+                      }}
+                      className="mt-4 w-full py-2.5 rounded-2xl border border-dashed border-white/20 hover:border-indigo-400/50 hover:bg-indigo-500/5 transition-all flex items-center justify-center gap-2 text-xs font-semibold text-slate-400 hover:text-indigo-400 cursor-pointer"
+                    >
+                      <Camera className="w-3.5 h-3.5" />
+                      <span>Ajouter une image</span>
+                    </button>
                   )}
                 </div>
               );
