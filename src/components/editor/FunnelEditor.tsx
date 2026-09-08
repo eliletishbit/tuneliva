@@ -25,6 +25,7 @@ import {
 } from "@/types/page";
 import { DESIGN_PRESETS } from "@/lib/design/presets";
 import { createDefaultStepSections } from "@/lib/templates/funnel-steps";
+import { generateSmartFunnel } from "@/lib/ai/smart-engine";
 import { FunnelRenderer } from "@/components/preview/FunnelRenderer";
 import { ImagePickerModal } from "@/components/media/ImagePickerModal";
 import {
@@ -75,6 +76,85 @@ type DeviceMode = "mobile" | "tablet" | "desktop";
 type EditorTab = "sections" | "widgets" | "inspector" | "products" | "design" | "branding";
 
 const FONTS = ["Plus Jakarta Sans", "Inter", "Poppins", "Geist"] as const;
+
+export interface EliteTemplateItem {
+  id: string;
+  name: string;
+  category: string;
+  badge: string;
+  color: string;
+  prompt: string;
+  desc: string;
+  features: string[];
+  imageUrl: string;
+}
+
+export const ELITE_TEMPLATES: EliteTemplateItem[] = [
+  {
+    id: "momoopti_fintech",
+    name: "MomoOpti – Fintech & SaaS",
+    category: "Fintech & Mobile Money",
+    badge: "Obsidian & Mint",
+    color: "#00F5A0",
+    prompt: "MomoOpti choisir le bon reseau Mobile Money pour payer moins comparateur MTN Moov Wave",
+    desc: "Simulateur de taux Mobile Money en direct, delta d'économie (+14%), grille Bento 3 cartes, 4 réseaux MoMo et tarification transparente.",
+    features: [
+      "Comparateur temps réel MTN / Moov / Wave / Celtiis",
+      "Grille Bento financière avec indicateurs chiffrés",
+      "Pass MomoOpti Pro & Clé API marchands",
+      "FAQ sécurité et frais sans surprise",
+    ],
+    imageUrl: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=800&auto=format&fit=crop&q=80",
+  },
+  {
+    id: "v0app_masterclass",
+    name: "The Art of Agentic AI (v0app)",
+    category: "Événement & Billetterie Live",
+    badge: "Midnight Navy & Violet",
+    color: "#8B5CF6",
+    prompt: "The Art of Agentic AI Live Masterclass 2026 avec pass Standard et VIP en direct sur Zoom v0app",
+    desc: "Badge live exclusif, baromètre de confiance (+3 482 participants), biographie d'autorité conférencier, roadmap 3 modules et billetterie VIP.",
+    features: [
+      "Badge live direct & baromètre participants",
+      "Biographie intervenant avec puces d'autorité",
+      "3 modules d'apprentissage pas-à-pas",
+      "Billetterie pass standard & VIP",
+    ],
+    imageUrl: "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800&auto=format&fit=crop&q=80",
+  },
+  {
+    id: "creator_hub",
+    name: "Creator Hub – Plateforme Créateurs",
+    category: "Produits Digitaux & Coaching",
+    badge: "Deep Carbon & Néon Magenta",
+    color: "#EC4899",
+    prompt: "Creator Hub la plateforme tout-en-un pour créateurs et infopreneurs monétisation produits digitaux",
+    desc: "Titres punchy, encaissement hybride MoMo + Cartes Bancaires, conversion WhatsApp 1-clic et protection anti-piratage.",
+    features: [
+      "Encaissement double monde (MoMo + Cartes)",
+      "Livraison automatique des fichiers en 30s",
+      "Bouton de commande WhatsApp pré-rempli",
+      "Pack créateur indépendant sans abonnement",
+    ],
+    imageUrl: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&auto=format&fit=crop&q=80",
+  },
+  {
+    id: "visual_ai_studio",
+    name: "Visual AI Studio (Ideogram)",
+    category: "Studio Visuel IA 4K",
+    badge: "Pastel Mesh Minimaliste",
+    color: "#6366F1",
+    prompt: "Visual AI Studio donnez vie à vos idées en haute définition Ideogram studio ia",
+    desc: "Design épuré et aéré haute définition, textes courts et percutants sans saturation, grille Bento 3 piliers et intégration API.",
+    features: [
+      "Rendu photoréaliste 4K & typographie nette",
+      "Bento Grid 3 piliers essentiels",
+      "Carte split intégration API développeurs",
+      "Copywriting minimaliste de prestige",
+    ],
+    imageUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80",
+  },
+];
 
 interface PremiumWidgetDef {
   id: string;
@@ -527,6 +607,7 @@ export function FunnelEditor({
   const [publishedUrl, setPublishedUrl] = useState<string | null>(null);
   const [showPublishModal, setShowPublishModal] = useState(false);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [previewDevice, setPreviewDevice] = useState<DeviceMode>("desktop");
   const [isPublishing, setIsPublishing] = useState(false);
   const [detailedMargins, setDetailedMargins] = useState(false);
@@ -908,6 +989,40 @@ export function FunnelEditor({
       ...prev,
       theme: { ...prev.theme, fontFamily: font },
     }));
+  };
+
+  const handleApplyTemplate = async (tpl: EliteTemplateItem) => {
+    if (
+      typeof window !== "undefined" &&
+      !window.confirm(
+        `Voulez-vous charger le modèle d'élite "${tpl.name}" ? Le contenu de la page actuelle sera remplacé par ce design.`
+      )
+    ) {
+      return;
+    }
+
+    const pricingSec = funnelData.sections.find((s) => s.type === "pricing") as PricingSection | undefined;
+    const currentCurrency = pricingSec?.offer?.currency || "XOF";
+
+    const generated = await generateSmartFunnel(
+      tpl.prompt,
+      currentCurrency,
+      "sales"
+    );
+
+    setFunnelData({
+      ...generated,
+      id: funnelData.id,
+      slug: funnelData.slug || generated.slug,
+      projectName: tpl.name,
+    });
+
+    confetti({
+      particleCount: 80,
+      spread: 70,
+      origin: { y: 0.6 },
+    });
+    setShowTemplateModal(false);
   };
 
   const handleBrandingChange = (key: string, value: any) => {
@@ -1648,6 +1763,15 @@ export function FunnelEditor({
             <PackageCheck className="w-4 h-4 text-emerald-400" />
             <span className="hidden lg:inline">Commandes</span>
           </a>
+
+          <button
+            onClick={() => setShowTemplateModal(true)}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-amber-500/40 bg-amber-950/40 hover:bg-amber-900/60 text-xs font-bold text-amber-300 hover:text-white transition-all cursor-pointer shadow-sm shadow-amber-500/10 hover:scale-105 active:scale-95"
+            title="Parcourir et charger les 4 modèles d'élite 2026 (MomoOpti, v0app, Creator Hub, Visual AI Studio)"
+          >
+            <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
+            <span className="hidden sm:inline">Modèles d'Élite</span>
+          </button>
 
           <button
             onClick={() => {
@@ -3482,6 +3606,48 @@ export function FunnelEditor({
               {/* ========================================================================= */}
               {activeTab === "design" && (
                 <div className="space-y-4">
+                  {/* CARTE D'ACCÈS AUX 4 MODÈLES D'ÉLITE 2026 */}
+                  <div className="p-3.5 rounded-2xl bg-gradient-to-br from-amber-500/15 via-indigo-500/10 to-emerald-500/15 border border-amber-500/30 space-y-3 shadow-xl">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">👑</span>
+                        <div>
+                          <h4 className="text-xs font-black text-white">4 Modèles d'Élite 2026</h4>
+                          <p className="text-[10px] text-amber-300">Architecture haute conversion en 1-clic</p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowTemplateModal(true)}
+                        className="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-[10px] font-extrabold cursor-pointer transition-all shadow-md hover:scale-105"
+                      >
+                        Galerie
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 pt-1">
+                      {ELITE_TEMPLATES.map((tpl) => (
+                        <button
+                          key={tpl.id}
+                          type="button"
+                          onClick={() => handleApplyTemplate(tpl)}
+                          className="p-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-white/10 hover:border-amber-400/50 text-left transition-all group/tplbtn cursor-pointer space-y-1"
+                        >
+                          <div className="flex items-center justify-between">
+                            <span
+                              className="w-2 h-2 rounded-full"
+                              style={{ backgroundColor: tpl.color }}
+                            />
+                            <span className="text-[9px] text-slate-400 font-mono">Charger</span>
+                          </div>
+                          <div className="text-[10px] font-bold text-white group-hover/tplbtn:text-amber-300 transition-colors line-clamp-1">
+                            {tpl.name}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   {/* SÉLECTEUR DE FORMAT DE LARGEUR (BOXED, FLUID, CANVAS) */}
                   <div className="p-3.5 rounded-2xl bg-slate-950 border border-white/10 space-y-2.5 shadow-lg">
                     <div className="flex items-center justify-between">
@@ -4522,6 +4688,104 @@ export function FunnelEditor({
                 isEditable={false}
                 deviceMode={previewDevice}
               />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DE SÉLECTION DES 4 MODÈLES D'ÉLITE */}
+      {showTemplateModal && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200">
+          <div className="bg-[#0A0C14] border border-white/15 rounded-3xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
+            {/* Header */}
+            <div className="p-4 sm:p-6 border-b border-white/10 flex items-center justify-between bg-slate-950/60 shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 text-xl shadow-lg shadow-amber-500/10 shrink-0">
+                  👑
+                </div>
+                <div>
+                  <h3 className="text-sm sm:text-lg font-black text-white flex items-center gap-2">
+                    <span>4 Nouveaux Modèles d'Élite Tuneliva</span>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-amber-500/20 text-amber-400 border border-amber-500/30 hidden sm:inline">
+                      2026
+                    </span>
+                  </h3>
+                  <p className="text-xs text-slate-400">
+                    Sélectionnez un modèle pour charger instantanément son architecture, ses blocs, ses formulaires et son identité visuelle :
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowTemplateModal(false)}
+                className="w-9 h-9 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-white/10 flex items-center justify-center cursor-pointer transition-colors shrink-0"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Corps avec les 4 cartes */}
+            <div className="p-4 sm:p-6 overflow-y-auto flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+              {ELITE_TEMPLATES.map((tpl) => (
+                <div
+                  key={tpl.id}
+                  className="rounded-2xl border border-white/10 bg-slate-900/60 hover:bg-slate-900 hover:border-amber-400/50 transition-all p-4 flex flex-col justify-between space-y-3.5 group/card hover:shadow-2xl hover:shadow-indigo-500/10"
+                >
+                  <div className="space-y-3">
+                    <div className="relative rounded-xl overflow-hidden aspect-[16/9] bg-black border border-white/10">
+                      <img
+                        src={tpl.imageUrl}
+                        alt={tpl.name}
+                        className="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-500"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-transparent" />
+                      <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
+                        <span
+                          className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border shadow-md"
+                          style={{
+                            backgroundColor: `${tpl.color}25`,
+                            color: tpl.color,
+                            borderColor: `${tpl.color}50`,
+                          }}
+                        >
+                          {tpl.badge}
+                        </span>
+                      </div>
+                      <div className="absolute bottom-2 left-3 right-3 text-xs font-black text-white truncate">
+                        {tpl.name}
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                        {tpl.category}
+                      </span>
+                      <p className="text-xs text-slate-300 leading-relaxed line-clamp-2">
+                        {tpl.desc}
+                      </p>
+                    </div>
+
+                    <div className="space-y-1 pt-1 border-t border-white/5">
+                      {tpl.features.map((feat, fIdx) => (
+                        <div key={fIdx} className="flex items-center gap-1.5 text-[11px] text-slate-400">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                          <span className="truncate">{feat}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => handleApplyTemplate(tpl)}
+                    className="w-full py-2.5 px-4 rounded-xl text-xs font-black text-white shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2"
+                    style={{ backgroundColor: tpl.color === "#00F5A0" ? "#059669" : tpl.color }}
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>Appliquer ce modèle à mon tunnel</span>
+                  </button>
+                </div>
+              ))}
             </div>
           </div>
         </div>
