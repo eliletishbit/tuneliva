@@ -180,7 +180,7 @@ function CardReorderToolbar({
   return (
     <div
       onClick={(e) => e.stopPropagation()}
-      className={`absolute top-2.5 left-2.5 z-30 flex items-center gap-1 bg-slate-950/95 border border-white/20 rounded-xl px-2 py-1 shadow-2xl backdrop-blur-md transition-all ${
+      className={`absolute top-2.5 left-2.5 z-30 flex items-center gap-1 bg-slate-950/95 border border-slate-700/80 rounded-xl px-2 py-1 shadow-2xl backdrop-blur-md transition-all ${
         isSectionSelected
           ? "opacity-100 ring-2 ring-indigo-500/80 shadow-indigo-500/20"
           : "opacity-0 group-hover/card:opacity-100"
@@ -411,23 +411,23 @@ export function FunnelRenderer({
     ? "grid-cols-1 sm:grid-cols-2 gap-4"
     : "grid-cols-1 md:grid-cols-3 gap-5";
 
-  // STYLES ÉTUDIÉS SELON LE THÈME ET LE CARD STYLE
+  // STYLES ÉTUDIÉS SELON LE THÈME ET LE CARD STYLE (ZÉRO BORDURE BLANCHE DURE)
   const cardStyle = theme.cardStyle || (isDark ? "glass" : "elevated");
   const cardBgClass =
     cardStyle === "glass"
       ? isDark
-        ? "bg-[#0B1020]/75 backdrop-blur-xl border border-white/10 text-white shadow-2xl"
-        : "bg-white/80 backdrop-blur-xl border border-slate-200/80 text-slate-900 shadow-xl shadow-indigo-100/40"
+        ? "bg-[#0B1020]/80 backdrop-blur-xl text-white shadow-2xl shadow-black/40 border border-transparent"
+        : "bg-white/90 backdrop-blur-xl text-slate-900 shadow-xl shadow-slate-200/50 border border-slate-100"
       : cardStyle === "glowing_border"
       ? isDark
-        ? "bg-[#0A1024]/85 backdrop-blur-xl border text-white shadow-2xl transition-all"
-        : "bg-white border text-slate-900 shadow-xl"
+        ? "bg-[#0A1024]/90 backdrop-blur-xl text-white shadow-2xl shadow-black/50 border border-transparent"
+        : "bg-white text-slate-900 shadow-xl border border-slate-100"
       : isDark
-      ? "bg-[#0B1020]/90 border-white/10 text-white shadow-xl backdrop-blur-md"
-      : "bg-white border-slate-200/90 text-slate-900 shadow-lg shadow-slate-200/60";
+      ? "bg-[#0B1020]/90 text-white shadow-xl backdrop-blur-md border border-transparent"
+      : "bg-white text-slate-900 shadow-lg shadow-slate-200/60 border border-slate-100";
 
   const headingClass = isDark ? "text-white" : "text-slate-950 font-black";
-  const mutedTextClass = isDark ? "text-slate-400" : "text-slate-600 font-medium";
+  const mutedTextClass = isDark ? "text-slate-400" : "text-slate-700 font-medium";
 
   const bgStyle: React.CSSProperties = {
     backgroundColor: theme.pageBackground || (isDark ? "#07080D" : "#FFFFFF"),
@@ -1116,12 +1116,20 @@ export function FunnelRenderer({
     );
   };
 
+  const effectiveTextColor = isDark
+    ? (theme.textColor && !["#0f172a", "#020617", "#000000", "#1e293b", "#334155"].includes(theme.textColor.toLowerCase().trim())
+        ? theme.textColor
+        : "#F8FAFC")
+    : (theme.textColor && !["#ffffff", "#f8fafc", "#f1f5f9", "#ffffff", "#ffffff"].includes(theme.textColor.toLowerCase().trim())
+        ? theme.textColor
+        : "#0F172A");
+
   return (
     <div
       className="min-h-screen font-sans transition-colors duration-300 relative selection:bg-indigo-500 selection:text-white overflow-x-clip"
       style={{
         ...bgStyle,
-        color: isDark ? (theme.textColor || "#FFFFFF") : (theme.textColor || "#0F172A"),
+        color: effectiveTextColor,
       }}
     >
       {/* 0. EFFETS D'AMBIANCE & LUMINESCENCE (AMBIENT MESH GLOW ORBS) */}
@@ -1204,14 +1212,14 @@ export function FunnelRenderer({
           let surfaceClass = "";
           if (section.sectionSurfaceVariant === "subtle") {
             surfaceClass = isDark
-              ? "bg-slate-900/40 border border-white/5 shadow-md"
-              : "bg-slate-100/80 border border-slate-200/70 shadow-sm";
+              ? "bg-slate-900/40 shadow-md"
+              : "bg-slate-100/80 border border-slate-200/50 shadow-sm";
           } else if (section.sectionSurfaceVariant === "card_elevated") {
             surfaceClass = isDark
-              ? "bg-[#0B1020]/90 border border-white/10 shadow-2xl"
-              : "bg-white border border-slate-200 shadow-xl shadow-slate-200/60";
+              ? "bg-[#0B1020]/90 shadow-2xl shadow-black/50"
+              : "bg-white border border-slate-100 shadow-xl shadow-slate-200/50";
           } else if (section.sectionSurfaceVariant === "brand_tint") {
-            surfaceClass = "border shadow-lg";
+            surfaceClass = "shadow-lg";
           }
 
           // Bridage adaptatif pour mobile (garantie zéro débordement et zéro écrasement)
@@ -1690,11 +1698,37 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
     updateField(arrayKey, list);
   };
 
-  const customTitleStyle: React.CSSProperties = (section as any).customTitleColor
-    ? { color: (section as any).customTitleColor }
+  const resolveAdaptiveTitleColor = () => {
+    const raw = (section as any).customTitleColor;
+    if (!raw) return undefined;
+    const lower = String(raw).toLowerCase().trim();
+    if (!isDark && (lower === "#ffffff" || lower === "#f8fafc" || lower === "#f1f5f9")) {
+      return "#0F172A";
+    }
+    if (isDark && (lower === "#000000" || lower === "#0f172a" || lower === "#020617")) {
+      return "#FFFFFF";
+    }
+    return raw;
+  };
+
+  const resolveAdaptiveTextColor = () => {
+    const raw = (section as any).customTextColor;
+    if (!raw) return undefined;
+    const lower = String(raw).toLowerCase().trim();
+    if (!isDark && (lower === "#ffffff" || lower === "#f8fafc" || lower === "#f1f5f9" || lower === "#94a3b8")) {
+      return "#334155";
+    }
+    if (isDark && (lower === "#000000" || lower === "#0f172a" || lower === "#020617" || lower === "#334155")) {
+      return "#94A3B8";
+    }
+    return raw;
+  };
+
+  const customTitleStyle: React.CSSProperties = resolveAdaptiveTitleColor()
+    ? { color: resolveAdaptiveTitleColor() }
     : {};
-  const customTextStyle: React.CSSProperties = (section as any).customTextColor
-    ? { color: (section as any).customTextColor }
+  const customTextStyle: React.CSSProperties = resolveAdaptiveTextColor()
+    ? { color: resolveAdaptiveTextColor() }
     : {};
 
   switch (section.type) {
@@ -2290,7 +2324,7 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
             {(s.items || []).map((item, idx) => (
               <div
                 key={item.id || idx}
-                className={`p-4 sm:p-6 rounded-2xl border text-center transition-all relative group/card ${cardBgClass}`}
+                className={`p-4 sm:p-6 rounded-2xl text-center transition-all relative group/card ${cardBgClass}`}
               >
                 <CardReorderToolbar
                   idx={idx}
@@ -3445,7 +3479,7 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                 !isMobile && isImageLeft ? "lg:order-1" : !isMobile ? "lg:order-2" : ""
               }`}
             >
-              <div className="relative rounded-3xl overflow-hidden border border-white/15 shadow-2xl bg-slate-950 w-full">
+              <div className="relative rounded-3xl overflow-hidden shadow-2xl bg-slate-950 w-full">
                 <img
                   src={s.imageUrl || "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=1000&auto=format&fit=crop&q=80"}
                   alt={s.imageAlt || s.title}
@@ -3484,7 +3518,7 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                       e.stopPropagation();
                       onOpenImagePicker(s.id);
                     }}
-                    className="absolute top-4 right-4 p-2.5 rounded-xl bg-black/85 hover:bg-black text-white border border-white/20 shadow-xl cursor-pointer"
+                    className="absolute top-4 right-4 p-2.5 rounded-xl bg-black/85 hover:bg-black text-white shadow-xl cursor-pointer"
                     title="Changer l'image"
                   >
                     <Camera className="w-4 h-4 text-yellow-400" />
@@ -3521,7 +3555,7 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                 )}
 
                 <h2
-                  className="text-xl sm:text-3xl lg:text-4xl font-black leading-tight tracking-tight break-words"
+                  className={`text-xl sm:text-3xl lg:text-4xl font-black leading-tight tracking-tight break-words ${headingClass}`}
                   style={customTitleStyle}
                 >
                   <InlineText
@@ -3532,7 +3566,7 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                 </h2>
 
                 <p
-                  className="text-xs sm:text-sm sm:leading-relaxed leading-normal break-words"
+                  className={`text-xs sm:text-sm sm:leading-relaxed leading-normal break-words ${mutedTextClass}`}
                   style={customTextStyle}
                 >
                   <InlineText
@@ -3549,7 +3583,7 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                   {s.highlights.map((hl, hlIdx) => (
                     <div
                       key={hl.id || hlIdx}
-                      className={`p-3 sm:p-3.5 rounded-2xl border transition-all ${cardBgClass} flex items-start gap-3 w-full relative group/hl`}
+                      className={`p-3 sm:p-3.5 rounded-2xl transition-all ${cardBgClass} flex items-start gap-3 w-full relative group/hl`}
                     >
                       {isEditable && (
                         <div className="absolute top-2 right-2 opacity-0 group-hover/hl:opacity-100 transition-opacity flex items-center gap-1 z-20">
@@ -3610,7 +3644,7 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                         };
                         updateField("highlights", [...(s.highlights || []), newHl]);
                       }}
-                      className="w-full py-2 px-3 rounded-xl border border-dashed border-white/20 hover:border-indigo-400 hover:bg-indigo-500/10 text-slate-400 hover:text-indigo-400 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                      className="w-full py-2 px-3 rounded-xl border border-dashed border-slate-700/40 hover:border-indigo-400 hover:bg-indigo-500/10 text-slate-400 hover:text-indigo-400 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       <span>+ Ajouter un point fort</span>
@@ -3687,7 +3721,7 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
               </span>
             )}
             <h2
-              className="text-2xl sm:text-4xl font-black tracking-tight break-words"
+              className={`text-2xl sm:text-4xl font-black tracking-tight break-words ${headingClass}`}
               style={customTitleStyle}
             >
               <InlineText
@@ -3697,7 +3731,7 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
               />
             </h2>
             {s.subtitle && (
-              <p className="text-sm sm:text-base leading-relaxed break-words" style={customTextStyle}>
+              <p className={`text-sm sm:text-base leading-relaxed break-words ${mutedTextClass}`} style={customTextStyle}>
                 <InlineText
                   value={s.subtitle}
                   onSave={(val) => updateField("subtitle", val)}
@@ -3711,7 +3745,7 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
           <div className="relative max-w-4xl mx-auto">
             {activeItem && (
               <div
-                className={`p-6 sm:p-10 rounded-3xl border transition-all duration-300 shadow-2xl relative overflow-hidden ${cardBgClass}`}
+                className={`p-6 sm:p-10 rounded-3xl transition-all duration-300 shadow-2xl relative overflow-hidden ${cardBgClass}`}
               >
                 <div
                   className="absolute top-0 left-0 right-0 h-1.5"
@@ -3748,7 +3782,7 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                   "{activeItem.description}"
                 </p>
 
-                <div className="flex items-center justify-between pt-4 border-t border-white/10 gap-2">
+                <div className="flex items-center justify-between pt-4 border-t border-slate-500/20 gap-2">
                   <div className="flex items-center gap-3 min-w-0">
                     {activeItem.imageUrl ? (
                       <img
@@ -3801,7 +3835,7 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                     <button
                       type="button"
                       onClick={handlePrev}
-                      className="p-2 rounded-xl border border-white/15 bg-slate-900/80 hover:bg-slate-800 text-white cursor-pointer transition-all hover:scale-105 active:scale-95"
+                      className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white cursor-pointer transition-all hover:scale-105 active:scale-95 shadow-md"
                       title="Précédent"
                     >
                       <ChevronLeft className="w-4 h-4" />
@@ -3809,7 +3843,7 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                     <button
                       type="button"
                       onClick={handleNext}
-                      className="p-2 rounded-xl border border-white/15 bg-slate-900/80 hover:bg-slate-800 text-white cursor-pointer transition-all hover:scale-105 active:scale-95"
+                      className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white cursor-pointer transition-all hover:scale-105 active:scale-95 shadow-md"
                       title="Suivant"
                     >
                       <ChevronRight className="w-4 h-4" />
@@ -3879,7 +3913,7 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
               </span>
             )}
             <h2
-              className="text-2xl sm:text-4xl font-black tracking-tight break-words"
+              className={`text-2xl sm:text-4xl font-black tracking-tight break-words ${headingClass}`}
               style={customTitleStyle}
             >
               <InlineText
@@ -3889,7 +3923,7 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
               />
             </h2>
             {s.subtitle && (
-              <p className="text-sm sm:text-base leading-relaxed break-words" style={customTextStyle}>
+              <p className={`text-sm sm:text-base leading-relaxed break-words ${mutedTextClass}`} style={customTextStyle}>
                 <InlineText
                   value={s.subtitle}
                   onSave={(val) => updateField("subtitle", val)}
@@ -3899,15 +3933,15 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
             )}
           </div>
 
-          <div className={`grid ${isMobile ? "grid-cols-1 gap-4" : "grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6"} w-full`}>
+          <div className={`grid ${isMobile ? "grid-cols-1 gap-4" : "grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6"} w-full max-w-full box-border`}>
             {cards.map((c, cIdx) => {
               const isWide = !isMobile && c.colSpan === "col-span-2";
               return (
                 <div
                   key={c.id || cIdx}
-                  className={`rounded-3xl p-5 sm:p-7 border relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl flex flex-col justify-between group/card ${
+                  className={`rounded-3xl p-4 sm:p-6 sm:p-7 relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl flex flex-col justify-between group/card w-full max-w-full box-border ${
                     isWide ? "md:col-span-2" : "col-span-1"
-                  } ${cardBgClass}`}
+                  } ${cardBgClass} ${isEditable ? "pt-11 sm:pt-7" : ""}`}
                 >
                   <CardReorderToolbar
                     idx={cIdx}
@@ -3998,7 +4032,7 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                   </div>
 
                   {c.imageUrl && (
-                    <div className="mt-4 rounded-2xl overflow-hidden border border-white/10 shadow-md relative group/bentoimg">
+                    <div className="mt-4 rounded-2xl overflow-hidden shadow-md relative group/bentoimg">
                       <img
                         src={c.imageUrl}
                         alt={c.title}
@@ -4027,7 +4061,7 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                         e.stopPropagation();
                         onOpenImagePicker?.(s.id, cIdx);
                       }}
-                      className="mt-4 w-full py-2.5 rounded-2xl border border-dashed border-white/20 hover:border-indigo-400/50 hover:bg-indigo-500/5 transition-all flex items-center justify-center gap-2 text-xs font-semibold text-slate-400 hover:text-indigo-400 cursor-pointer"
+                      className="mt-4 w-full py-2.5 rounded-2xl border border-dashed border-slate-700/40 hover:border-indigo-400/50 hover:bg-indigo-500/5 transition-all flex items-center justify-center gap-2 text-xs font-semibold text-slate-400 hover:text-indigo-400 cursor-pointer"
                     >
                       <Camera className="w-3.5 h-3.5" />
                       <span>Ajouter une image</span>
@@ -4050,7 +4084,7 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                   };
                   updateField("cards", [...cards, newCard]);
                 }}
-                className="col-span-1 md:col-span-3 py-3 rounded-2xl border-2 border-dashed border-white/20 hover:border-indigo-400 hover:bg-indigo-500/10 text-slate-400 hover:text-indigo-400 text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className={`w-full ${isMobile ? "col-span-1" : "md:col-span-3"} py-3.5 rounded-2xl border-2 border-dashed border-slate-700/40 hover:border-indigo-400 hover:bg-indigo-500/10 text-slate-400 hover:text-indigo-400 text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer`}
               >
                 <Plus className="w-4 h-4" />
                 <span>+ Ajouter une carte Bento</span>
