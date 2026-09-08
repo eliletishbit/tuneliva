@@ -201,5 +201,195 @@
       ]
     },
     "userId": "8a5db887-bd19-4d02-b671-064f048f65f9"
+  },
+  {
+    "projectName": "Creator Hub – Plateforme Créateurs",
+    "slug": "creator-hub-plateforme-createurs",
+    "pageType": "sales",
+    "metaTitle": "Creator Hub la plateforme tout-e... | Édition Officielle 2026",
+    "metaDescription": "Creator Hub la plateforme tout-e... – Performance & Qualité Supérieure. Livraison express à Cotonou et paiement sécurisé à la livraison.",
+    "branding": {
+      "businessName": "Creator Hub la plateforme tout-e...",
+      "tagline": "Qualité Certifiée & Service d'Excellence",
+      "whatsappNumber": "+22997000000",
+      "phone": "+229 01 53 29 52 82",
+      "socialLinks": {
+        "whatsapp": "https://wa.me/22997000000",
+        "facebook": "https://facebook.com",
+        "instagram": "https://instagram.com"
+      },
+      "address": {
+        "city": "Cotonou",
+        "country": "Bénin",
+        "fullAddress": "Centre Commercial, Haie Vive, Cotonou",
+        "serviceZone": "Zone d'intervention : Cotonou, Calavi, Porto-Novo et environs"
+      }
+    },
+    "theme": {
+      "preset": "creator_hub",
+      "primaryColor": "#EC4899",
+      "accentColor": "#A855F7",
+      "pageBackground": "#08070B",
+      "backgroundGradient": "radial-gradient(ellipse 70% 45% at 20% -5%, rgba(236, 72, 153, 0.20) 0%, transparent 60%), radial-gradient(ellipse 70% 45% at 80% 12%, rgba(168, 85, 247, 0.18) 0%, transparent 60%), #08070B",
+      "glowColor": "#EC4899",
+      "ambientGlow": true,
+      "cardStyle": "glowing_border",
+      "backgroundStyle": "mesh_gradient",
+      "cardBackground": "#110E18",
+      "cardBorderColor": "rgba(236, 72, 153, 0.25)",
+      "textColor": "#FFFFFF",
+      "textMutedColor": "#F472B6",
+      "fontFamily": "Plus Jakarta Sans",
+      "isDarkTheme": true,
+      "bannerUrgencyText": "🔥 PACK CRÉATEUR 2026 : ACCÈS IMMÉDIAT SANS ABONNEMENT !",
+      "countdownMinutes": 120,
+      "pageLayoutWidth": "fluid"
+    },
+    "sections": [
+      {
+        "id": "hero-1",
+        "type": "hero",
+        "badgeText": "⚡ LA SUITE TOUT-EN-UN DES CRÉATEURS D'ÉLITE",
+        "title": "Monétisez votre audience sans barrière technique",
+        "subtitle": "Vendez vos formations, coachings, templates et fichiers avec encaissement instantané Mobile Money et Cartes Bancaires en un clic.",
+        "ctaText": "LANCER MON TUNNEL DE VENTE",
+        "ctaSubtext": "🚀 Configuration en 2 minutes • Zéro frais d'abonnement mensuel",
+        "secondaryCtaText": "WhatsApp",
+        "imageUrl": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1000&auto=format&fit=crop&q=80",
+        "trustPoints": [
+          "Encaissement MoMo & Cartes",
+          "Livraison automatique 24/7",
+          "Zéro commission cachée"
+        ]
+      },
+      {
+        "id": "bento-1",
+        "type": "bento_grid",
+        "badgeText": "🔥 ARSENAL COMPLET DU CRÉATEUR",
+        "title": "Tout ce dont vous avez besoin pour vendre plus",
+        "subtitle": "Conçu pour maximiser vos revenus en Afrique et à l'international :",
+        "cards": [
+          {
+            "id": "bc-1",
+            "colSpan": "col-span-2",
+            "tag": "ENCAISSEMENT HYBRIDE",
+            "metric": "100%",
+            "title": "Mobile Money & Cartes Réunis",
+            "description": "Vos abonnés en Afrique paient par MTN, Moov ou Wave. Vos clients de la diaspora paient par Carte Bancaire. Vous encaissez tout au même endroit.",
+            "imageUrl": "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=800&auto=format&fit=crop&q=80"
+          },
+          {
+            "id": "bc-2",
+            "colSpan": "col-span-1",
+            "tag": "LIVRAISON",
+            "metric": "30s",
+            "title": "Livraison Automatique",
+            "description": "Vos clients reçoivent immédiatement leurs accès par email et WhatsApp, même pendant votre sommeil."
+          },
+          {
+            "id": "bc-3",
+            "colSpan": "col-span-1",
+            "tag": "SÉCURITÉ",
+            "metric": "0 Fuite",
+            "title": "Protection Anti-Piratage",
+            "description": "Liens de téléchargement sécurisés et vidéos protégées contre le vol de contenu."
+          }
+        ]
+      },
+      {
+        "id": "split-1",
+        "type": "split_showcase",
+        "layoutDirection": "image_right",
+        "badgeText": "💬 CONVERSIONS WHATSAPP",
+        "title": "Transformez vos abonnés en acheteurs engagés",
+        "subtitle": "Ne laissez plus aucun prospect repartir sans réponse grâce au bouton direct WhatsApp :",
+        "imageUrl": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80",
+        "imageAlt": "Intégration WhatsApp Creator Hub",
+        "metricBadge": {
+          "value": "3.4x",
+          "label": "Multiplicateur de conversion moyen"
+        },
+        "highlights": [
+          {
+            "id": "hl-1",
+            "title": "Relances Amicales des Paniers Inachevés",
+            "description": "Contactez en un clic les visiteurs qui ont entamé leur commande sans finaliser."
+          },
+          {
+            "id": "hl-2",
+            "title": "Message de Commande Pré-Rempli",
+            "description": "Le client clique et vous envoie directement le récapitulatif sans devoir rédiger un pavé."
+          },
+          {
+            "id": "hl-3",
+            "title": "Paiement en Ligne ou Mobile Money Local",
+            "description": "Laissez vos clients choisir leur moyen de règlement préféré sans friction."
+          }
+        ],
+        "ctaText": "COMMENCER À ENCAISSER",
+        "ctaLink": "#tarifs"
+      },
+      {
+        "id": "stats-1",
+        "type": "stats",
+        "badgeText": "STATISTIQUES DE LA COMMUNAUTÉ",
+        "items": [
+          {
+            "id": "st-1",
+            "value": "+180M FCFA",
+            "label": "Encaissés par nos créateurs"
+          },
+          {
+            "id": "st-2",
+            "value": "98.4%",
+            "label": "Satisfaction utilisateurs"
+          },
+          {
+            "id": "st-3",
+            "value": "30s",
+            "label": "Temps moyen de livraison"
+          }
+        ]
+      },
+      {
+        "id": "pricing-1",
+        "type": "pricing",
+        "badgeText": "FORMULE DU CRÉATEUR",
+        "title": "Lancez votre empire de produits digitaux",
+        "subtitle": "Bénéficiez de la suite complète sans aucun abonnement récurrent imposé :",
+        "offer": {
+          "id": "offer-creator",
+          "name": "Pack Créateur Digital Indépendant 2026",
+          "salePrice": 19000,
+          "regularPrice": 38000,
+          "currency": "XOF",
+          "features": [
+            "Tunnels de vente illimités pour tous vos produits",
+            "Encaissement hybride Mobile Money + Cartes Bancaires",
+            "Module de relance WhatsApp automatique",
+            "Hébergement ultra-rapide et nom de domaine offert",
+            "Assistance 7j/7 pour vos lancements"
+          ],
+          "stockLeft": 9
+        },
+        "guaranteeText": "Garantie 30 jours satisfait ou remboursé sans aucune condition"
+      },
+      {
+        "id": "order-1",
+        "type": "order_form",
+        "title": "Débloquez vos accès immédiats",
+        "subtitle": "Réglez en direct par Mobile Money ou Carte Bancaire et commencez à vendre dans l'heure :",
+        "whatsappEnabled": true,
+        "whatsappNumber": "+22997000000",
+        "codEnabled": false,
+        "momoEnabled": true,
+        "cardEnabled": true,
+        "onlinePaymentEnabled": true,
+        "cities": [
+          "Accès Immédiat en Ligne"
+        ]
+      }
+    ],
+    "userId": "8a5db887-bd19-4d02-b671-064f048f65f9"
   }
 ]

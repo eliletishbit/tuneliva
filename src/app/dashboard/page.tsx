@@ -404,12 +404,13 @@ export default function MerchantDashboard() {
               <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin text-indigo-400" : ""}`} />
             </button>
 
+
             <a
-              href="/admin"
-              className="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-amber-500/30 hover:border-amber-500/60 text-amber-300 text-xs font-bold transition-all shadow-sm cursor-pointer"
-              title="Accéder au Super Admin Dashboard"
+              href="/blog"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-amber-500/30 text-amber-300 hover:text-white font-bold text-xs transition-all cursor-pointer shadow-sm"
+              title="Lire les 150 guides du blog e-commerce"
             >
-              <span>👑 Super Admin</span>
+              <span>📚 Blog</span>
             </a>
 
             <a

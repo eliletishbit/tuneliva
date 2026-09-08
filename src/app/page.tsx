@@ -322,6 +322,13 @@ export default function HomePage() {
           </div>
 
           <a
+            href="/blog"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-white/10 hover:border-amber-500/50 text-amber-300 text-xs font-bold transition-all shadow-sm cursor-pointer"
+          >
+            <span>📚 Blog</span>
+          </a>
+
+          <a
             href="/dashboard"
             className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-900 border border-white/10 hover:border-emerald-500/50 text-white text-xs font-bold transition-all shadow-sm cursor-pointer"
           >

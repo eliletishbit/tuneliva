@@ -68,8 +68,24 @@ function detectUseCase(funnel: any): { category: string; icon: string; label: st
   return { category: "ecommerce", icon: "🛍️", label: "E-Commerce & Boutiques" };
 }
 
+import { verifyAdminSessionToken } from "../login/route";
+
 export async function GET(req: NextRequest) {
   try {
+    const cookieToken = req.cookies.get("tuneliva_admin_token")?.value;
+    const authHeader = req.headers.get("authorization");
+    const bearerToken = authHeader?.startsWith("Bearer ")
+      ? authHeader.slice(7)
+      : undefined;
+
+    const token = cookieToken || bearerToken;
+    if (!token || !verifyAdminSessionToken(token)) {
+      return NextResponse.json(
+        { error: "Accès refusé : Authentification Super Admin requise." },
+        { status: 401 }
+      );
+    }
+
     const [allFunnels, allOrders] = await Promise.all([
       getAllFunnels(),
       getAllOrders(),

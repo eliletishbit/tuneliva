@@ -1793,8 +1793,8 @@ export function FunnelEditor({
           </div>
         </div>
 
-        {/* Sélecteur Mobile / Tablette / Desktop */}
-        <div className="flex items-center bg-slate-900 border border-white/10 rounded-xl p-1 gap-1">
+        {/* Sélecteur Mobile / Tablette / Desktop (Masqué sur mobile pour libérer l'espace) */}
+        <div className="hidden md:flex items-center bg-slate-900 border border-white/10 rounded-xl p-1 gap-1">
           <button
             onClick={() => setDevice("mobile")}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
@@ -1894,7 +1894,22 @@ export function FunnelEditor({
       {/* 2. ZONE PRINCIPALE : PANNEAU & CANEVAS */}
       <div className="flex-1 flex relative overflow-hidden">
         {showSettings && (
-          <aside className="w-88 sm:w-96 border-r border-white/10 bg-[#07080D] flex flex-col shrink-0 z-30 shadow-2xl">
+          <aside className="w-full sm:w-96 border-r border-white/10 bg-[#07080D] flex flex-col shrink-0 z-30 shadow-2xl absolute sm:relative inset-y-0 left-0">
+            {/* Barre de fermeture sur mobile */}
+            <div className="sm:hidden px-3.5 py-2.5 bg-slate-950 border-b border-white/10 flex items-center justify-between">
+              <span className="text-xs font-extrabold text-indigo-400 flex items-center gap-1.5">
+                <span>⚙️</span>
+                <span>Panneau de Configuration</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowSettings(false)}
+                className="px-3 py-1 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold flex items-center gap-1 cursor-pointer shadow-md"
+              >
+                <span>Voir le canevas</span>
+                <span>✕</span>
+              </button>
+            </div>
             {/* 6 TABS ÉLÉGANTS & INTUITIFS STUDIO */}
             <div className="p-2 border-b border-white/10 grid grid-cols-6 gap-1 text-[10px] font-bold">
               <button
@@ -4791,9 +4806,9 @@ export function FunnelEditor({
           </div>
 
           {/* Corps de Prévisualisation */}
-          <div className="flex-1 overflow-y-auto p-2 sm:p-6 flex justify-center bg-[#07080D]">
+          <div className="flex-1 overflow-y-auto p-2 sm:p-6 pb-36 flex flex-col items-center bg-[#07080D] scroll-smooth overscroll-contain">
             <div
-              className={`w-full transition-all duration-300 shadow-2xl rounded-2xl overflow-hidden border border-white/10 bg-black ${
+              className={`w-full transition-all duration-300 shadow-2xl rounded-2xl border border-white/10 bg-black mb-24 sm:mb-32 ${
                 previewDevice === "mobile"
                   ? "max-w-[390px] ring-8 ring-slate-900"
                   : previewDevice === "tablet"
@@ -4802,7 +4817,7 @@ export function FunnelEditor({
               }`}
             >
               {previewDevice === "mobile" && (
-                <div className="sticky top-0 z-30 bg-black px-4 py-2 border-b border-white/10 flex items-center justify-between text-[11px] text-slate-400">
+                <div className="sticky top-0 z-30 bg-black px-4 py-2 border-b border-white/10 flex items-center justify-between text-[11px] text-slate-400 rounded-t-2xl">
                   <span className="font-bold text-white">9:41</span>
                   <div className="w-20 h-4 rounded-full bg-slate-900 mx-auto" />
                   <span>5G • 100%</span>

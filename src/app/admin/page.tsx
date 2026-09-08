@@ -3,6 +3,12 @@
 import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import {
+  Lock,
+  KeyRound,
+  ShieldAlert,
+  Eye,
+  EyeOff,
+  LogOut,
   Users,
   Layers,
   ShoppingBag,
@@ -32,6 +38,15 @@ export default function SuperAdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Authentification Super Admin
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [adminEmail, setAdminEmail] = useState("");
+  const [adminPassword, setAdminPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const [loginSubmitting, setLoginSubmitting] = useState(false);
+  const [adminToken, setAdminToken] = useState<string | null>(null);
+
   // Filtres table tunnels
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [tunnelSearch, setTunnelSearch] = useState<string>("");
@@ -41,16 +56,28 @@ export default function SuperAdminDashboard() {
   const [userSearch, setUserSearch] = useState<string>("");
   const [authFilter, setAuthFilter] = useState<string>("all");
 
-  const fetchMetrics = async () => {
+  const fetchMetrics = async (tokenOverride?: string) => {
     setLoading(true);
     setError(null);
+    const activeToken =
+      tokenOverride ||
+      adminToken ||
+      (typeof window !== "undefined" ? localStorage.getItem("tuneliva_admin_token") : null);
+
     try {
-      const res = await fetch("/api/admin/metrics");
+      const res = await fetch("/api/admin/metrics", {
+        headers: activeToken ? { Authorization: `Bearer ${activeToken}` } : {},
+      });
       if (!res.ok) {
-        throw new Error("Erreur de récupération des métriques");
+        if (res.status === 401) {
+          setIsAuthenticated(false);
+          throw new Error("Session Super Admin expirée. Veuillez vous reconnecter.");
+        }
+        throw new Error("Erreur de récupération des métriques admin.");
       }
       const data = await res.json();
       setMetrics(data);
+      setIsAuthenticated(true);
     } catch (err: any) {
       setError(err?.message || "Impossible de charger les métriques admin.");
     } finally {
@@ -59,8 +86,69 @@ export default function SuperAdminDashboard() {
   };
 
   useEffect(() => {
-    fetchMetrics();
+    const checkSession = async () => {
+      const savedToken =
+        typeof window !== "undefined"
+          ? localStorage.getItem("tuneliva_admin_token")
+          : null;
+      try {
+        const res = await fetch("/api/admin/login", {
+          headers: savedToken ? { Authorization: `Bearer ${savedToken}` } : {},
+        });
+        if (res.ok) {
+          setIsAuthenticated(true);
+          if (savedToken) setAdminToken(savedToken);
+          fetchMetrics(savedToken || undefined);
+        } else {
+          setIsAuthenticated(false);
+          setLoading(false);
+        }
+      } catch {
+        setIsAuthenticated(false);
+        setLoading(false);
+      }
+    };
+    checkSession();
   }, []);
+
+  const handleAdminLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginSubmitting(true);
+    setLoginError(null);
+    try {
+      const res = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: adminEmail, password: adminPassword }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Identifiants super admin non valides.");
+      }
+      if (data.token) {
+        localStorage.setItem("tuneliva_admin_token", data.token);
+        setAdminToken(data.token);
+      }
+      setIsAuthenticated(true);
+      fetchMetrics(data.token);
+    } catch (err: any) {
+      setLoginError(err.message || "Erreur lors de la tentative de connexion.");
+    } finally {
+      setLoginSubmitting(false);
+    }
+  };
+
+  const handleAdminLogout = async () => {
+    try {
+      await fetch("/api/admin/login", { method: "DELETE" });
+    } catch {}
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("tuneliva_admin_token");
+    }
+    setAdminToken(null);
+    setIsAuthenticated(false);
+    setMetrics(null);
+  };
 
   const formatMoney = (val: number) => {
     return (val || 0).toLocaleString("fr-FR") + " FCFA";
@@ -98,6 +186,127 @@ export default function SuperAdminDashboard() {
     });
   }, [metrics, authFilter, userSearch]);
 
+  // VÉRIFICATION D'ÉTAT DE CHARGEMENT INITIAL DE SESSION
+  if (isAuthenticated === null && loading) {
+    return (
+      <div className="min-h-screen bg-[#060913] flex items-center justify-center text-white">
+        <div className="text-center space-y-3">
+          <div className="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center mx-auto animate-pulse">
+            <ShieldCheck className="w-6 h-6" />
+          </div>
+          <p className="text-xs text-slate-400 font-mono">Vérification des accréditations Super Admin...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ÉCRAN DE CONNEXION SUPER ADMIN RESTREINT (GATEKEEPER)
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-[#060913] text-slate-100 flex flex-col justify-center items-center p-4 relative overflow-hidden font-sans selection:bg-amber-500 selection:text-black">
+        {/* Glows d'arrière-plan */}
+        <div className="absolute top-1/4 -left-32 w-96 h-96 rounded-full blur-[140px] opacity-25 bg-amber-500 pointer-events-none" />
+        <div className="absolute bottom-1/4 -right-32 w-96 h-96 rounded-full blur-[140px] opacity-25 bg-indigo-500 pointer-events-none" />
+
+        <div className="max-w-md w-full relative z-10 space-y-6">
+          <div className="text-center space-y-2">
+            <div className="w-16 h-16 rounded-3xl bg-gradient-to-tr from-amber-500 to-indigo-600 flex items-center justify-center text-3xl mx-auto shadow-2xl shadow-amber-500/30 border border-amber-400/30">
+              👑
+            </div>
+            <h1 className="text-2xl font-black tracking-tight text-white">
+              Super Admin Tuneliva
+            </h1>
+            <p className="text-xs text-slate-400 leading-relaxed px-4">
+              Portail confidentiel de gestion des données, métriques et arbitrages stratégiques.
+            </p>
+          </div>
+
+          <div className="bg-[#0B1020]/90 backdrop-blur-xl border border-white/15 rounded-3xl p-6 sm:p-8 shadow-2xl shadow-black space-y-5">
+            <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs">
+              <Lock className="w-4 h-4 shrink-0" />
+              <span>Accès strictement réservé au propriétaire de l'application.</span>
+            </div>
+
+            {loginError && (
+              <div className="p-3.5 rounded-2xl bg-rose-950/40 border border-rose-500/40 text-rose-300 text-xs flex items-start gap-2 animate-in fade-in duration-200">
+                <ShieldAlert className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+                <span>{loginError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleAdminLogin} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-300 block">
+                  Email Super Administrateur
+                </label>
+                <div className="relative">
+                  <input
+                    type="email"
+                    required
+                    value={adminEmail}
+                    onChange={(e) => setAdminEmail(e.target.value)}
+                    placeholder="rodrigueapothey@gmail.com"
+                    className="w-full px-4 py-3 rounded-2xl bg-slate-900/90 border border-white/10 focus:border-amber-500/80 focus:ring-2 focus:ring-amber-500/20 text-xs text-white outline-none transition-all placeholder:text-slate-600"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-300 block">
+                  Mot de Passe Super Admin
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    required
+                    value={adminPassword}
+                    onChange={(e) => setAdminPassword(e.target.value)}
+                    placeholder="••••••••••••"
+                    className="w-full px-4 py-3 rounded-2xl bg-slate-900/90 border border-white/10 focus:border-amber-500/80 focus:ring-2 focus:ring-amber-500/20 text-xs text-white outline-none transition-all placeholder:text-slate-600 pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white cursor-pointer"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loginSubmitting}
+                className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-amber-500 to-indigo-600 hover:from-amber-400 hover:to-indigo-500 text-white font-black text-xs uppercase tracking-wider shadow-xl shadow-amber-500/20 transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2 mt-2"
+              >
+                {loginSubmitting ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    <span>Vérification sécurisée...</span>
+                  </>
+                ) : (
+                  <>
+                    <KeyRound className="w-4 h-4" />
+                    <span>Déverrouiller le Super Admin</span>
+                  </>
+                )}
+              </button>
+            </form>
+
+            <div className="text-center pt-2">
+              <Link
+                href="/dashboard"
+                className="text-[11px] text-slate-500 hover:text-slate-300 transition-colors"
+              >
+                ← Retour au tableau de bord créateur
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#060913] text-white selection:bg-indigo-500 selection:text-white pb-24">
       {/* HALO LUMINEUX D'AMBIANCE */}
@@ -130,7 +339,7 @@ export default function SuperAdminDashboard() {
 
           <div className="flex items-center gap-2.5">
             <button
-              onClick={fetchMetrics}
+              onClick={() => fetchMetrics()}
               disabled={loading}
               className="px-3.5 py-2 rounded-xl bg-slate-900 border border-white/10 hover:border-white/30 text-xs font-semibold flex items-center gap-1.5 transition-all text-slate-300 hover:text-white cursor-pointer"
             >
@@ -143,6 +352,14 @@ export default function SuperAdminDashboard() {
             >
               <span>Mon Dashboard</span>
             </Link>
+            <button
+              onClick={handleAdminLogout}
+              className="px-3 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
+              title="Se déconnecter du Super Admin"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Déconnexion</span>
+            </button>
             <Link
               href="/"
               className="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-xs font-bold text-white shadow-lg transition-all"

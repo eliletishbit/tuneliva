@@ -427,7 +427,7 @@ export function FunnelRenderer({
       : "bg-white border-slate-200/90 text-slate-900 shadow-lg shadow-slate-200/60";
 
   const headingClass = isDark ? "text-white" : "text-slate-950 font-black";
-  const mutedTextClass = isDark ? "text-slate-400" : "text-slate-600";
+  const mutedTextClass = isDark ? "text-slate-400" : "text-slate-600 font-medium";
 
   const bgStyle: React.CSSProperties = {
     backgroundColor: theme.pageBackground || (isDark ? "#07080D" : "#FFFFFF"),
@@ -900,7 +900,7 @@ export function FunnelRenderer({
             </div>
 
             <div className="space-y-1.5">
-              <h3 className="font-black text-base sm:text-lg uppercase tracking-widest text-white">
+              <h3 className={`font-black text-base sm:text-lg uppercase tracking-widest ${headingClass}`}>
                 {branding?.businessName || data.projectName}
               </h3>
               <p className="text-xs sm:text-sm text-slate-400 max-w-lg mx-auto leading-relaxed">
@@ -983,7 +983,7 @@ export function FunnelRenderer({
                   <Truck className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-xs text-white">Livraison 24h</h4>
+                  <h4 className={`font-bold text-xs ${headingClass}`}>Livraison 24h</h4>
                   <p className="text-[10px] text-slate-400">Expédition suivie express</p>
                 </div>
               </div>
@@ -993,7 +993,7 @@ export function FunnelRenderer({
                   <CheckCircle2 className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-xs text-white">Paiement Réception</h4>
+                  <h4 className={`font-bold text-xs ${headingClass}`}>Paiement Réception</h4>
                   <p className="text-[10px] text-slate-400">Vérifiez avant de régler</p>
                 </div>
               </div>
@@ -1003,7 +1003,7 @@ export function FunnelRenderer({
                   <ShieldCheck className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-xs text-white">Garantie 30 Jours</h4>
+                  <h4 className={`font-bold text-xs ${headingClass}`}>Garantie 30 Jours</h4>
                   <p className="text-[10px] text-slate-400">Satisfait ou remboursé</p>
                 </div>
               </div>
@@ -1013,7 +1013,7 @@ export function FunnelRenderer({
                   <MessageCircle className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-xs text-white">Support 7j/7</h4>
+                  <h4 className={`font-bold text-xs ${headingClass}`}>Support 7j/7</h4>
                   <p className="text-[10px] text-slate-400">Assistance WhatsApp</p>
                 </div>
               </div>
@@ -1022,7 +1022,7 @@ export function FunnelRenderer({
             {/* Bottom copyright line */}
             <div className="border-t border-white/10 pt-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-slate-400 text-center sm:text-left">
               <div>
-                <span className="font-bold text-white">{branding?.businessName || data.projectName}</span>
+                <span className={`font-bold ${headingClass}`}>{branding?.businessName || data.projectName}</span>
                 {branding?.address && (
                   <span className="ml-2">({branding.address.city}, {branding.address.country})</span>
                 )}
@@ -1056,7 +1056,7 @@ export function FunnelRenderer({
       >
         <div className={`${headerMaxClass} grid ${grid3Cols} gap-6 sm:gap-8 text-left`}>
           <div className="space-y-3">
-            <h3 className="font-extrabold text-white text-sm sm:text-base">
+            <h3 className={`font-extrabold text-sm sm:text-base ${headingClass}`}>
               {branding?.businessName || data.projectName}
             </h3>
             <p className="text-slate-400 leading-relaxed text-xs">
@@ -1071,7 +1071,7 @@ export function FunnelRenderer({
           </div>
 
           <div className="space-y-2.5">
-            <h4 className="font-bold text-white uppercase tracking-wider text-[11px]">Garanties & Confiance</h4>
+            <h4 className={`font-bold uppercase tracking-wider text-[11px] ${headingClass}`}>Garanties & Confiance</h4>
             <div className="space-y-1.5">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
@@ -1089,9 +1089,9 @@ export function FunnelRenderer({
           </div>
 
           <div className="space-y-3">
-            <h4 className="font-bold text-white uppercase tracking-wider text-[11px]">Assistance Client</h4>
+            <h4 className={`font-bold uppercase tracking-wider text-[11px] ${headingClass}`}>Assistance Client</h4>
             {branding?.phone && (
-              <div className="flex items-center gap-2 text-white font-semibold">
+              <div className={`flex items-center gap-2 font-semibold ${headingClass}`}>
                 <Phone className="w-3.5 h-3.5 text-orange-400" />
                 <span>{branding.phone}</span>
               </div>
@@ -1119,7 +1119,10 @@ export function FunnelRenderer({
   return (
     <div
       className="min-h-screen font-sans transition-colors duration-300 relative selection:bg-indigo-500 selection:text-white overflow-x-clip"
-      style={bgStyle}
+      style={{
+        ...bgStyle,
+        color: isDark ? (theme.textColor || "#FFFFFF") : (theme.textColor || "#0F172A"),
+      }}
     >
       {/* 0. EFFETS D'AMBIANCE & LUMINESCENCE (AMBIENT MESH GLOW ORBS) */}
       {theme.ambientGlow !== false && (
@@ -2091,6 +2094,24 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                 </div>
               </div>
             ))}
+
+            {isEditable && (
+              <button
+                type="button"
+                onClick={() => {
+                  const newItem = {
+                    id: `st-${Date.now()}`,
+                    value: "+99%",
+                    label: "Nouveau Chiffre Clé",
+                  };
+                  updateField("items", [...(s.items || []), newItem]);
+                }}
+                className="col-span-1 sm:col-span-3 py-2.5 rounded-xl border border-dashed border-white/20 hover:border-indigo-400 hover:bg-indigo-500/10 text-slate-400 hover:text-indigo-400 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>+ Ajouter une statistique</span>
+              </button>
+            )}
           </div>
         </section>
       );
@@ -2269,8 +2290,19 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
             {(s.items || []).map((item, idx) => (
               <div
                 key={item.id || idx}
-                className={`p-4 sm:p-6 rounded-2xl border text-center transition-all ${cardBgClass}`}
+                className={`p-4 sm:p-6 rounded-2xl border text-center transition-all relative group/card ${cardBgClass}`}
               >
+                <CardReorderToolbar
+                  idx={idx}
+                  total={(s.items || []).length}
+                  onMoveLeft={() => reorderArray("items", idx, idx - 1)}
+                  onMoveRight={() => reorderArray("items", idx, idx + 1)}
+                  onMoveUp={() => reorderArray("items", idx, idx - 1)}
+                  onMoveDown={() => reorderArray("items", idx, idx + 1)}
+                  onDelete={() => deleteFromArray("items", idx)}
+                  isSectionSelected={isSectionSelected}
+                  isEditable={isEditable}
+                />
                 <span
                   className="text-3xl sm:text-4xl font-black font-mono tracking-tight block"
                   style={{ color: theme.primaryColor }}
@@ -3517,8 +3549,23 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                   {s.highlights.map((hl, hlIdx) => (
                     <div
                       key={hl.id || hlIdx}
-                      className={`p-3 sm:p-3.5 rounded-2xl border transition-all ${cardBgClass} flex items-start gap-3 w-full`}
+                      className={`p-3 sm:p-3.5 rounded-2xl border transition-all ${cardBgClass} flex items-start gap-3 w-full relative group/hl`}
                     >
+                      {isEditable && (
+                        <div className="absolute top-2 right-2 opacity-0 group-hover/hl:opacity-100 transition-opacity flex items-center gap-1 z-20">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteFromArray("highlights", hlIdx);
+                            }}
+                            className="p-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/25 text-rose-400 border border-rose-500/20 cursor-pointer"
+                            title="Supprimer cet avantage"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      )}
                       <div
                         className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl shrink-0 flex items-center justify-center text-white shadow-sm mt-0.5"
                         style={{ backgroundColor: theme.primaryColor }}
@@ -3551,6 +3598,24 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                       </div>
                     </div>
                   ))}
+
+                  {isEditable && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newHl = {
+                          id: `hl-${Date.now()}`,
+                          title: "Avantage ou Preuve Clé",
+                          description: "Ajoutez un argument massue ou un bénéfice concret.",
+                        };
+                        updateField("highlights", [...(s.highlights || []), newHl]);
+                      }}
+                      className="w-full py-2 px-3 rounded-xl border border-dashed border-white/20 hover:border-indigo-400 hover:bg-indigo-500/10 text-slate-400 hover:text-indigo-400 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>+ Ajouter un point fort</span>
+                    </button>
+                  )}
                 </div>
               )}
 
@@ -3712,8 +3777,27 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                     </div>
                   </div>
 
-                  {/* Navigation Arrows */}
+                  {/* Navigation Arrows & Delete */}
                   <div className="flex items-center gap-2 shrink-0">
+                    {isEditable && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (items.length > 1) {
+                            deleteFromArray("items", currentIdx);
+                            ctx.setActiveSliderIndices?.((prev: any) => ({
+                              ...prev,
+                              [s.id]: Math.max(0, currentIdx - 1),
+                            }));
+                          }
+                        }}
+                        disabled={items.length <= 1}
+                        className="p-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/25 text-rose-400 border border-rose-500/20 cursor-pointer disabled:opacity-30"
+                        title="Supprimer cette slide"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
                     <button
                       type="button"
                       onClick={handlePrev}
@@ -3821,10 +3905,21 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
               return (
                 <div
                   key={c.id || cIdx}
-                  className={`rounded-3xl p-5 sm:p-7 border relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl flex flex-col justify-between ${
+                  className={`rounded-3xl p-5 sm:p-7 border relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl flex flex-col justify-between group/card ${
                     isWide ? "md:col-span-2" : "col-span-1"
                   } ${cardBgClass}`}
                 >
+                  <CardReorderToolbar
+                    idx={cIdx}
+                    total={cards.length}
+                    onMoveLeft={() => reorderArray("cards", cIdx, cIdx - 1)}
+                    onMoveRight={() => reorderArray("cards", cIdx, cIdx + 1)}
+                    onMoveUp={() => reorderArray("cards", cIdx, cIdx - 1)}
+                    onMoveDown={() => reorderArray("cards", cIdx, cIdx + 1)}
+                    onDelete={() => deleteFromArray("cards", cIdx)}
+                    isSectionSelected={isSectionSelected}
+                    isEditable={isEditable}
+                  />
                   <div
                     className="absolute -top-16 -right-16 w-36 h-36 rounded-full blur-2xl opacity-20 pointer-events-none"
                     style={{ backgroundColor: theme.primaryColor }}
@@ -3941,6 +4036,26 @@ function renderSectionContent(section: FunnelSection, ctx: any) {
                 </div>
               );
             })}
+
+            {isEditable && (
+              <button
+                type="button"
+                onClick={() => {
+                  const newCard: BentoCardItem = {
+                    id: `bc-${Date.now()}`,
+                    colSpan: "col-span-1",
+                    tag: "NOUVEAU",
+                    title: "Nouvelle Fonctionnalité Clé",
+                    description: "Détaillez ici la valeur unique apportée par ce composant.",
+                  };
+                  updateField("cards", [...cards, newCard]);
+                }}
+                className="col-span-1 md:col-span-3 py-3 rounded-2xl border-2 border-dashed border-white/20 hover:border-indigo-400 hover:bg-indigo-500/10 text-slate-400 hover:text-indigo-400 text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <Plus className="w-4 h-4" />
+                <span>+ Ajouter une carte Bento</span>
+              </button>
+            )}
           </div>
         </section>
       );
