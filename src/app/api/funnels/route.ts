@@ -30,6 +30,11 @@ export async function GET(req: NextRequest) {
     userId = user?.id;
   } catch {}
 
+  // Si non authentifié, ne jamais exposer de données globales ou de session tierce
+  if (!userId) {
+    return NextResponse.json([]);
+  }
+
   const all = await getAllFunnels(userId);
   return NextResponse.json(all);
 }

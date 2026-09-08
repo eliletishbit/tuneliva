@@ -19,6 +19,11 @@ export async function GET() {
     userId = user?.id;
   } catch {}
 
+  // Si non authentifié, isolation stricte : 0 commandes
+  if (!userId) {
+    return NextResponse.json([]);
+  }
+
   const orders = await getAllOrders(userId);
   return NextResponse.json(orders);
 }

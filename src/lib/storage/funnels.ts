@@ -56,7 +56,7 @@ export async function getAllFunnels(userId?: string): Promise<FunnelPageData[]> 
     }
 
     const { data, error } = await query;
-    if (!error && data && data.length > 0) {
+    if (!error && data) {
       return data.map((row) => ({
         ...row.data,
         id: row.id,
@@ -66,16 +66,20 @@ export async function getAllFunnels(userId?: string): Promise<FunnelPageData[]> 
         userId: row.user_id,
       }));
     }
+    if (error) {
+      console.warn("Supabase getAllFunnels error:", error);
+    }
   } catch (e) {
     console.warn("Supabase non disponible pour getAllFunnels, bascule locale:", e);
   }
 
-  // Fallback Fichier Local
+  // Fallback Fichier Local (uniquement si Supabase inaccessible)
   ensureDataDir();
   if (!fs.existsSync(FUNNELS_FILE)) return [];
   try {
     const raw = fs.readFileSync(FUNNELS_FILE, "utf-8");
-    return JSON.parse(raw);
+    const list: FunnelPageData[] = JSON.parse(raw);
+    return userId ? list.filter((f) => f.userId === userId) : list;
   } catch {
     return [];
   }
@@ -105,8 +109,15 @@ export async function getFunnelBySlug(slug: string): Promise<FunnelPageData | nu
   }
 
   // Fallback Local
-  const localList = await getAllFunnels();
-  return localList.find((f) => f.slug === slug) || null;
+  try {
+    ensureDataDir();
+    if (fs.existsSync(FUNNELS_FILE)) {
+      const raw = fs.readFileSync(FUNNELS_FILE, "utf-8");
+      const list: FunnelPageData[] = JSON.parse(raw);
+      return list.find((f) => f.slug === slug) || null;
+    }
+  } catch {}
+  return null;
 }
 
 export async function saveFunnel(
@@ -128,6 +139,7 @@ export async function saveFunnel(
   const updatedFunnel: FunnelPageData = {
     ...funnel,
     slug,
+    userId: userId || funnel.userId,
   };
 
   // 1. Sauvegarde dans Supabase PostgreSQL
@@ -142,8 +154,8 @@ export async function saveFunnel(
       updated_at: new Date().toISOString(),
     };
 
-    if (userId) {
-      payload.user_id = userId;
+    if (userId || funnel.userId) {
+      payload.user_id = userId || funnel.userId;
     }
 
     const { data, error } = await supabase
@@ -159,10 +171,15 @@ export async function saveFunnel(
     console.warn("Erreur sauvegarde Supabase, persistance locale de secours:", e);
   }
 
-  // 2. Mise à jour de la mémoire cache locale
+  // 2. Mise à jour de la mémoire cache locale de secours
   try {
     ensureDataDir();
-    const funnels = await getAllFunnels();
+    let funnels: FunnelPageData[] = [];
+    if (fs.existsSync(FUNNELS_FILE)) {
+      try {
+        funnels = JSON.parse(fs.readFileSync(FUNNELS_FILE, "utf-8"));
+      } catch {}
+    }
     const existingIndex = funnels.findIndex((f) => f.slug === slug);
     if (existingIndex >= 0) {
       funnels[existingIndex] = updatedFunnel;
@@ -189,11 +206,14 @@ export async function deleteFunnel(slug: string, userId?: string): Promise<boole
 
   try {
     ensureDataDir();
-    const funnels = await getAllFunnels();
-    const filtered = funnels.filter((f) => f.slug !== slug);
-    if (filtered.length !== funnels.length) {
-      fs.writeFileSync(FUNNELS_FILE, JSON.stringify(filtered, null, 2), "utf-8");
-      return true;
+    if (fs.existsSync(FUNNELS_FILE)) {
+      const raw = fs.readFileSync(FUNNELS_FILE, "utf-8");
+      const funnels: FunnelPageData[] = JSON.parse(raw);
+      const filtered = funnels.filter((f) => f.slug !== slug);
+      if (filtered.length !== funnels.length) {
+        fs.writeFileSync(FUNNELS_FILE, JSON.stringify(filtered, null, 2), "utf-8");
+        return true;
+      }
     }
   } catch {}
 
@@ -217,7 +237,7 @@ export async function getAllOrders(userId?: string): Promise<OrderRecord[]> {
     }
 
     const { data, error } = await query;
-    if (!error && data && data.length > 0) {
+    if (!error && data) {
       return data.map((row) => ({
         id: row.id,
         funnelSlug: row.funnel_slug,
@@ -240,16 +260,20 @@ export async function getAllOrders(userId?: string): Promise<OrderRecord[]> {
         createdAt: row.created_at,
       }));
     }
+    if (error) {
+      console.warn("Supabase getAllOrders error:", error);
+    }
   } catch (e) {
     console.warn("Supabase getAllOrders fallback:", e);
   }
 
-  // Fallback Local
+  // Fallback Local (uniquement si Supabase inaccessible)
   ensureDataDir();
   if (!fs.existsSync(ORDERS_FILE)) return [];
   try {
     const raw = fs.readFileSync(ORDERS_FILE, "utf-8");
-    return JSON.parse(raw);
+    const list: OrderRecord[] = JSON.parse(raw);
+    return userId ? list.filter((o) => o.userId === userId) : list;
   } catch {
     return [];
   }
@@ -291,8 +315,15 @@ export async function getOrderById(orderId: string): Promise<OrderRecord | null>
     console.warn("Supabase getOrderById fallback:", e);
   }
 
-  const all = await getAllOrders();
-  return all.find((o) => o.id === orderId) || null;
+  try {
+    ensureDataDir();
+    if (fs.existsSync(ORDERS_FILE)) {
+      const raw = fs.readFileSync(ORDERS_FILE, "utf-8");
+      const list: OrderRecord[] = JSON.parse(raw);
+      return list.find((o) => o.id === orderId) || null;
+    }
+  } catch {}
+  return null;
 }
 
 export async function saveOrder(order: Partial<OrderRecord>): Promise<OrderRecord> {
@@ -350,7 +381,12 @@ export async function saveOrder(order: Partial<OrderRecord>): Promise<OrderRecor
   // 2. Sauvegarde locale de secours
   try {
     ensureDataDir();
-    const orders = await getAllOrders();
+    let orders: OrderRecord[] = [];
+    if (fs.existsSync(ORDERS_FILE)) {
+      try {
+        orders = JSON.parse(fs.readFileSync(ORDERS_FILE, "utf-8"));
+      } catch {}
+    }
     orders.unshift(newOrder);
     fs.writeFileSync(ORDERS_FILE, JSON.stringify(orders, null, 2), "utf-8");
   } catch {}
@@ -382,15 +418,17 @@ export async function updateOrderStatus(
   // 2. Local update
   try {
     ensureDataDir();
-    const orders = await getAllOrders();
-    const idx = orders.findIndex((o) => o.id === orderId);
-    if (idx !== -1) {
-      orders[idx].orderStatus = newStatus;
-      if (paymentStatus) {
-        orders[idx].paymentStatus = paymentStatus;
+    if (fs.existsSync(ORDERS_FILE)) {
+      const orders: OrderRecord[] = JSON.parse(fs.readFileSync(ORDERS_FILE, "utf-8"));
+      const idx = orders.findIndex((o) => o.id === orderId);
+      if (idx !== -1) {
+        orders[idx].orderStatus = newStatus;
+        if (paymentStatus) {
+          orders[idx].paymentStatus = paymentStatus;
+        }
+        fs.writeFileSync(ORDERS_FILE, JSON.stringify(orders, null, 2), "utf-8");
+        return orders[idx];
       }
-      fs.writeFileSync(ORDERS_FILE, JSON.stringify(orders, null, 2), "utf-8");
-      return orders[idx];
     }
   } catch {}
 
@@ -407,11 +445,13 @@ export async function deleteOrder(orderId: string): Promise<boolean> {
 
   try {
     ensureDataDir();
-    const orders = await getAllOrders();
-    const filtered = orders.filter((o) => o.id !== orderId);
-    if (filtered.length !== orders.length) {
-      fs.writeFileSync(ORDERS_FILE, JSON.stringify(filtered, null, 2), "utf-8");
-      return true;
+    if (fs.existsSync(ORDERS_FILE)) {
+      const orders: OrderRecord[] = JSON.parse(fs.readFileSync(ORDERS_FILE, "utf-8"));
+      const filtered = orders.filter((o) => o.id !== orderId);
+      if (filtered.length !== orders.length) {
+        fs.writeFileSync(ORDERS_FILE, JSON.stringify(filtered, null, 2), "utf-8");
+        return true;
+      }
     }
   } catch {}
 

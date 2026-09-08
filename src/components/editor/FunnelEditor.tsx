@@ -1493,10 +1493,6 @@ export function FunnelEditor({
         const fullUrl = `${origin}/p/${savedSlug}`;
         setPublishedUrl(fullUrl);
         setShowPublishModal(true);
-
-        if (typeof window !== "undefined") {
-          localStorage.setItem(`tuneliva_funnel_${savedSlug}`, JSON.stringify(funnelData));
-        }
       }
     } catch (e) {
       console.error("Erreur publication tunnel:", e);
