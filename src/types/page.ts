@@ -32,7 +32,10 @@ export type DesignPreset =
   | "vert_sauge"
   | "ambre_karite"
   | "violet_mystique"
-  | "bleu_ocean";
+  | "bleu_ocean"
+  | "v0app_masterclass"
+  | "creator_hub"
+  | "visual_ai_studio";
 
 export interface BaseSectionProps {
   id: string;
@@ -399,6 +402,11 @@ export interface ThemeConfig {
   primaryColor: string;
   accentColor: string;
   pageBackground: string;
+  backgroundGradient?: string;
+  glowColor?: string;
+  ambientGlow?: boolean;
+  cardStyle?: "flat" | "elevated" | "glass" | "glowing_border";
+  backgroundStyle?: "solid" | "mesh_gradient" | "radial_glow" | "aurora";
   cardBackground: string;
   cardBorderColor: string;
   textColor: string;

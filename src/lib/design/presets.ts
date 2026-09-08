@@ -12,19 +12,128 @@ export interface PresetDetails {
 }
 
 export const DESIGN_PRESETS: Record<DesignPreset, PresetDetails> = {
-  // 1. ROSE POUDRÉ & GLAMOUR (Féminin, Beauté, Cosmétique, Lingerie)
+  // 1. FINTECH MINT & OBSIDIAN (MomoOpti - Modèle Élite)
+  fintech_mint: {
+    id: "fintech_mint",
+    name: "MomoOpti • Fintech Mint & Obsidian",
+    badge: "⚡ Performance & MoMo",
+    description: "Fond noir obsidienne profond avec dégradé radial émeraude/cyan, boutons mint et cartes illuminées.",
+    theme: {
+      primaryColor: "#00F5A0",
+      accentColor: "#06B6D4",
+      pageBackground: "#060913",
+      backgroundGradient: "radial-gradient(ellipse 80% 50% at 50% -10%, rgba(0, 245, 160, 0.16) 0%, transparent 65%), radial-gradient(circle at 90% 15%, rgba(6, 182, 212, 0.12) 0%, transparent 50%), #060913",
+      glowColor: "#00F5A0",
+      ambientGlow: true,
+      cardStyle: "glowing_border",
+      backgroundStyle: "mesh_gradient",
+      cardBackground: "#0A1024",
+      cardBorderColor: "rgba(0, 245, 160, 0.22)",
+      textColor: "#FFFFFF",
+      textMutedColor: "#94A3B8",
+      fontFamily: "Plus Jakarta Sans",
+      isDarkTheme: true,
+      bannerUrgencyText: "🔥 OFFRE SPÉCIALE : -35% DE RÉDUCTION JUSQU'À CE SOIR SEULEMENT !",
+      countdownMinutes: 115,
+    },
+  },
+
+  // 2. V0APP MASTERCLASS (Modèle Élite)
+  v0app_masterclass: {
+    id: "v0app_masterclass",
+    name: "The Art of Agentic AI (v0app)",
+    badge: "🔮 Masterclass & Événement Live",
+    description: "Fond Midnight Navy avec halo zénithal violet électrique et bleu cyan, cartes en verre fumé et typographie géométrique.",
+    theme: {
+      primaryColor: "#8B5CF6",
+      accentColor: "#06B6D4",
+      pageBackground: "#070B19",
+      backgroundGradient: "radial-gradient(ellipse 85% 55% at 50% -10%, rgba(139, 92, 246, 0.24) 0%, transparent 70%), radial-gradient(circle at 85% 20%, rgba(6, 182, 212, 0.14) 0%, transparent 55%), #070B19",
+      glowColor: "#8B5CF6",
+      ambientGlow: true,
+      cardStyle: "glass",
+      backgroundStyle: "mesh_gradient",
+      cardBackground: "#0D1429",
+      cardBorderColor: "rgba(139, 92, 246, 0.25)",
+      textColor: "#FFFFFF",
+      textMutedColor: "#A5B4FC",
+      fontFamily: "Plus Jakarta Sans",
+      isDarkTheme: true,
+      bannerUrgencyText: "⚡ MASTERCLASS LIVE 2026 : PLUS QUE QUELQUES PASS DISPONIBLES !",
+      countdownMinutes: 90,
+    },
+  },
+
+  // 3. CREATOR HUB (Modèle Élite)
+  creator_hub: {
+    id: "creator_hub",
+    name: "Creator Hub • Monétisation Produits Digitaux",
+    badge: "🚀 Deep Carbon & Néon Magenta",
+    description: "Ambiance créateur avec double halo néon magenta et améthyste, titres ultra-vendeurs et badges d'encaissement.",
+    theme: {
+      primaryColor: "#EC4899",
+      accentColor: "#A855F7",
+      pageBackground: "#08070B",
+      backgroundGradient: "radial-gradient(ellipse 70% 45% at 20% -5%, rgba(236, 72, 153, 0.20) 0%, transparent 60%), radial-gradient(ellipse 70% 45% at 80% 12%, rgba(168, 85, 247, 0.18) 0%, transparent 60%), #08070B",
+      glowColor: "#EC4899",
+      ambientGlow: true,
+      cardStyle: "glowing_border",
+      backgroundStyle: "mesh_gradient",
+      cardBackground: "#110E18",
+      cardBorderColor: "rgba(236, 72, 153, 0.25)",
+      textColor: "#FFFFFF",
+      textMutedColor: "#F472B6",
+      fontFamily: "Plus Jakarta Sans",
+      isDarkTheme: true,
+      bannerUrgencyText: "🔥 PACK CRÉATEUR 2026 : ACCÈS IMMÉDIAT SANS ABONNEMENT !",
+      countdownMinutes: 120,
+    },
+  },
+
+  // 4. VISUAL AI STUDIO (Ideogram - Modèle Élite)
+  visual_ai_studio: {
+    id: "visual_ai_studio",
+    name: "Visual AI Studio (Ideogram)",
+    badge: "✨ Luminous Pearl & Pastel Mesh",
+    description: "Design épuré et minimaliste haute gamme inspiré d'Ideogram, fond perle opale avec reflets pastels subtils et cartes blanches dépolies.",
+    theme: {
+      primaryColor: "#4F46E5",
+      accentColor: "#EC4899",
+      pageBackground: "#FAFAFD",
+      backgroundGradient: "radial-gradient(ellipse 85% 50% at 50% -10%, rgba(99, 102, 241, 0.12) 0%, transparent 65%), radial-gradient(circle at 80% 15%, rgba(236, 72, 153, 0.08) 0%, transparent 50%), radial-gradient(circle at 20% 30%, rgba(6, 182, 212, 0.08) 0%, transparent 50%), #FAFAFD",
+      glowColor: "#818CF8",
+      ambientGlow: true,
+      cardStyle: "glass",
+      backgroundStyle: "mesh_gradient",
+      cardBackground: "#FFFFFF",
+      cardBorderColor: "rgba(99, 102, 241, 0.15)",
+      textColor: "#0F172A",
+      textMutedColor: "#64748B",
+      fontFamily: "Plus Jakarta Sans",
+      isDarkTheme: false,
+      bannerUrgencyText: "✨ 50 CRÉDITS DE CRÉATION OFFERTS SANS CARTE BANCAIRE !",
+      countdownMinutes: 180,
+    },
+  },
+
+  // 5. ROSE POUDRÉ & GLAMOUR (Féminin, Beauté, Cosmétique, Lingerie)
   rose_glamour: {
     id: "rose_glamour",
     name: "Rose Poudré & Glamour",
     badge: "🌸 Beauté & Passion Féminine",
     description: "Teintes roses poudrées, élégance féminine et douceur pour cosmétiques, soins et mode.",
     theme: {
-      primaryColor: "#F43F5E", // Rose éclatant
-      accentColor: "#FB7185", // Rose poudré doux
-      pageBackground: "#FFF1F2", // Fond rosé très doux en mode clair
+      primaryColor: "#F43F5E",
+      accentColor: "#FB7185",
+      pageBackground: "#FFF1F2",
+      backgroundGradient: "radial-gradient(ellipse 80% 50% at 50% -10%, rgba(244, 63, 94, 0.14) 0%, transparent 60%), #FFF1F2",
+      glowColor: "#FB7185",
+      ambientGlow: true,
+      cardStyle: "elevated",
+      backgroundStyle: "mesh_gradient",
       cardBackground: "#FFFFFF",
       cardBorderColor: "rgba(244, 63, 94, 0.20)",
-      textColor: "#881337", // Prune profond
+      textColor: "#881337",
       textMutedColor: "#9F1239",
       fontFamily: "Poppins",
       isDarkTheme: false,
@@ -33,17 +142,22 @@ export const DESIGN_PRESETS: Record<DesignPreset, PresetDetails> = {
     },
   },
 
-  // 2. BORDEAUX ROYAL & VELOURS (Mode de luxe, Parfums, Lingerie, Soirée)
+  // 6. BORDEAUX ROYAL & VELOURS (Mode de luxe, Parfums, Lingerie, Soirée)
   bordeaux_velours: {
     id: "bordeaux_velours",
     name: "Bordeaux Royal & Velours",
     badge: "🍷 Luxe Sensuel & Prestige",
     description: "Ambiance pourpre et bordeaux voluptueuse avec touches dorées pour parfums et haute couture.",
     theme: {
-      primaryColor: "#E11D48", // Rubis vibrant
-      accentColor: "#F59E0B", // Or chaud
-      pageBackground: "#130408", // Bordeaux très sombre profond
-      cardBackground: "#240710", // Cartes velours
+      primaryColor: "#E11D48",
+      accentColor: "#F59E0B",
+      pageBackground: "#130408",
+      backgroundGradient: "radial-gradient(ellipse 80% 50% at 50% -10%, rgba(225, 29, 72, 0.22) 0%, transparent 60%), #130408",
+      glowColor: "#E11D48",
+      ambientGlow: true,
+      cardStyle: "glass",
+      backgroundStyle: "mesh_gradient",
+      cardBackground: "#240710",
       cardBorderColor: "rgba(225, 29, 72, 0.30)",
       textColor: "#FFF1F2",
       textMutedColor: "#FDA4AF",
@@ -54,16 +168,21 @@ export const DESIGN_PRESETS: Record<DesignPreset, PresetDetails> = {
     },
   },
 
-  // 3. ROUGE PASSION & ÉNERGIE (High Impact, Événements, Promos Chocs)
+  // 7. ROUGE PASSION & ÉNERGIE (High Impact, Événements, Promos Chocs)
   rouge_passion: {
     id: "rouge_passion",
     name: "Rouge Passion & Énergie",
     badge: "🔥 Vente Flash & Urgence",
     description: "Rouge incendiaire captivant l'attention instantanément pour les promotions explosives.",
     theme: {
-      primaryColor: "#DC2626", // Rouge vif énergique
-      accentColor: "#F97316", // Orange feu
+      primaryColor: "#DC2626",
+      accentColor: "#F97316",
       pageBackground: "#0A0506",
+      backgroundGradient: "radial-gradient(ellipse 80% 50% at 50% -10%, rgba(220, 38, 38, 0.20) 0%, transparent 60%), #0A0506",
+      glowColor: "#DC2626",
+      ambientGlow: true,
+      cardStyle: "glowing_border",
+      backgroundStyle: "mesh_gradient",
       cardBackground: "#180A0C",
       cardBorderColor: "rgba(220, 38, 38, 0.25)",
       textColor: "#FFFFFF",
@@ -75,40 +194,50 @@ export const DESIGN_PRESETS: Record<DesignPreset, PresetDetails> = {
     },
   },
 
-  // 4. VERT NATURE & SAUGE BIO (Miel, Tisanes, Huiles, Détox, Bien-être)
+  // 8. VERT NATURE & SAUGE BIO (Miel, Tisanes, Huiles, Détox, Bien-être)
   vert_sauge: {
     id: "vert_sauge",
     name: "Vert Sauge & Forêt Bio",
     badge: "🌿 Nature & Pureté Terroir",
     description: "Vert végétal et blanc pur inspirant la santé, les produits bio et le respect du corps.",
     theme: {
-      primaryColor: "#059669", // Vert émeraude végétal
-      accentColor: "#10B981", // Menthe fraîche
-      pageBackground: "#F2FBF7", // Blanc cassé verdoyant
+      primaryColor: "#059669",
+      accentColor: "#10B981",
+      pageBackground: "#F2FBF7",
+      backgroundGradient: "radial-gradient(ellipse 80% 50% at 50% -10%, rgba(16, 185, 129, 0.12) 0%, transparent 60%), #F2FBF7",
+      glowColor: "#10B981",
+      ambientGlow: true,
+      cardStyle: "elevated",
+      backgroundStyle: "mesh_gradient",
       cardBackground: "#FFFFFF",
       cardBorderColor: "rgba(5, 150, 105, 0.18)",
-      textColor: "#064E3B", // Vert forêt profond
+      textColor: "#064E3B",
       textMutedColor: "#047857",
       fontFamily: "Plus Jakarta Sans",
       isDarkTheme: false,
-      bannerUrgencyText: "🌿 100% PUR ET NATUREL RÉCOLTÉ AU NORD DU BÉNIN SANS COLORANT NI CONSERVATEUR",
+      bannerUrgencyText: "🌿 100% PUR ET NATUREL RÉCOLTÉ SANS COLORANT NI CONSERVATEUR",
       countdownMinutes: 140,
     },
   },
 
-  // 5. AMBRE SOLAIRE & KARITÉ (Cosmétique Africaine, Cuir, Terroir)
+  // 9. AMBRE SOLAIRE & KARITÉ (Cosmétique Africaine, Cuir, Terroir)
   ambre_karite: {
     id: "ambre_karite",
     name: "Ambre Solaire & Karité",
     badge: "🍯 Terroir & Chaleur d'Afrique",
     description: "Palette miel et caramel chaleureuse idéale pour beurres de karité, huiles et artisanat.",
     theme: {
-      primaryColor: "#D97706", // Ambre doré
-      accentColor: "#F59E0B", // Miel
-      pageBackground: "#FFFDF9", // Crème douce
+      primaryColor: "#D97706",
+      accentColor: "#F59E0B",
+      pageBackground: "#FFFDF9",
+      backgroundGradient: "radial-gradient(ellipse 80% 50% at 50% -10%, rgba(217, 119, 6, 0.12) 0%, transparent 60%), #FFFDF9",
+      glowColor: "#F59E0B",
+      ambientGlow: true,
+      cardStyle: "elevated",
+      backgroundStyle: "mesh_gradient",
       cardBackground: "#FFFFFF",
       cardBorderColor: "rgba(217, 119, 6, 0.20)",
-      textColor: "#451A03", // Terre cuite foncée
+      textColor: "#451A03",
       textMutedColor: "#78350F",
       fontFamily: "Poppins",
       isDarkTheme: false,
@@ -117,16 +246,21 @@ export const DESIGN_PRESETS: Record<DesignPreset, PresetDetails> = {
     },
   },
 
-  // 6. VIOLET MYSTIQUE & PARFUMERIE (Senteurs, Spiritualité, Nuit)
+  // 10. VIOLET MYSTIQUE & PARFUMERIE (Senteurs, Spiritualité, Nuit)
   violet_mystique: {
     id: "violet_mystique",
     name: "Violet Mystique & Encens",
     badge: "🔮 Bien-être & Senteurs",
     description: "Ambiance feutrée violette et améthyste pour relaxation, bougies et soins de nuit.",
     theme: {
-      primaryColor: "#7C3AED", // Violet électrique
-      accentColor: "#A855F7", // Lilas lumineux
-      pageBackground: "#0B0616", // Nuit violette
+      primaryColor: "#7C3AED",
+      accentColor: "#A855F7",
+      pageBackground: "#0B0616",
+      backgroundGradient: "radial-gradient(ellipse 80% 50% at 50% -10%, rgba(124, 58, 237, 0.22) 0%, transparent 60%), #0B0616",
+      glowColor: "#A855F7",
+      ambientGlow: true,
+      cardStyle: "glass",
+      backgroundStyle: "mesh_gradient",
       cardBackground: "#140C28",
       cardBorderColor: "rgba(124, 58, 237, 0.25)",
       textColor: "#F5F3FF",
@@ -138,28 +272,33 @@ export const DESIGN_PRESETS: Record<DesignPreset, PresetDetails> = {
     },
   },
 
-  // 7. BLEU OCÉAN & CYAN (Tech, Gadgets, Électronique, Solutions Web)
+  // 11. BLEU OCÉAN & CYAN (Tech, Gadgets, Électronique, Solutions Web)
   bleu_ocean: {
     id: "bleu_ocean",
     name: "Bleu Océan & Cyan",
     badge: "🌊 Fraîcheur & High-Tech",
     description: "Bleu roi et cyan cristallin pour gadgets, écouteurs sans fil et technologie.",
     theme: {
-      primaryColor: "#0284C7", // Bleu ciel azur
-      accentColor: "#06B6D4", // Cyan
+      primaryColor: "#0284C7",
+      accentColor: "#06B6D4",
       pageBackground: "#040B14",
+      backgroundGradient: "radial-gradient(ellipse 80% 50% at 50% -10%, rgba(2, 132, 199, 0.22) 0%, transparent 60%), #040B14",
+      glowColor: "#06B6D4",
+      ambientGlow: true,
+      cardStyle: "glowing_border",
+      backgroundStyle: "mesh_gradient",
       cardBackground: "#081628",
       cardBorderColor: "rgba(2, 132, 199, 0.25)",
       textColor: "#F0F9FF",
       textMutedColor: "#7DD3FC",
       fontFamily: "Inter",
       isDarkTheme: true,
-      bannerUrgencyText: "🚀 DERNIÈRE GÉNÉRATION BLUETOOTH 5.4 AVEC RÉDUCTION DE BRUIT ACTIVE",
+      bannerUrgencyText: "🚀 DERNIÈRE GÉNÉRATION AVEC RÉDUCTION DE BRUIT ACTIVE",
       countdownMinutes: 100,
     },
   },
 
-  // 8. BLEU PRO & ORANGE SOLAIRE (Serrurier, Artisans, Services Locaux)
+  // 12. BLEU PRO & ORANGE SOLAIRE (Serrurier, Artisans, Services Locaux)
   clean_pro_navy: {
     id: "clean_pro_navy",
     name: "Bleu Pro & Orange Solaire",
@@ -169,6 +308,11 @@ export const DESIGN_PRESETS: Record<DesignPreset, PresetDetails> = {
       primaryColor: "#EA580C",
       accentColor: "#22C55E",
       pageBackground: "#F8FAFC",
+      backgroundGradient: "radial-gradient(ellipse 80% 50% at 50% -10%, rgba(234, 88, 12, 0.08) 0%, transparent 60%), #F8FAFC",
+      glowColor: "#EA580C",
+      ambientGlow: false,
+      cardStyle: "elevated",
+      backgroundStyle: "mesh_gradient",
       cardBackground: "#FFFFFF",
       cardBorderColor: "rgba(15, 23, 42, 0.08)",
       textColor: "#0F172A",
@@ -180,7 +324,7 @@ export const DESIGN_PRESETS: Record<DesignPreset, PresetDetails> = {
     },
   },
 
-  // 9. OR ROYAL & NOIR CARBONE (Académie, Prestige, Lancement VIP)
+  // 13. OR ROYAL & NOIR CARBONE (Académie, Prestige, Lancement VIP)
   luxury_gold: {
     id: "luxury_gold",
     name: "Or Royal & Noir Carbone",
@@ -190,8 +334,13 @@ export const DESIGN_PRESETS: Record<DesignPreset, PresetDetails> = {
       primaryColor: "#EAB308",
       accentColor: "#F59E0B",
       pageBackground: "#08080A",
+      backgroundGradient: "radial-gradient(ellipse 80% 50% at 50% -10%, rgba(234, 179, 8, 0.20) 0%, transparent 60%), #08080A",
+      glowColor: "#EAB308",
+      ambientGlow: true,
+      cardStyle: "glowing_border",
+      backgroundStyle: "mesh_gradient",
       cardBackground: "#111115",
-      cardBorderColor: "rgba(234, 179, 8, 0.22)",
+      cardBorderColor: "rgba(234, 179, 8, 0.25)",
       textColor: "#FBFBFC",
       textMutedColor: "#A1A1AA",
       fontFamily: "Plus Jakarta Sans",
@@ -201,28 +350,7 @@ export const DESIGN_PRESETS: Record<DesignPreset, PresetDetails> = {
     },
   },
 
-  // 10. FINTECH MINT & OBSIDIAN (Mobile Money, Crypto, Finance)
-  fintech_mint: {
-    id: "fintech_mint",
-    name: "Fintech Mint & Obsidian",
-    badge: "⚡ Performance & MoMo",
-    description: "Fond noir bleuté ultra-profond avec boutons émeraude néon et badges d'opérateurs.",
-    theme: {
-      primaryColor: "#10B981",
-      accentColor: "#00F5A0",
-      pageBackground: "#040711",
-      cardBackground: "#0A1024",
-      cardBorderColor: "rgba(16, 185, 129, 0.18)",
-      textColor: "#FFFFFF",
-      textMutedColor: "#94A3B8",
-      fontFamily: "Plus Jakarta Sans",
-      isDarkTheme: true,
-      bannerUrgencyText: "🔥 OFFRE SPÉCIALE : -35% DE RÉDUCTION JUSQU'À CE SOIR SEULEMENT !",
-      countdownMinutes: 115,
-    },
-  },
-
-  // 11. INDIGO ÉLECTRIQUE & NUIT (SaaS, Startup Silicon Valley)
+  // 14. INDIGO ÉLECTRIQUE & NUIT (SaaS, Startup Silicon Valley)
   saas_indigo: {
     id: "saas_indigo",
     name: "Indigo Électrique & Nuit",
@@ -232,8 +360,13 @@ export const DESIGN_PRESETS: Record<DesignPreset, PresetDetails> = {
       primaryColor: "#6366F1",
       accentColor: "#FACC15",
       pageBackground: "#070B16",
+      backgroundGradient: "radial-gradient(ellipse 80% 50% at 50% -10%, rgba(99, 102, 241, 0.22) 0%, transparent 65%), #070B16",
+      glowColor: "#6366F1",
+      ambientGlow: true,
+      cardStyle: "glass",
+      backgroundStyle: "mesh_gradient",
       cardBackground: "#0F172A",
-      cardBorderColor: "rgba(99, 102, 241, 0.20)",
+      cardBorderColor: "rgba(99, 102, 241, 0.22)",
       textColor: "#F8FAFC",
       textMutedColor: "#94A3B8",
       fontFamily: "Plus Jakarta Sans",

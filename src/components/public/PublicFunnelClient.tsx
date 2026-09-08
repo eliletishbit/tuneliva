@@ -5,13 +5,16 @@ import { useRouter } from "next/navigation";
 import Script from "next/script";
 import { FunnelPageData, FunnelStep } from "@/types/page";
 import { FunnelRenderer } from "@/components/preview/FunnelRenderer";
-import { Loader2, CheckCircle2 } from "lucide-react";
+import { Loader2, CheckCircle2, AlertCircle, RotateCcw, MessageCircle, X } from "lucide-react";
 
 interface PublicFunnelClientProps {
   slug: string;
   stepSlug?: string;
   initialFunnel: FunnelPageData | null;
   orderSuccessQuery?: boolean;
+  paymentErrorQuery?: string;
+  orderIdQuery?: string;
+  paidQuery?: boolean;
 }
 
 export function PublicFunnelClient({
@@ -19,13 +22,19 @@ export function PublicFunnelClient({
   stepSlug,
   initialFunnel,
   orderSuccessQuery = false,
+  paymentErrorQuery,
+  orderIdQuery,
+  paidQuery = false,
 }: PublicFunnelClientProps) {
   const router = useRouter();
   const [funnelData, setFunnelData] = useState<FunnelPageData | null>(initialFunnel);
   const [activeStep, setActiveStep] = useState<FunnelStep | null>(null);
   const [loading, setLoading] = useState(!initialFunnel);
   const [notFound, setNotFound] = useState(false);
-  const [showSuccessBanner, setShowSuccessBanner] = useState(orderSuccessQuery);
+  const [showSuccessBanner, setShowSuccessBanner] = useState(orderSuccessQuery || paidQuery);
+  const [showErrorBanner, setShowErrorBanner] = useState(!!paymentErrorQuery);
+  const [paymentError, setPaymentError] = useState<string | undefined>(paymentErrorQuery);
+  const [orderId, setOrderId] = useState<string | undefined>(orderIdQuery);
 
   useEffect(() => {
     async function fetchClientSide() {
@@ -80,6 +89,28 @@ export function PublicFunnelClient({
 
     fetchClientSide();
   }, [slug, stepSlug, initialFunnel]);
+
+  // Détection dynamique des paramètres de paiement en retour de passerelle
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search);
+      const pError = urlParams.get("payment_error");
+      const oId = urlParams.get("order_id");
+      const oSuccess = urlParams.get("order_success") === "true";
+      const isPaid = urlParams.get("paid") === "true";
+
+      if (pError) {
+        setPaymentError(pError);
+        setShowErrorBanner(true);
+      }
+      if (oId) {
+        setOrderId(oId);
+      }
+      if (oSuccess || isPaid) {
+        setShowSuccessBanner(true);
+      }
+    }
+  }, []);
 
   const handleOrderSuccess = async (orderDetails: any) => {
     try {
@@ -206,20 +237,126 @@ export function PublicFunnelClient({
         </Script>
       )}
 
-      {/* 3. BANNIÈRE DE SUCCÈS COMMANDE (EN CAS DE RETOUR PAIEMENT) */}
+      {/* 3. BANNIÈRE D'ALERTE D'ÉCHEC / ANNULATION DE PAIEMENT */}
+      {showErrorBanner && (
+        <div className="sticky top-0 z-50 bg-rose-950/95 border-b border-rose-500/40 text-white px-4 py-3 sm:py-4 shadow-2xl backdrop-blur-xl animate-in slide-in-from-top-3 duration-300">
+          <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center text-rose-400 shrink-0">
+                <AlertCircle className="w-5 h-5" />
+              </div>
+              <div className="space-y-0.5">
+                <h4 className="text-sm font-black text-rose-200">
+                  {paymentError === "declined"
+                    ? "Transaction Mobile Money ou Carte Refusée"
+                    : paymentError === "cancelled"
+                    ? "Paiement Annulé par l'Utilisateur"
+                    : "Le paiement n'a pas pu aboutir"}
+                </h4>
+                <p className="text-xs text-rose-300/90 leading-relaxed">
+                  {paymentError === "declined"
+                    ? "Votre opérateur (MTN, Moov, Wave, Carte) n'a pas validé le prélèvement. Votre compte n'a pas été débité."
+                    : "Votre commande est enregistrée en attente. Aucun montant n'a été prélevé."}
+                  {orderId && <span className="font-mono text-[11px] ml-1 opacity-80">(Réf: #{orderId})</span>}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowErrorBanner(false);
+                  const el = document.getElementById("commander") || document.querySelector("form");
+                  el?.scrollIntoView({ behavior: "smooth" });
+                }}
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-400 hover:to-orange-400 text-white text-xs font-extrabold shadow-lg transition-transform hover:scale-105 flex items-center gap-1.5 cursor-pointer"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>Réessayer le paiement</span>
+              </button>
+
+              {funnelData.branding?.whatsappNumber && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const clean = funnelData.branding!.whatsappNumber!.replace(/[^0-9]/g, "");
+                    const msg = encodeURIComponent(
+                      `Bonjour ! J'ai rencontré un souci avec mon paiement en ligne pour "${funnelData.projectName}" (Réf: ${orderId || "commande"}). Pouvons-nous finaliser directement ensemble ?`
+                    );
+                    window.open(`https://wa.me/${clean}?text=${msg}`, "_blank");
+                  }}
+                  className="px-3.5 py-2 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-white text-xs font-bold transition-transform hover:scale-105 flex items-center gap-1.5 cursor-pointer shadow-md"
+                >
+                  <MessageCircle className="w-3.5 h-3.5 fill-white" />
+                  <span className="hidden sm:inline">Aide WhatsApp direct</span>
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setShowErrorBanner(false)}
+                className="p-1.5 rounded-lg text-rose-400 hover:text-white hover:bg-white/10 transition-colors"
+                title="Fermer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 4. BANNIÈRE DE CONFIRMATION / SUCCÈS COMMANDE */}
       {showSuccessBanner && (
-        <div className="sticky top-0 z-50 bg-emerald-600 text-white px-4 py-3 text-center text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-lg">
-          <CheckCircle2 className="w-5 h-5 text-white animate-bounce" />
-          <span>
-            Votre commande a été validée avec succès ! Notre équipe vous contactera
-            par WhatsApp pour la livraison.
-          </span>
-          <button
-            onClick={() => setShowSuccessBanner(false)}
-            className="ml-2 text-white/80 hover:text-white cursor-pointer"
-          >
-            ✕
-          </button>
+        <div className="sticky top-0 z-50 bg-emerald-950/95 border-b border-emerald-500/40 text-white px-4 py-3 sm:py-4 shadow-2xl backdrop-blur-xl animate-in slide-in-from-top-3 duration-300">
+          <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
+                <CheckCircle2 className="w-5 h-5 text-emerald-400 animate-bounce" />
+              </div>
+              <div className="space-y-0.5">
+                <h4 className="text-sm font-black text-emerald-200">
+                  🎉 Félicitations ! Votre commande est confirmée
+                </h4>
+                <p className="text-xs text-emerald-300/90 leading-relaxed">
+                  Votre transaction a été approuvée. Notre équipe prépare votre envoi et vous contacte sur votre numéro.
+                  {orderId && (
+                    <span className="font-mono text-[11px] ml-1.5 font-bold bg-emerald-500/20 px-2 py-0.5 rounded-md text-emerald-300">
+                      Réf: #{orderId}
+                    </span>
+                  )}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              {funnelData.branding?.whatsappNumber && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const clean = funnelData.branding!.whatsappNumber!.replace(/[^0-9]/g, "");
+                    const msg = encodeURIComponent(
+                      `Bonjour ! Je viens de valider ma commande pour "${funnelData.projectName}" (Réf: ${orderId || "commande"}). Merci de me confirmer la prise en charge !`
+                    );
+                    window.open(`https://wa.me/${clean}?text=${msg}`, "_blank");
+                  }}
+                  className="px-3.5 py-2 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-white text-xs font-bold transition-transform hover:scale-105 flex items-center gap-1.5 cursor-pointer shadow-md"
+                >
+                  <MessageCircle className="w-3.5 h-3.5 fill-white" />
+                  <span>Suivi WhatsApp</span>
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setShowSuccessBanner(false)}
+                className="p-1.5 rounded-lg text-emerald-400 hover:text-white hover:bg-white/10 transition-colors"
+                title="Fermer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

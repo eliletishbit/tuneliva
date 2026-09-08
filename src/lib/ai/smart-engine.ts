@@ -94,14 +94,17 @@ export function detectPresetFromPrompt(prompt: string): DesignPreset {
   if (p.includes("academie") || p.includes("formation") || p.includes("digital") || p.includes("souveraineté") || p.includes("or") || p.includes("prestige")) {
     return "luxury_gold";
   }
-  if (p.includes("momo") || p.includes("transfert") || p.includes("finance") || p.includes("crypto") || p.includes("banque")) {
+  if (p.includes("momo") || p.includes("transfert") || p.includes("finance") || p.includes("crypto") || p.includes("banque") || p.includes("momoopti")) {
     return "fintech_mint";
   }
-  if (p.includes("creator") || p.includes("créateur") || p.includes("infopreneur")) {
-    return "rouge_passion";
+  if (p.includes("v0") || p.includes("v0app") || p.includes("agentic") || p.includes("masterclass") || p.includes("the art of")) {
+    return "v0app_masterclass";
   }
-  if (p.includes("ideogram") || p.includes("visual") || p.includes("visuel") || p.includes("studio ia")) {
-    return "saas_indigo";
+  if (p.includes("creator") || p.includes("créateur") || p.includes("infopreneur") || p.includes("creator hub")) {
+    return "creator_hub";
+  }
+  if (p.includes("ideogram") || p.includes("visual ai") || p.includes("visual") || p.includes("visuel") || p.includes("studio ia")) {
+    return "visual_ai_studio";
   }
   return "saas_indigo";
 }

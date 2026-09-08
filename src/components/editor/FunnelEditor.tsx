@@ -156,6 +156,34 @@ export const ELITE_TEMPLATES: EliteTemplateItem[] = [
   },
 ];
 
+export const ROTATING_SURVEY_QUESTIONS = [
+  {
+    id: "q_barrier",
+    question: "Quel est votre plus grand défi pour vendre en ligne actuellement ?",
+    options: ["Générer du trafic / Pubs", "Confiance des acheteurs", "Frais de transfert MoMo", "Logistique & Livraison"],
+  },
+  {
+    id: "q_feature",
+    question: "Quelle intégration aimeriez-vous voir en priorité dans Tuneliva ?",
+    options: ["Pixel TikTok / Meta", "Relance WhatsApp auto", "Nom de domaine perso", "Paiement Wave & MoMo direct"],
+  },
+  {
+    id: "q_product_type",
+    question: "Quel type d'offre vendez-vous principalement ?",
+    options: ["Produits physiques", "Formations & E-books", "Services locaux", "Événements & Billets"],
+  },
+  {
+    id: "q_pricing_readiness",
+    question: "Seriez-vous prêt à payer 5 000 FCFA/mois si Tuneliva double vos ventes ?",
+    options: ["Oui sans hésiter", "Plutôt une commission %", "Pas pour l'instant", "Dépend des résultats"],
+  },
+  {
+    id: "q_satisfaction",
+    question: "Comment qualifiez-vous la rapidité de création sur Tuneliva ?",
+    options: ["Révolutionnaire (< 2min)", "Très simple et intuitif", "Encore perfectible", "Besoin d'aide vidéo"],
+  },
+];
+
 interface PremiumWidgetDef {
   id: string;
   name: string;
@@ -612,6 +640,38 @@ export function FunnelEditor({
   const [isPublishing, setIsPublishing] = useState(false);
   const [detailedMargins, setDetailedMargins] = useState(false);
 
+  // SMART PULSE POST-PUBLISH MICRO-SURVEY
+  const [surveyAnswered, setSurveyAnswered] = useState(false);
+  const [selectedSurveyAnswer, setSelectedSurveyAnswer] = useState<string | null>(null);
+  const [surveySubmitting, setSurveySubmitting] = useState(false);
+  const activeSurveyQuestion = useMemo(() => {
+    const idx = Math.floor(Date.now() / 60000) % 5;
+    return ROTATING_SURVEY_QUESTIONS[idx] || ROTATING_SURVEY_QUESTIONS[0];
+  }, []);
+
+  const handleSurveySubmit = async (answer: string) => {
+    setSelectedSurveyAnswer(answer);
+    setSurveySubmitting(true);
+    try {
+      await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          questionId: activeSurveyQuestion.id,
+          questionText: activeSurveyQuestion.question,
+          answer,
+          funnelSlug: funnelData.slug,
+        }),
+      });
+      setSurveyAnswered(true);
+    } catch (e) {
+      console.warn("Feedback submission error:", e);
+      setSurveyAnswered(true);
+    } finally {
+      setSurveySubmitting(false);
+    }
+  };
+
   // INITIALISATION DU PIPELINE MULTI-ÉTAPES DU TUNNEL
   const defaultHeroImage =
     initialData.sections.find((s) => s.type === "hero")?.imageUrl ||
@@ -1010,11 +1070,30 @@ export function FunnelEditor({
       "sales"
     );
 
+    const targetPreset: DesignPreset =
+      tpl.id === "momoopti_fintech"
+        ? "fintech_mint"
+        : tpl.id === "v0app_masterclass"
+        ? "v0app_masterclass"
+        : tpl.id === "creator_hub"
+        ? "creator_hub"
+        : tpl.id === "visual_ai_studio"
+        ? "visual_ai_studio"
+        : generated.theme.preset;
+
+    const presetTheme = DESIGN_PRESETS[targetPreset]?.theme;
+
     setFunnelData({
       ...generated,
       id: funnelData.id,
       slug: funnelData.slug || generated.slug,
       projectName: tpl.name,
+      theme: {
+        ...generated.theme,
+        ...(presetTheme || {}),
+        preset: targetPreset,
+        pageLayoutWidth: "fluid",
+      },
     });
 
     confetti({
@@ -4601,6 +4680,52 @@ export function FunnelEditor({
                 <PackageCheck className="w-4 h-4 text-emerald-400" />
                 <span>Voir mon Tableau de Bord des Commandes →</span>
               </a>
+            </div>
+
+            {/* MICRO-SONDAGE FLASH DU FONDATEUR (*SMART PULSE*) */}
+            <div className="pt-3 border-t border-white/10 text-left space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold text-amber-300 flex items-center gap-1.5">
+                  <span>💡 Question Flash du Fondateur</span>
+                </span>
+                <span className="text-[9px] text-slate-500 font-mono">1 clic</span>
+              </div>
+
+              {!surveyAnswered ? (
+                <div className="p-3 rounded-2xl bg-slate-950/80 border border-white/10 space-y-2">
+                  <p className="text-xs font-semibold text-slate-200">
+                    {activeSurveyQuestion.question}
+                  </p>
+
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {activeSurveyQuestion.options.map((opt) => (
+                      <button
+                        key={opt}
+                        type="button"
+                        onClick={() => handleSurveySubmit(opt)}
+                        disabled={surveySubmitting}
+                        className={`p-2 rounded-xl text-[10px] font-bold text-left transition-all border cursor-pointer ${
+                          selectedSurveyAnswer === opt
+                            ? "bg-amber-500 text-slate-950 border-amber-400 font-extrabold shadow-md"
+                            : "bg-slate-900/90 text-slate-300 border-white/10 hover:border-amber-400/50 hover:text-white"
+                        }`}
+                      >
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="p-3 rounded-2xl bg-emerald-950/50 border border-emerald-500/30 text-center space-y-1">
+                  <span className="text-xs font-bold text-emerald-300 flex items-center justify-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Merci pour votre retour précieux !</span>
+                  </span>
+                  <p className="text-[10px] text-emerald-400/80">
+                    Votre avis aide directement le fondateur à façonner l'avenir de Tuneliva.
+                  </p>
+                </div>
+              )}
             </div>
 
             <button

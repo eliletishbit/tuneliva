@@ -1,1 +1,21 @@
-[]
+[
+  {
+    "id": "cmd-feda-mtspx9g9-hn8t",
+    "funnelSlug": "tech-cafe-networking-27-sep-2026",
+    "userId": "8a5db887-bd19-4d02-b671-064f048f65f9",
+    "productName": "Tech Café Networking - 27 Sep 2026 - Pass Standard (Live + Fiches)",
+    "customerName": "jeremie",
+    "customerPhone": "2290167234567",
+    "customerCity": "En ligne",
+    "customerAddress": "",
+    "totalAmount": 22000,
+    "currency": "XOF",
+    "paymentMethod": "fedapay",
+    "paymentStatus": "pending",
+    "orderStatus": "new",
+    "platformFee": 990,
+    "merchantNetAmount": 21010,
+    "commissionRate": 4.5,
+    "createdAt": "2026-09-08T13:41:34.869Z"
+  }
+]

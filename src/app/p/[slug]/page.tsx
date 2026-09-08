@@ -70,11 +70,19 @@ export default async function PublicFunnelPage({ params, searchParams }: Props) 
   const sParams = await searchParams;
   const funnel = await getFunnelBySlug(slug);
 
+  const orderSuccess = sParams?.order_success === "true";
+  const paymentError = typeof sParams?.payment_error === "string" ? sParams.payment_error : undefined;
+  const orderId = typeof sParams?.order_id === "string" ? sParams.order_id : undefined;
+  const paid = sParams?.paid === "true";
+
   return (
     <PublicFunnelClient
       slug={slug}
       initialFunnel={funnel}
-      orderSuccessQuery={sParams?.order_success === "true"}
+      orderSuccessQuery={orderSuccess}
+      paymentErrorQuery={paymentError}
+      orderIdQuery={orderId}
+      paidQuery={paid}
     />
   );
 }

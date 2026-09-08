@@ -411,16 +411,28 @@ export function FunnelRenderer({
     ? "grid-cols-1 sm:grid-cols-2 gap-4"
     : "grid-cols-1 md:grid-cols-3 gap-5";
 
-  // STYLES ÉTUDIÉS SELON LE THÈME
-  const cardBgClass = isDark
-    ? "bg-[#0B1020]/90 border-white/10 text-white shadow-xl backdrop-blur-md"
-    : "bg-white border-slate-200/90 text-slate-900 shadow-lg shadow-slate-200/60";
+  // STYLES ÉTUDIÉS SELON LE THÈME ET LE CARD STYLE
+  const cardStyle = theme.cardStyle || (isDark ? "glass" : "elevated");
+  const cardBgClass =
+    cardStyle === "glass"
+      ? isDark
+        ? "bg-[#0B1020]/75 backdrop-blur-xl border border-white/10 text-white shadow-2xl"
+        : "bg-white/80 backdrop-blur-xl border border-slate-200/80 text-slate-900 shadow-xl shadow-indigo-100/40"
+      : cardStyle === "glowing_border"
+      ? isDark
+        ? "bg-[#0A1024]/85 backdrop-blur-xl border text-white shadow-2xl transition-all"
+        : "bg-white border text-slate-900 shadow-xl"
+      : isDark
+      ? "bg-[#0B1020]/90 border-white/10 text-white shadow-xl backdrop-blur-md"
+      : "bg-white border-slate-200/90 text-slate-900 shadow-lg shadow-slate-200/60";
 
   const headingClass = isDark ? "text-white" : "text-slate-950 font-black";
   const mutedTextClass = isDark ? "text-slate-400" : "text-slate-600";
 
   const bgStyle: React.CSSProperties = {
     backgroundColor: theme.pageBackground || (isDark ? "#07080D" : "#FFFFFF"),
+    backgroundImage: theme.backgroundGradient || undefined,
+    backgroundAttachment: "fixed",
     fontFamily: theme.fontFamily ? `${theme.fontFamily}, sans-serif` : undefined,
   };
 
@@ -1109,10 +1121,37 @@ export function FunnelRenderer({
       className="min-h-screen font-sans transition-colors duration-300 relative selection:bg-indigo-500 selection:text-white overflow-x-clip"
       style={bgStyle}
     >
+      {/* 0. EFFETS D'AMBIANCE & LUMINESCENCE (AMBIENT MESH GLOW ORBS) */}
+      {theme.ambientGlow !== false && (
+        <div className="pointer-events-none absolute inset-0 overflow-hidden z-0">
+          {/* Orbe zénithal principal (Haut Centré) */}
+          <div
+            className="absolute -top-36 left-1/2 -translate-x-1/2 w-[750px] sm:w-[1100px] h-[480px] rounded-full blur-[130px] opacity-75 transition-all duration-700 pointer-events-none"
+            style={{
+              background: `radial-gradient(circle, ${theme.glowColor || theme.primaryColor}35 0%, ${theme.glowColor || theme.primaryColor}10 40%, transparent 70%)`,
+            }}
+          />
+          {/* Orbe d'accent secondaire (Flottant à droite) */}
+          <div
+            className="absolute top-[28%] -right-24 w-[480px] sm:w-[680px] h-[450px] rounded-full blur-[150px] opacity-50 transition-all duration-700 pointer-events-none"
+            style={{
+              background: `radial-gradient(circle, ${theme.accentColor || theme.primaryColor}30 0%, transparent 65%)`,
+            }}
+          />
+          {/* Orbe tertiaire subtil (Flottant en bas à gauche) */}
+          <div
+            className="absolute top-[62%] -left-28 w-[450px] sm:w-[600px] h-[420px] rounded-full blur-[150px] opacity-40 transition-all duration-700 pointer-events-none"
+            style={{
+              background: `radial-gradient(circle, ${theme.primaryColor}25 0%, transparent 65%)`,
+            }}
+          />
+        </div>
+      )}
+
       {/* 1. BANNIÈRE D'URGENCE / PROMO ÉDITABLE */}
       {theme.bannerUrgencyText && (
         <div
-          className="text-white text-xs sm:text-sm font-bold py-2.5 px-4 text-center tracking-wide flex items-center justify-center gap-2 shadow-sm"
+          className="relative z-20 text-white text-xs sm:text-sm font-bold py-2.5 px-4 text-center tracking-wide flex items-center justify-center gap-2 shadow-sm"
           style={{
             background: isDark
               ? "linear-gradient(90deg, #F59E0B, #EA580C, #6366F1)"
@@ -1133,17 +1172,17 @@ export function FunnelRenderer({
       )}
 
       {/* 2 & 3. EN-TÊTE DU SITE / TUNNEL (AVEC 4 VARIATIONS VISUELLES) */}
-      {renderHeader()}
+      <div className="relative z-20">{renderHeader()}</div>
 
       {/* 4. CORPS DU TUNNEL (AVEC DRAG & DROP DES SECTIONS ET DROP ZONES) */}
       <main
-        className={
+        className={`relative z-10 ${
           layoutWidth === "fluid"
             ? "w-full max-w-[96%] xl:max-w-[1550px] mx-auto px-3 sm:px-6 lg:px-10 py-6 sm:py-12 space-y-10 sm:space-y-16 overflow-x-clip box-border"
             : layoutWidth === "canvas"
             ? "w-full px-3 sm:px-6 lg:px-8 py-4 sm:py-10 space-y-8 sm:space-y-12 overflow-x-clip box-border"
             : "max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-6 sm:py-10 space-y-10 sm:space-y-14 overflow-x-clip w-full box-border"
-        }
+        }`}
       >
         {/* Drop Zone tout en haut de la page */}
         <CanvasDropZone

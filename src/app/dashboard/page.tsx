@@ -405,6 +405,14 @@ export default function MerchantDashboard() {
             </button>
 
             <a
+              href="/admin"
+              className="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-amber-500/30 hover:border-amber-500/60 text-amber-300 text-xs font-bold transition-all shadow-sm cursor-pointer"
+              title="Accéder au Super Admin Dashboard"
+            >
+              <span>👑 Super Admin</span>
+            </a>
+
+            <a
               href="/"
               className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 transition-all cursor-pointer"
             >
@@ -426,7 +434,44 @@ export default function MerchantDashboard() {
       </header>
 
       {/* 2. CONTENU PRINCIPAL */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-8 py-8 space-y-10 flex-1 w-full">
+      <main className="max-w-7xl mx-auto px-4 sm:px-8 py-8 space-y-8 flex-1 w-full">
+        {/* BANNIÈRE OFFRE FONDATEUR GRATUITE & QUOTA PIONNIER */}
+        <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-950/40 via-slate-900 to-indigo-950/40 border border-emerald-500/30 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shrink-0">
+              <Sparkles className="w-5 h-5" />
+            </div>
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm sm:text-base font-bold text-white">
+                  Accès Fondateur 100% Offert
+                </h3>
+                <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold border border-emerald-500/30">
+                  Gratuit 0 FCFA
+                </span>
+              </div>
+              <p className="text-xs text-slate-300">
+                Créez, personnalisez et publiez vos tunnels sans aucun abonnement payant pendant la phase de lancement !
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 shrink-0">
+            <div className="px-3.5 py-2 rounded-xl bg-slate-950 border border-white/10 text-right">
+              <span className="text-[10px] text-slate-400 font-mono block">Quota de Tunnels</span>
+              <span className="text-xs font-black text-amber-300 font-mono">
+                {funnels.length} / 10 créés
+              </span>
+            </div>
+            <a
+              href="/"
+              className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold text-xs shadow-md transition-transform hover:scale-105"
+            >
+              + Nouveau Tunnel
+            </a>
+          </div>
+        </div>
+
         {/* TITRE ET BANDEAU D'ACCUEIL */}
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
