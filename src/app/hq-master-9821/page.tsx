@@ -112,6 +112,12 @@ export default function SuperAdminDashboard() {
       }
     };
     checkSession();
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("tab") === "tiktok") {
+        setActiveAdminTab("tiktok");
+      }
+    }
   }, []);
 
   const handleAdminLogin = async (e: React.FormEvent) => {
