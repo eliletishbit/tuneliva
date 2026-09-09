@@ -94,3 +94,40 @@ export async function GET(request: Request) {
     );
   }
 }
+
+export async function POST(request: Request) {
+  try {
+    const body = await request.json().catch(() => ({}));
+
+    // Si TikTok envoie un challenge de vérification de webhook
+    if (body.challenge) {
+      return NextResponse.json({ challenge: body.challenge }, { status: 200 });
+    }
+
+    return NextResponse.json(
+      {
+        success: true,
+        message: "Webhook TikTok reçu avec succès (HTTP 200 OK)",
+        timestamp: new Date().toISOString(),
+      },
+      { status: 200 }
+    );
+  } catch (err) {
+    return NextResponse.json({ success: true }, { status: 200 });
+  }
+}
+
+export async function OPTIONS() {
+  return new Response(null, {
+    status: 200,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+      "Access-Control-Allow-Headers": "*",
+    },
+  });
+}
+
+export async function HEAD() {
+  return new Response(null, { status: 200 });
+}
