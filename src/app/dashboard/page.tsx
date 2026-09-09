@@ -36,6 +36,7 @@ import {
 } from "lucide-react";
 
 export default function MerchantDashboard() {
+  const [authChecking, setAuthChecking] = useState(true);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [orders, setOrders] = useState<OrderRecord[]>([]);
   const [funnels, setFunnels] = useState<FunnelPageData[]>([]);
@@ -150,14 +151,42 @@ export default function MerchantDashboard() {
   };
 
   useEffect(() => {
-    fetchDashboardData();
-    fetchPayoutSettings();
+    let isMounted = true;
     const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => {
-      if (data?.user) {
-        setCurrentUser(data.user);
+
+    const checkSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (!session || !session.user || error) {
+          window.location.href = "/login?redirect=/dashboard";
+          return;
+        }
+
+        if (isMounted) {
+          setCurrentUser(session.user);
+          setAuthChecking(false);
+          fetchDashboardData();
+          fetchPayoutSettings();
+        }
+      } catch (err) {
+        window.location.href = "/login?redirect=/dashboard";
+      }
+    };
+
+    checkSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_OUT" || !session) {
+        window.location.href = "/login?redirect=/dashboard";
+      } else if (session?.user && isMounted) {
+        setCurrentUser(session.user);
       }
     });
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const handleSignOut = async () => {
@@ -353,6 +382,25 @@ export default function MerchantDashboard() {
     (orderPage - 1) * ordersPerPage,
     orderPage * ordersPerPage
   );
+
+  if (authChecking) {
+    return (
+      <div className="min-h-screen bg-[#07080D] text-white flex flex-col items-center justify-center space-y-4 font-sans selection:bg-indigo-500">
+        <div className="relative flex items-center justify-center">
+          <div className="w-12 h-12 rounded-full border-4 border-indigo-500/20 border-t-indigo-500 animate-spin" />
+          <div className="absolute w-5 h-5 rounded-full bg-gradient-to-tr from-indigo-500 to-amber-500" />
+        </div>
+        <div className="text-center space-y-1">
+          <p className="text-xs font-black uppercase tracking-wider text-slate-300">
+            Vérification de la session...
+          </p>
+          <p className="text-[11px] text-slate-500">
+            Accès sécurisé réservé aux vendeurs connectés
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#07080D] text-white flex flex-col">

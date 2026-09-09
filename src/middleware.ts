@@ -26,6 +26,29 @@ export async function middleware(request: NextRequest) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
+  // Protection stricte du tableau de bord vendeur
+  if (pathname.startsWith("/dashboard")) {
+    // 1. Si les clés Supabase sont absentes, bloquer immédiatement l'accès
+    if (!supabaseUrl || !supabaseAnonKey) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/login";
+      url.searchParams.set("redirect", pathname);
+      return NextResponse.redirect(url);
+    }
+
+    // 2. Vérification rapide des cookies Supabase (sb-*-auth-token)
+    const hasAuthCookie = request.cookies
+      .getAll()
+      .some((c) => c.name.startsWith("sb-") && c.name.includes("-auth-token"));
+
+    if (!hasAuthCookie) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/login";
+      url.searchParams.set("redirect", pathname);
+      return NextResponse.redirect(url);
+    }
+  }
+
   if (!supabaseUrl || !supabaseAnonKey) {
     return response;
   }
@@ -53,7 +76,7 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Protection du tableau de bord vendeur
+  // Protection du tableau de bord vendeur (validation cryptographique complète de la session)
   if (pathname.startsWith("/dashboard")) {
     if (!user) {
       const url = request.nextUrl.clone();

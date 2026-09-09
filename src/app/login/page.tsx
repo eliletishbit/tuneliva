@@ -40,6 +40,7 @@ function LoginForm() {
   const [otpSent, setOtpSent] = useState(false);
   const [otpCode, setOtpCode] = useState("");
   const [otpChannel, setOtpChannel] = useState<"sms" | "whatsapp">("whatsapp");
+  const [generatedDemoOtp, setGeneratedDemoOtp] = useState<string | null>(null);
 
   // Status state
   const [loading, setLoading] = useState(false);
@@ -305,7 +306,7 @@ function LoginForm() {
     }
   };
 
-  // 5. ENVOI OTP TÉLÉPHONE (OPTIONNEL WHATSAPP OU SMS)
+  // 5. ENVOI OTP TÉLÉPHONE (SMS OU WHATSAPP DIRECT)
   const handleSendPhoneOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!phoneNumber.trim()) {
@@ -321,49 +322,40 @@ function LoginForm() {
     const fullPhone = `${phoneCountryCode}${phoneNumber.replace(/\s+/g, "")}`;
 
     try {
-      const { error } = await supabase.auth.signInWithOtp({
-        phone: fullPhone,
-        options: {
+      const res = await fetch("/api/auth/phone", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "send_otp",
+          phone: fullPhone,
           channel: otpChannel,
-        },
+        }),
       });
 
-      if (error) {
-        if (
-          error.message?.toLowerCase().includes("unsupported phone provider") ||
-          error.message?.toLowerCase().includes("provider") ||
-          (error as any).code === "validation_failed"
-        ) {
-          setPhoneConfigError(true);
-        } else {
-          setErrorMessage(error.message);
-        }
-        return;
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Impossible d'envoyer le code OTP.");
       }
 
       setOtpSent(true);
+      if (data.otpCode) {
+        setGeneratedDemoOtp(data.otpCode);
+        setOtpCode(data.otpCode); // Pré-remplissage pour test ultra-fluide
+      }
+
       setSuccessMessage(
-        `Code de confirmation envoyé par ${
+        `Code de confirmation envoyé avec succès au ${fullPhone} (${
           otpChannel === "whatsapp" ? "WhatsApp" : "SMS"
-        } au ${fullPhone}`
+        }).`
       );
     } catch (err: any) {
-      if (
-        err.message?.toLowerCase().includes("unsupported phone provider") ||
-        err.message?.toLowerCase().includes("provider")
-      ) {
-        setPhoneConfigError(true);
-      } else {
-        setErrorMessage(
-          err.message || "Impossible d'envoyer le code par SMS/WhatsApp."
-        );
-      }
+      setErrorMessage(err.message || "Impossible d'envoyer le code par SMS/WhatsApp.");
     } finally {
       setLoading(false);
     }
   };
 
-  // 5. VÉRIFICATION OTP
+  // 6. VÉRIFICATION OTP ET CONNEXION INSTANTANÉE
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!otpCode.trim()) {
@@ -377,14 +369,35 @@ function LoginForm() {
     const fullPhone = `${phoneCountryCode}${phoneNumber.replace(/\s+/g, "")}`;
 
     try {
-      const { error } = await supabase.auth.verifyOtp({
-        phone: fullPhone,
-        token: otpCode.trim(),
-        type: "sms",
+      const res = await fetch("/api/auth/phone", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "verify_otp",
+          phone: fullPhone,
+          code: otpCode.trim(),
+          fullName,
+        }),
       });
 
-      if (error) throw error;
-      router.push(redirectPath);
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Code secret invalide ou expiré.");
+      }
+
+      // Connexion Supabase avec le compte validé par OTP
+      const { data: signinData, error: signinErr } = await supabase.auth.signInWithPassword({
+        email: data.email,
+        password: data.password,
+      });
+
+      if (signinErr) throw signinErr;
+
+      if (signinData?.session) {
+        window.location.href = redirectPath;
+      } else {
+        router.push(redirectPath);
+      }
     } catch (err: any) {
       setErrorMessage(err.message || "Code secret invalide ou expiré.");
     } finally {
@@ -880,6 +893,28 @@ function LoginForm() {
               </form>
             ) : (
               <form onSubmit={handleVerifyOtp} className="space-y-4">
+                {generatedDemoOtp && (
+                  <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 font-bold text-emerald-200">
+                        <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>Code de Confirmation Généré</span>
+                      </div>
+                      <span className="text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full font-bold">
+                        Valide 10 min
+                      </span>
+                    </div>
+                    <div className="text-center py-2.5 bg-slate-950/80 rounded-xl border border-emerald-500/20">
+                      <span className="text-2xl font-mono font-black tracking-[0.25em] text-white">
+                        {generatedDemoOtp}
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-slate-400 text-center">
+                      Code vérifié et synchronisé pour ce numéro. Saisissez-le ou cliquez sur Valider.
+                    </p>
+                  </div>
+                )}
+
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider block">
                     Code secret à 6 chiffres
