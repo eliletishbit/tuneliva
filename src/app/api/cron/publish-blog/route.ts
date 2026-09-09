@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
-import { BLOG_TOPICS, getPublishedTopics } from "@/lib/blog/topics";
+import { BLOG_TOPICS } from "@/lib/blog/topics";
+import { generateDailyTikTokPosts } from "@/lib/tiktok/generator";
+import { loadTikTokAuth } from "@/lib/tiktok/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +15,7 @@ export async function GET(request: Request) {
     const diffTime = Math.max(0, now.getTime() - BASE_DATE.getTime());
     const daysElapsed = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
-    // Déblocage de 2 articles par tranche de 24h
+    // Déblocage mathématique de 2 articles par tranche de 24h
     const unlockedCount = Math.min(BLOG_TOPICS.length, Math.max(2, (daysElapsed + 1) * 2));
     const publishedTopics = BLOG_TOPICS.slice(0, unlockedCount);
 
@@ -33,21 +35,46 @@ export async function GET(request: Request) {
       coverImage: topic.images[0],
     }));
 
+    // Génération automatique des 5 vidéos TikTok IA du jour basées sur les 2 articles
+    const dailyTikTokPosts = generateDailyTikTokPosts(5);
+    const todayVideos = dailyTikTokPosts.slice(-5).map((v) => ({
+      id: v.id,
+      title: v.title,
+      scheduledTime: v.scheduledTime,
+      hookText: v.hookText,
+      viralityScore: v.viralityScore,
+      articleTitle: v.articleTitle,
+      status: v.status,
+    }));
+
+    // Statut de connexion TikTok OAuth
+    const auth = loadTikTokAuth();
+
     // Calcul du prochain créneau
     const nextDate = new Date(BASE_DATE.getTime() + (daysElapsed + 1) * 24 * 60 * 60 * 1000);
     nextDate.setUTCHours(8, 0, 0, 0);
 
     return NextResponse.json({
       success: true,
-      service: "Tuneliva Blog Auto-Publisher (2 Posts / Jour)",
+      service: "Tuneliva Automated Publishing Engine (2 Articles Blog & 5 Vidéos TikTok / Jour)",
       currentDate: now.toISOString(),
       launchBaseDate: "2026-09-08T00:00:00Z",
       daysElapsed,
-      ratePerDay: 2,
-      totalScheduled: BLOG_TOPICS.length,
-      totalPublishedSoFar: unlockedCount,
-      remainingToPublish: BLOG_TOPICS.length - unlockedCount,
+      ratePerDay: {
+        articles: 2,
+        tiktokVideos: 5,
+      },
+      totalTopicsScheduled: BLOG_TOPICS.length,
+      totalArticlesPublishedSoFar: unlockedCount,
+      remainingArticlesToPublish: BLOG_TOPICS.length - unlockedCount,
+      estimatedCoverageDays: Math.ceil(BLOG_TOPICS.length / 2),
       todayArticles,
+      todayTikTokVideos: todayVideos,
+      tiktokIntegration: {
+        isConnected: auth.isConnected,
+        creatorUsername: auth.creatorUsername || "Non connecté (Mode Sandbox)",
+        mode: auth.isConnected ? "Production Direct Post" : "Sandbox Simulator Ready",
+      },
       nextPublicationScheduledAt: nextDate.toISOString(),
       allPublished: showAll
         ? publishedTopics.map((t) => ({
@@ -61,7 +88,7 @@ export async function GET(request: Request) {
     });
   } catch (err: any) {
     return NextResponse.json(
-      { success: false, error: err.message || "Erreur de cron publication blog" },
+      { success: false, error: err.message || "Erreur de cron publication blog et TikTok" },
       { status: 500 }
     );
   }

@@ -48,7 +48,7 @@ export function TikTokManager() {
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
-  const [generateCount, setGenerateCount] = useState<number>(3);
+  const [generateCount, setGenerateCount] = useState<number>(5);
   const [copiedScriptId, setCopiedScriptId] = useState<string | null>(null);
   const [copiedUrlType, setCopiedUrlType] = useState<string | null>(null);
 

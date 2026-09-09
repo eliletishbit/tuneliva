@@ -67,6 +67,7 @@ const VIRAL_MUSIC_TRACKS = [
   "Amapiano Deep Bassline • Hustle Mode",
   "Naija Trap Synth • High Conversion",
   "Afro-Fusion Energy • Modern Tech",
+  "Kizomba Smooth Vibe • Smart Business",
 ];
 
 const VERTICAL_BG_IMAGES = [
@@ -75,58 +76,90 @@ const VERTICAL_BG_IMAGES = [
   "https://images.unsplash.com/photo-1563986768609-322da13575f3?w=800&auto=format&fit=crop&q=80",
   "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=800&auto=format&fit=crop&q=80",
   "https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=800&auto=format&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=800&auto=format&fit=crop&q=80",
+  "https://images.unsplash.com/photo-1542744094-3a31f272c490?w=800&auto=format&fit=crop&q=80",
 ];
 
-export function buildTikTokPostFromTopic(topic: BlogTopic, indexInDay: number, dateStr: string): TikTokVideoPost {
-  const hooks = [
-    `Arrête de perdre tes clients au moment de payer !`,
-    `Le secret des vendeurs à 1M FCFA par mois en Afrique :`,
-    `Si tu vends sur WhatsApp, regarde cette vidéo jusqu'au bout !`,
-    `Pourquoi 80% des boutiques en ligne africaines échouent ?`,
-    `Comment encaisser Wave et MoMo sans payer d'abonnement ?`,
+export function buildTikTokPostFromTopic(topic: BlogTopic, slotIndex: number, dateStr: string): TikTokVideoPost {
+  const HOOK_PATTERNS = [
+    {
+      hook: "Arrête de perdre tes clients au moment de payer !",
+      key: "perdre",
+      sub1: "1. Simplifie ton offre au maximum : 1 produit phare, 1 offre limpide en FCFA.",
+      sub2: "2. Active le double encaissement : Wave, MTN MoMo + Paiement à la livraison.",
+      sub3: "3. Automatise tes relances WhatsApp en 30 secondes sans coder.",
+    },
+    {
+      hook: "Le secret des vendeurs à 1M FCFA par mois en Afrique :",
+      key: "secret",
+      sub1: "1. Ils ne vendent pas sur un site vitrine lent, ils utilisent des tunnels épurés.",
+      sub2: "2. Ils rassurent avec des preuves locales : avis WhatsApp et badge MoMo officiel.",
+      sub3: "3. Ils proposent un pack avantageux qui augmente le panier moyen instantanément.",
+    },
+    {
+      hook: "Si tu vends sur WhatsApp, regarde cette vidéo jusqu'au bout !",
+      key: "WhatsApp",
+      sub1: "1. Arrête de répondre manuellement aux 'Prix svp' pendant 2 heures.",
+      sub2: "2. Envoie un lien Tuneliva où le client choisit sa ville et son moyen de paiement.",
+      sub3: "3. Reçois la confirmation directe et livre en moins de 24h avec zéro friction.",
+    },
+    {
+      hook: "Pourquoi 80% des boutiques en ligne africaines échouent ?",
+      key: "échouent",
+      sub1: "1. Trop de produits différents qui dispersent l'attention du visiteur.",
+      sub2: "2. Formulaires de commande trop longs qui découragent sur smartphone.",
+      sub3: "3. Absence d'un système de suivi et confirmation d'adresse rigoureux.",
+    },
+    {
+      hook: "Comment encaisser Wave et MoMo sans payer d'abonnement ?",
+      key: "encaisser",
+      sub1: "1. Utilise Tuneliva avec intégration native FedaPay et opérateurs télécoms.",
+      sub2: "2. L'argent arrive directement sur ton numéro sans intermédiaire bloquant.",
+      sub3: "3. Zéro frais mensuels pour démarrer, idéal pour tester ton marché à fond.",
+    },
   ];
 
-  const hook = hooks[indexInDay % hooks.length];
-  const scheduleTimes = ["10:30", "13:00", "16:15", "18:45", "20:30"];
-  const scheduledTime = scheduleTimes[indexInDay % scheduleTimes.length];
+  const currentPattern = HOOK_PATTERNS[slotIndex % HOOK_PATTERNS.length];
+  const scheduleTimes = ["08:30", "11:45", "14:15", "17:30", "20:00"];
+  const scheduledTime = scheduleTimes[slotIndex % scheduleTimes.length];
 
-  const bgImg = topic.images[indexInDay % topic.images.length] || VERTICAL_BG_IMAGES[indexInDay % VERTICAL_BG_IMAGES.length];
+  const bgImg = topic.images[slotIndex % topic.images.length] || VERTICAL_BG_IMAGES[slotIndex % VERTICAL_BG_IMAGES.length];
 
   const scenes: TikTokScene[] = [
     {
       id: "sc-1",
       second: 0,
       durationSec: 4,
-      subtitle: hook,
-      highlightWord: hook.split(" ")[1] || "perdre",
-      visualPrompt: "Plan serré smartphone avec notification Mobile Money verte",
+      subtitle: currentPattern.hook,
+      highlightWord: currentPattern.key,
+      visualPrompt: "Smartphone en main avec notification Mobile Money verte",
       bgImageUrl: bgImg,
     },
     {
       id: "sc-2",
       second: 4,
       durationSec: 5,
-      subtitle: "1. Simplifie ton offre au maximum : 1 produit phare, 1 offre claire en FCFA.",
-      highlightWord: "Simplifie",
-      visualPrompt: "Tunnel épuré mono-produit sur écran tactile",
+      subtitle: currentPattern.sub1,
+      highlightWord: currentPattern.sub1.split(" ")[1] || "offre",
+      visualPrompt: "Tunnel mono-produit fluide sur écran tactile",
       bgImageUrl: topic.images[1] || VERTICAL_BG_IMAGES[1],
     },
     {
       id: "sc-3",
       second: 9,
       durationSec: 5,
-      subtitle: "2. Active le double encaissement : Wave, MTN MoMo + Cash on Delivery.",
-      highlightWord: "Wave",
-      visualPrompt: "Graphique de conversion en hausse instantanée",
+      subtitle: currentPattern.sub2,
+      highlightWord: currentPattern.sub2.split(" ")[2] || "Wave",
+      visualPrompt: "Graphique de conversion e-commerce en forte hausse",
       bgImageUrl: topic.images[2] || VERTICAL_BG_IMAGES[2],
     },
     {
       id: "sc-4",
       second: 14,
       durationSec: 5,
-      subtitle: "3. Automatise tes relances WhatsApp en 30 secondes chrono sans coder.",
-      highlightWord: "Automatise",
-      visualPrompt: "Message WhatsApp de confirmation envoyé automatiquement",
+      subtitle: currentPattern.sub3,
+      highlightWord: currentPattern.sub3.split(" ")[1] || "WhatsApp",
+      visualPrompt: "Message WhatsApp de confirmation envoyé instantanément",
       bgImageUrl: VERTICAL_BG_IMAGES[3],
     },
     {
@@ -135,22 +168,22 @@ export function buildTikTokPostFromTopic(topic: BlogTopic, indexInDay: number, d
       durationSec: 6,
       subtitle: "👉 Lien en bio pour lire l'analyse complète et lancer ton tunnel sur Tuneliva !",
       highlightWord: "Tuneliva",
-      visualPrompt: "Page d'accueil Tuneliva sur smartphone avec bouton Commencer Gratuitement",
+      visualPrompt: "Page Tuneliva sur smartphone avec bouton Commencer Gratuitement",
       bgImageUrl: VERTICAL_BG_IMAGES[4],
     },
   ];
 
   return {
-    id: `tt-${topic.id}-${indexInDay + 1}-${dateStr}`,
-    title: `TikTok #${indexInDay + 1} • ${topic.title.slice(0, 48)}...`,
+    id: `tt-${topic.id}-${slotIndex + 1}-${dateStr}`,
+    title: `TikTok #${slotIndex + 1} (${scheduledTime}) • ${topic.title.slice(0, 44)}...`,
     articleSlug: topic.slug,
     articleTitle: topic.title,
     category: topic.categoryLabel,
     categoryColor: topic.categoryColor,
-    hookText: hook,
+    hookText: currentPattern.hook,
     durationSec: 25,
     scenes,
-    ctaText: "Lien dans la bio • Découvrir l'article sur Tuneliva",
+    ctaText: "Lien dans la bio • Découvrir l'article complet sur Tuneliva",
     hashtags: [
       "#EcommerceAfrique",
       "#MobileMoney",
@@ -158,21 +191,21 @@ export function buildTikTokPostFromTopic(topic: BlogTopic, indexInDay: number, d
       "#Tuneliva",
       "#WaveSenegal",
       "#MTNMoMo",
-      "#Infopreneur",
+      "#VenteEnLigne",
     ],
-    musicTrack: VIRAL_MUSIC_TRACKS[indexInDay % VIRAL_MUSIC_TRACKS.length],
-    viralityScore: 92 + (indexInDay * 2),
+    musicTrack: VIRAL_MUSIC_TRACKS[slotIndex % VIRAL_MUSIC_TRACKS.length],
+    viralityScore: 94 + slotIndex,
     scheduledTime,
     scheduledDate: dateStr,
-    status: indexInDay === 0 ? "published" : "scheduled",
-    publishedAt: indexInDay === 0 ? new Date().toISOString() : undefined,
-    likesCount: 1240 + (indexInDay * 340),
-    sharesCount: 184 + (indexInDay * 42),
-    commentsCount: 92 + (indexInDay * 19),
+    status: slotIndex === 0 ? "published" : "scheduled",
+    publishedAt: slotIndex === 0 ? new Date().toISOString() : undefined,
+    likesCount: 1450 + (slotIndex * 380),
+    sharesCount: 210 + (slotIndex * 45),
+    commentsCount: 98 + (slotIndex * 22),
   };
 }
 
-export function generateDailyTikTokPosts(count: number = 3): TikTokVideoPost[] {
+export function generateDailyTikTokPosts(count: number = 5): TikTokVideoPost[] {
   const existing = loadTikTokPosts();
   const published = getPublishedTopics();
   const todayStr = new Date().toISOString().split("T")[0];
@@ -183,6 +216,7 @@ export function generateDailyTikTokPosts(count: number = 3): TikTokVideoPost[] {
 
   const targetCount = Math.min(5, Math.max(1, count));
   for (let i = 0; i < targetCount; i++) {
+    // Alternance entre les deux articles du jour pour les 5 vidéos
     const topic = todayTopics[i % todayTopics.length] || published[0];
     const post = buildTikTokPostFromTopic(topic, i, todayStr);
     newPosts.push(post);

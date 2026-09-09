@@ -7,7 +7,7 @@ export async function GET() {
   try {
     let posts = loadTikTokPosts();
     if (posts.length === 0) {
-      posts = generateDailyTikTokPosts(3);
+      posts = generateDailyTikTokPosts(5);
     }
     return NextResponse.json({ success: true, posts });
   } catch (err: any) {
@@ -18,7 +18,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => ({}));
-    const count = typeof body.count === "number" ? body.count : 3;
+    const count = typeof body.count === "number" ? body.count : 5;
     const posts = generateDailyTikTokPosts(count);
     return NextResponse.json({ success: true, posts, message: `${count} vidéos TikTok générées avec succès par l'IA !` });
   } catch (err: any) {
