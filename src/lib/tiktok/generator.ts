@@ -35,31 +35,50 @@ export interface TikTokVideoPost {
   commentsCount: number;
 }
 
-const DATA_DIR = path.join(process.cwd(), ".data");
+import os from "os";
+
+const DATA_DIR = process.env.VERCEL
+  ? path.join(os.tmpdir(), "tuneliva_tiktok")
+  : path.join(process.cwd(), ".data");
 const POSTS_FILE = path.join(DATA_DIR, "tiktok_posts.json");
 
-function ensureDataDir() {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
+let inMemoryPosts: TikTokVideoPost[] = [];
+
+function ensureDataDirSafe() {
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+  } catch {
+    // Ignoré en environnement lecture seule (Vercel Serverless)
   }
 }
 
 export function loadTikTokPosts(): TikTokVideoPost[] {
-  ensureDataDir();
-  if (fs.existsSync(POSTS_FILE)) {
-    try {
+  try {
+    ensureDataDirSafe();
+    if (fs.existsSync(POSTS_FILE)) {
       const raw = fs.readFileSync(POSTS_FILE, "utf8");
-      return JSON.parse(raw);
-    } catch {
-      return [];
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        inMemoryPosts = parsed;
+        return parsed;
+      }
     }
+  } catch {
+    // Ignoré silencieusement
   }
-  return [];
+  return inMemoryPosts;
 }
 
 export function saveTikTokPosts(posts: TikTokVideoPost[]): void {
-  ensureDataDir();
-  fs.writeFileSync(POSTS_FILE, JSON.stringify(posts, null, 2), "utf8");
+  inMemoryPosts = posts;
+  try {
+    ensureDataDirSafe();
+    fs.writeFileSync(POSTS_FILE, JSON.stringify(posts, null, 2), "utf8");
+  } catch {
+    // Ignoré si lecture seule
+  }
 }
 
 const VIRAL_MUSIC_TRACKS = [

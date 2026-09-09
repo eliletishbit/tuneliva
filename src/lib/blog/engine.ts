@@ -2,6 +2,8 @@ import { BLOG_TOPICS, BlogTopic, BlogCategoryKey, BLOG_CATEGORIES } from "./topi
 import fs from "fs";
 import path from "path";
 
+import os from "os";
+
 export interface BlogPostArticle extends BlogTopic {
   content: string;
   publishedAt: string;
@@ -9,33 +11,48 @@ export interface BlogPostArticle extends BlogTopic {
   faq: { question: string; answer: string }[];
 }
 
-const DATA_DIR = path.join(process.cwd(), ".data");
+// Cache en mémoire pour réponses instantanées sans dépendre du disque
+const memoryCache: Record<string, BlogPostArticle> = {};
+
+// Sur Vercel ou serverless, le dossier courant est en lecture seule (read-only EROFS).
+// On utilise os.tmpdir() si Vercel est détecté, ou .data en local.
+const DATA_DIR = process.env.VERCEL
+  ? path.join(os.tmpdir(), "tuneliva_blog")
+  : path.join(process.cwd(), ".data");
 const ARTICLES_FILE = path.join(DATA_DIR, "blog_articles.json");
 
-function ensureDataDir() {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
+function ensureDataDirSafe() {
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+  } catch {
+    // Ignoré en environnement lecture seule (Vercel Serverless)
   }
 }
 
-function loadCachedArticles(): Record<string, BlogPostArticle> {
-  ensureDataDir();
-  if (fs.existsSync(ARTICLES_FILE)) {
-    try {
+function loadCachedArticlesSafe(): Record<string, BlogPostArticle> {
+  try {
+    ensureDataDirSafe();
+    if (fs.existsSync(ARTICLES_FILE)) {
       const raw = fs.readFileSync(ARTICLES_FILE, "utf8");
       return JSON.parse(raw);
-    } catch {
-      return {};
     }
+  } catch {
+    // Ignoré silencieusement
   }
   return {};
 }
 
-function saveCachedArticle(slug: string, article: BlogPostArticle) {
-  ensureDataDir();
-  const all = loadCachedArticles();
-  all[slug] = article;
-  fs.writeFileSync(ARTICLES_FILE, JSON.stringify(all, null, 2), "utf8");
+function saveCachedArticleSafe(slug: string, article: BlogPostArticle) {
+  try {
+    ensureDataDirSafe();
+    const all = loadCachedArticlesSafe();
+    all[slug] = article;
+    fs.writeFileSync(ARTICLES_FILE, JSON.stringify(all, null, 2), "utf8");
+  } catch {
+    // Ignoré si le disque est en lecture seule
+  }
 }
 
 // Re-export getPublishedTopics pour compatibilité
@@ -156,34 +173,57 @@ Pour récolter vos premiers résultats dans les prochaines 48 heures :
 
 // Récupère ou génère l'article complet
 export async function getOrGenerateArticle(slug: string): Promise<BlogPostArticle | null> {
-  const topic = BLOG_TOPICS.find((t) => t.slug === slug);
+  if (!slug) return null;
+  const normalizedSlug = decodeURIComponent(slug).trim().toLowerCase();
+
+  const topic = BLOG_TOPICS.find(
+    (t) =>
+      t.slug === slug ||
+      t.slug.toLowerCase() === normalizedSlug ||
+      decodeURIComponent(t.slug).toLowerCase() === normalizedSlug
+  );
   if (!topic) return null;
 
-  const cached = loadCachedArticles();
-  if (cached[slug]) {
-    return cached[slug];
+  // 1. Vérification en cache mémoire
+  if (memoryCache[topic.slug]) {
+    return memoryCache[topic.slug];
   }
 
-  // Génération du contenu structuré
-  const generated = generateRichContent(topic);
+  // 2. Vérification sur disque (sécurisée)
+  const cached = loadCachedArticlesSafe();
+  if (cached[topic.slug]) {
+    memoryCache[topic.slug] = cached[topic.slug];
+    return cached[topic.slug];
+  }
 
-  // Calcul de la date de publication
-  const BASE_DATE = new Date("2026-09-08T00:00:00Z");
-  const pubDate = new Date(BASE_DATE.getTime() + topic.publishDayIndex * 24 * 60 * 60 * 1000);
-  const formattedDate = pubDate.toLocaleDateString("fr-FR", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+  try {
+    // 3. Génération du contenu structuré
+    const generated = generateRichContent(topic);
 
-  const article: BlogPostArticle = {
-    ...topic,
-    content: generated.content,
-    headings: generated.headings,
-    faq: generated.faq,
-    publishedAt: formattedDate,
-  };
+    // Calcul de la date de publication
+    const BASE_DATE = new Date("2026-09-08T00:00:00Z");
+    const pubDate = new Date(
+      BASE_DATE.getTime() + (topic.publishDayIndex || 0) * 24 * 60 * 60 * 1000
+    );
+    const formattedDate = pubDate.toLocaleDateString("fr-FR", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
 
-  saveCachedArticle(slug, article);
-  return article;
+    const article: BlogPostArticle = {
+      ...topic,
+      content: generated.content,
+      headings: generated.headings,
+      faq: generated.faq,
+      publishedAt: formattedDate,
+    };
+
+    memoryCache[topic.slug] = article;
+    saveCachedArticleSafe(topic.slug, article);
+    return article;
+  } catch (error) {
+    console.error("Erreur génération article blog:", error);
+    return null;
+  }
 }

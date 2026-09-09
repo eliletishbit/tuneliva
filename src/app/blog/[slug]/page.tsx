@@ -20,6 +20,13 @@ interface Props {
   params: Promise<{ slug: string }>;
 }
 
+export async function generateStaticParams() {
+  const published = getPublishedTopics();
+  return published.map((topic) => ({
+    slug: topic.slug,
+  }));
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const article = await getOrGenerateArticle(slug);

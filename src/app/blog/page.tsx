@@ -104,7 +104,7 @@ export default function BlogListingPage() {
       <section className="relative z-10 pt-12 pb-8 px-4 sm:px-8 max-w-5xl mx-auto text-center space-y-4">
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold bg-amber-500/10 text-amber-300 border border-amber-500/30">
           <BookOpen className="w-3.5 h-3.5 text-amber-400" />
-          <span>Ligne Éditoriale Panafricaine 2026 • 2 Nouveaux Articles / Jour</span>
+          <span>Guides & Stratégies • E-Commerce & Tunnels Panafricains</span>
         </div>
 
         <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight">
@@ -280,10 +280,6 @@ export default function BlogListingPage() {
               ({filteredTopics.length} article{filteredTopics.length > 1 ? "s" : ""})
             </span>
           </h2>
-
-          <span className="text-xs text-slate-400 font-mono hidden sm:inline">
-            Planification automatique : 2 articles / jour
-          </span>
         </div>
 
         {filteredTopics.length === 0 ? (
