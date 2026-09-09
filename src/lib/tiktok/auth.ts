@@ -15,6 +15,9 @@ export interface TikTokAuthData {
   isConnected: boolean;
 }
 
+const DEFAULT_CLIENT_KEY = "awjjic52borhauze";
+const DEFAULT_CLIENT_SECRET = "jVcqi9QKN7JUWiW9n8MCavpMfXEvrH2a";
+
 const DATA_DIR = path.join(process.cwd(), ".data");
 const AUTH_FILE = path.join(DATA_DIR, "tiktok_auth.json");
 
@@ -31,8 +34,8 @@ export function loadTikTokAuth(): TikTokAuthData {
       const raw = fs.readFileSync(AUTH_FILE, "utf8");
       const parsed = JSON.parse(raw);
       return {
-        clientKey: process.env.TIKTOK_CLIENT_KEY || parsed.clientKey,
-        clientSecret: process.env.TIKTOK_CLIENT_SECRET || parsed.clientSecret,
+        clientKey: process.env.TIKTOK_CLIENT_KEY || parsed.clientKey || DEFAULT_CLIENT_KEY,
+        clientSecret: process.env.TIKTOK_CLIENT_SECRET || parsed.clientSecret || DEFAULT_CLIENT_SECRET,
         accessToken: parsed.accessToken,
         refreshToken: parsed.refreshToken,
         openId: parsed.openId,
@@ -49,8 +52,8 @@ export function loadTikTokAuth(): TikTokAuthData {
   }
 
   return {
-    clientKey: process.env.TIKTOK_CLIENT_KEY,
-    clientSecret: process.env.TIKTOK_CLIENT_SECRET,
+    clientKey: process.env.TIKTOK_CLIENT_KEY || DEFAULT_CLIENT_KEY,
+    clientSecret: process.env.TIKTOK_CLIENT_SECRET || DEFAULT_CLIENT_SECRET,
     isConnected: false,
   };
 }

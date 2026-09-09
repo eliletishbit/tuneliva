@@ -20,38 +20,57 @@ export async function GET(request: Request) {
 
   try {
     const auth = loadTikTokAuth();
-    const clientKey = auth.clientKey || process.env.TIKTOK_CLIENT_KEY;
-    const clientSecret = auth.clientSecret || process.env.TIKTOK_CLIENT_SECRET;
-    const redirectUri = getTikTokRedirectUri();
+    const clientKey = auth.clientKey || "awjjic52borhauze";
+    const clientSecret = auth.clientSecret || "jVcqi9QKN7JUWiW9n8MCavpMfXEvrH2a";
+    const primaryRedirect = getTikTokRedirectUri();
+    const secondaryRedirect = `${baseUrl}/hq-master-9821`;
 
-    if (!clientKey || !clientSecret) {
-      return NextResponse.redirect(
-        `${redirectTarget}?tab=tiktok&error=${encodeURIComponent("Clé Client ou Clé Secrète manquante")}`
-      );
+    const tokenUrl = "https://open.tiktokapis.com/v2/oauth/token/";
+
+    async function tryExchange(uri: string) {
+      const bodyParams = new URLSearchParams({
+        client_key: clientKey,
+        client_secret: clientSecret,
+        code: code!,
+        grant_type: "authorization_code",
+        redirect_uri: uri,
+      });
+
+      const res = await fetch(tokenUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          "Cache-Control": "no-cache",
+        },
+        body: bodyParams.toString(),
+      });
+      return await res.json();
     }
 
-    // Échange du code temporaire contre le token officiel TikTok
-    const tokenUrl = "https://open.tiktokapis.com/v2/oauth/token/";
-    const bodyParams = new URLSearchParams({
-      client_key: clientKey,
-      client_secret: clientSecret,
-      code,
-      grant_type: "authorization_code",
-      redirect_uri: redirectUri,
-    });
-
-    const tokenRes = await fetch(tokenUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        "Cache-Control": "no-cache",
-      },
-      body: bodyParams.toString(),
-    });
-
-    const tokenJson = await tokenRes.json();
+    let tokenJson = await tryExchange(primaryRedirect);
+    if (!tokenJson.data?.access_token) {
+      // Essai avec le second redirect URI si le premier échoue
+      const retryJson = await tryExchange(secondaryRedirect);
+      if (retryJson.data?.access_token) {
+        tokenJson = retryJson;
+      }
+    }
 
     if (tokenJson.data && tokenJson.data.access_token) {
+      let creatorUsername = "@tuneliva.officiel";
+      let creatorAvatar = "";
+
+      try {
+        const userRes = await fetch("https://open.tiktokapis.com/v2/user/info/?fields=open_id,union_id,avatar_url,display_name,username", {
+          headers: { Authorization: `Bearer ${tokenJson.data.access_token}` }
+        });
+        const userJson = await userRes.json();
+        if (userJson.data?.user) {
+          creatorUsername = userJson.data.user.display_name || userJson.data.user.username || creatorUsername;
+          creatorAvatar = userJson.data.user.avatar_url || "";
+        }
+      } catch {}
+
       saveTikTokAuth({
         accessToken: tokenJson.data.access_token,
         refreshToken: tokenJson.data.refresh_token,
@@ -59,7 +78,8 @@ export async function GET(request: Request) {
         scope: tokenJson.data.scope,
         expiresAt: Date.now() + (tokenJson.data.expires_in || 86400) * 1000,
         connectedAt: new Date().toISOString(),
-        creatorUsername: "@tuneliva.officiel",
+        creatorUsername,
+        creatorAvatar,
         isConnected: true,
       });
 

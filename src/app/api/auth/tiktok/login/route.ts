@@ -7,16 +7,9 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const auth = loadTikTokAuth();
-    const clientKey = searchParams.get("client_key") || auth.clientKey;
-
-    if (!clientKey) {
-      return NextResponse.json(
-        { success: false, error: "Veuillez d'abord configurer votre TikTok Client Key dans le Super Admin." },
-        { status: 400 }
-      );
-    }
-
-    const redirectUri = encodeURIComponent(getTikTokRedirectUri());
+    const clientKey = searchParams.get("client_key") || auth.clientKey || "awjjic52borhauze";
+    const customRedirect = searchParams.get("redirect_uri");
+    const redirectUri = encodeURIComponent(customRedirect || getTikTokRedirectUri());
     const scope = encodeURIComponent("user.info.basic,video.upload,video.publish");
     const state = Math.random().toString(36).substring(2, 15);
 

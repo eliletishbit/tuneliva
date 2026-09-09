@@ -382,13 +382,23 @@ SON: ${post.musicTrack}`;
                 </button>
               </div>
             ) : (
-              <a
-                href="/api/auth/tiktok/login"
-                className="w-full lg:w-auto inline-flex items-center justify-center gap-2.5 px-5 py-3 rounded-2xl bg-gradient-to-r from-rose-500 via-pink-600 to-indigo-600 hover:from-rose-400 hover:to-indigo-500 text-white font-black text-xs shadow-xl shadow-rose-500/25 transition-all transform hover:scale-[1.02] active:scale-[0.98]"
-              >
-                <Smartphone className="w-4 h-4" />
-                <span>🔗 Connecter mon Compte TikTok (OAuth)</span>
-              </a>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full lg:w-auto">
+                <a
+                  href="/api/auth/tiktok/login"
+                  className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-gradient-to-r from-rose-500 via-pink-600 to-indigo-600 hover:from-rose-400 hover:to-indigo-500 text-white font-black text-xs shadow-xl shadow-rose-500/25 transition-all transform hover:scale-[1.02] active:scale-[0.98]"
+                  title="Utilise l'URL de rappel officielle : /api/auth/tiktok/callback"
+                >
+                  <Smartphone className="w-4 h-4" />
+                  <span>🔗 Connecter TikTok (Callback Officiel)</span>
+                </a>
+                <a
+                  href="/api/auth/tiktok/login?redirect_uri=https%3A%2F%2Ftuneliva.vercel.app%2Fhq-master-9821"
+                  className="inline-flex items-center justify-center gap-1.5 px-3 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold text-[11px] border border-slate-700 transition-all"
+                  title="Si vous aviez configuré /hq-master-9821 sur le portail TikTok"
+                >
+                  <span>Si configuré avec /hq-master-9821</span>
+                </a>
+              </div>
             )}
           </div>
         </div>
