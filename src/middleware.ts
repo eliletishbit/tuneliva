@@ -2,6 +2,21 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+
+  // Vérification instantanée et universelle de signature TikTok (tout token & tout chemin)
+  const tiktokMatch = pathname.match(/tiktok([a-zA-Z0-9_-]+)\.txt$/i);
+  if (tiktokMatch) {
+    const token = tiktokMatch[1];
+    return new Response(`tiktok-developers-site-verification=${token}`, {
+      status: 200,
+      headers: {
+        "Content-Type": "text/plain; charset=utf-8",
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+      },
+    });
+  }
+
   let response = NextResponse.next({
     request: {
       headers: request.headers,
@@ -37,8 +52,6 @@ export async function middleware(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  const pathname = request.nextUrl.pathname;
 
   // Protection du tableau de bord vendeur
   if (pathname.startsWith("/dashboard")) {
