@@ -23,35 +23,12 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const DEFAULT_SUPABASE_URL = "https://lqmjupbtxjtbepmpdgsq.supabase.co";
+  const DEFAULT_ANON_KEY =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxxbWp1cGJ0eGp0YmVwbXBkZ3NxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg2Mzk0MDcsImV4cCI6MjEwNDIxNTQwN30.XAeyS_nr68fQsc8iJZm1hthwMg5D0eDutj1ZeiXxyl8";
 
-  // Protection stricte du tableau de bord vendeur
-  if (pathname.startsWith("/dashboard")) {
-    // 1. Si les clés Supabase sont absentes, bloquer immédiatement l'accès
-    if (!supabaseUrl || !supabaseAnonKey) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/login";
-      url.searchParams.set("redirect", pathname);
-      return NextResponse.redirect(url);
-    }
-
-    // 2. Vérification rapide des cookies Supabase (sb-*-auth-token)
-    const hasAuthCookie = request.cookies
-      .getAll()
-      .some((c) => c.name.startsWith("sb-") && c.name.includes("-auth-token"));
-
-    if (!hasAuthCookie) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/login";
-      url.searchParams.set("redirect", pathname);
-      return NextResponse.redirect(url);
-    }
-  }
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    return response;
-  }
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || DEFAULT_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || DEFAULT_ANON_KEY;
 
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
@@ -72,13 +49,23 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  let user = null;
+  try {
+    const { data } = await supabase.auth.getUser();
+    user = data?.user || null;
+  } catch {
+    user = null;
+  }
 
-  // Protection du tableau de bord vendeur (validation cryptographique complète de la session)
+  // Protection du tableau de bord vendeur
   if (pathname.startsWith("/dashboard")) {
-    if (!user) {
+    const allCookies = request.cookies.getAll();
+    const hasAnyAuthCookie = allCookies.some(
+      (c) => c.name.includes("auth-token") || c.name.startsWith("sb-")
+    );
+
+    // Si aucune trace de session dans les cookies serveur et aucun user authentifié
+    if (!hasAnyAuthCookie && !user) {
       const url = request.nextUrl.clone();
       url.pathname = "/login";
       url.searchParams.set("redirect", pathname);
@@ -86,9 +73,10 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Si déjà connecté et visite la page de connexion, redirection vers le dashboard
-  if (pathname === "/login") {
-    if (user) {
+  // Si déjà connecté et visite la page de connexion, redirection propre sans boucle
+  if (pathname === "/login" && user) {
+    const referer = request.headers.get("referer") || "";
+    if (!referer.includes("/dashboard")) {
       const url = request.nextUrl.clone();
       url.pathname = "/dashboard";
       return NextResponse.redirect(url);

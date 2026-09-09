@@ -57,8 +57,8 @@ function LoginForm() {
     const checkActiveSession = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        if (session && isMounted) {
-          window.location.href = redirectPath;
+        if (session?.user && isMounted) {
+          router.replace(redirectPath);
         }
       } catch (err) {
         console.warn("Session check error:", err);
@@ -67,8 +67,8 @@ function LoginForm() {
     checkActiveSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if ((event === "SIGNED_IN" || event === "USER_UPDATED") && session && isMounted) {
-        window.location.href = redirectPath;
+      if ((event === "SIGNED_IN" || event === "USER_UPDATED") && session?.user && isMounted) {
+        router.replace(redirectPath);
       }
     });
 
@@ -76,7 +76,7 @@ function LoginForm() {
       isMounted = false;
       subscription.unsubscribe();
     };
-  }, [redirectPath, supabase]);
+  }, [redirectPath, router, supabase]);
 
   // 1. CONNEXION / INSCRIPTION EMAIL & MOT DE PASSE
   const handleEmailAuth = async (e: React.FormEvent) => {
@@ -106,7 +106,7 @@ function LoginForm() {
         if (error) throw error;
 
         if (data.session) {
-          window.location.href = redirectPath;
+          router.replace(redirectPath);
         } else {
           setSuccessMessage(
             "Compte créé avec succès ! Si un email de confirmation vous a été envoyé, cliquez sur le lien pour valider votre inscription."
@@ -119,11 +119,7 @@ function LoginForm() {
         });
 
         if (error) throw error;
-        if (data?.session) {
-          window.location.href = redirectPath;
-        } else {
-          router.push(redirectPath);
-        }
+        router.replace(redirectPath);
       }
     } catch (err: any) {
       setErrorMessage(
@@ -274,12 +270,7 @@ function LoginForm() {
         });
 
         if (signinErr) throw signinErr;
-
-        if (signinData?.session) {
-          window.location.href = redirectPath;
-        } else {
-          router.push(redirectPath);
-        }
+        router.replace(redirectPath);
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({
           email: syntheticEmail,
@@ -293,11 +284,7 @@ function LoginForm() {
           throw error;
         }
 
-        if (data?.session) {
-          window.location.href = redirectPath;
-        } else {
-          router.push(redirectPath);
-        }
+        router.replace(redirectPath);
       }
     } catch (err: any) {
       setErrorMessage(err.message || "Erreur d'authentification par téléphone.");
@@ -392,12 +379,7 @@ function LoginForm() {
       });
 
       if (signinErr) throw signinErr;
-
-      if (signinData?.session) {
-        window.location.href = redirectPath;
-      } else {
-        router.push(redirectPath);
-      }
+      router.replace(redirectPath);
     } catch (err: any) {
       setErrorMessage(err.message || "Code secret invalide ou expiré.");
     } finally {
