@@ -33,6 +33,8 @@ import {
   Lightbulb,
   ArrowRight,
   ChevronDown,
+  BookOpen,
+  Clock,
 } from "lucide-react";
 
 export default function SuperAdminDashboard() {
@@ -57,7 +59,7 @@ export default function SuperAdminDashboard() {
   // Filtres table utilisateurs
   const [userSearch, setUserSearch] = useState<string>("");
   const [authFilter, setAuthFilter] = useState<string>("all");
-  const [activeAdminTab, setActiveAdminTab] = useState<"overview" | "tunnels" | "users" | "tiktok">("overview");
+  const [activeAdminTab, setActiveAdminTab] = useState<"overview" | "tunnels" | "users" | "blog" | "tiktok">("overview");
 
   const fetchMetrics = async (tokenOverride?: string) => {
     setLoading(true);
@@ -455,6 +457,20 @@ export default function SuperAdminDashboard() {
 
           <button
             type="button"
+            onClick={() => setActiveAdminTab("blog")}
+            className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+              activeAdminTab === "blog"
+                ? "bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 shadow-lg shadow-amber-500/25 font-black"
+                : "bg-slate-900/60 text-slate-400 hover:text-white hover:bg-slate-900 border border-slate-800"
+            }`}
+          >
+            <BookOpen className="w-3.5 h-3.5 text-amber-400" />
+            <span>📚 Catalogue Blog ({metrics?.blogMetrics?.publishedCount || 4} / {metrics?.blogMetrics?.totalScheduledTopics || 325})</span>
+            <span className="px-1.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-mono font-bold">2/jour</span>
+          </button>
+
+          <button
+            type="button"
             onClick={() => setActiveAdminTab("tiktok")}
             className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
               activeAdminTab === "tiktok"
@@ -474,11 +490,242 @@ export default function SuperAdminDashboard() {
             <TikTokManager />
           </div>
         )}
+        {/* VUE DÉDIÉE CATALOGUE BLOG AUTOMATISÉ (325 ARTICLES) */}
+        {activeAdminTab === "blog" && (
+          <div className="space-y-8 animate-in fade-in duration-300">
+            {/* Bannière d'état et d'autonomie */}
+            <div className="p-6 rounded-3xl bg-gradient-to-r from-amber-950/50 via-slate-900 to-indigo-950/50 border border-amber-500/30 shadow-2xl">
+              <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+                <div className="space-y-2 max-w-2xl">
+                  <div className="flex items-center gap-2.5">
+                    <span className="px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-black border border-amber-500/40">
+                      SEO & Inbound Marketing Automatisé
+                    </span>
+                    <span className="text-xs text-slate-400 font-mono">
+                      Cron Actif : 2 publications / jour (06h00 & 14h00 UTC)
+                    </span>
+                  </div>
+                  <h2 className="text-xl sm:text-2xl font-black text-white">
+                    Programme Éditorial de 325 Articles Stratégiques
+                  </h2>
+                  <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                    Chaque jour, 2 nouveaux articles complets avec études de cas locales et boutons d'action sont débloqués automatiquement. Ils alimentent le référencement naturel Google et fournissent les scripts pour les 5 vidéos TikTok quotidiennes.
+                  </p>
+                </div>
 
-        {activeAdminTab !== "tiktok" && (
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
+                  <Link
+                    href="/blog"
+                    target="_blank"
+                    className="px-4 py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-xl shadow-amber-500/20 flex items-center justify-center gap-2 transition-all cursor-pointer"
+                  >
+                    <span>Consulter le Blog Public</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+              </div>
+
+              {/* Jauge de progression visuelle */}
+              <div className="mt-6 pt-6 border-t border-white/10 space-y-2">
+                <div className="flex items-center justify-between text-xs font-bold">
+                  <span className="text-slate-300">
+                    Avancement Global : <span className="text-amber-400 font-mono">{metrics?.blogMetrics?.publishedCount || 4}</span> sur <span className="font-mono">325 articles</span>
+                  </span>
+                  <span className="text-amber-400 font-mono">
+                    {metrics?.blogMetrics?.completionRate || 1.2}% • Reste {metrics?.blogMetrics?.remainingCount || 321} articles (~160 jours de publications garanties)
+                  </span>
+                </div>
+                <div className="w-full h-3.5 rounded-full bg-slate-950 border border-white/10 overflow-hidden p-0.5">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-amber-500 to-orange-500 transition-all duration-500"
+                    style={{ width: `${Math.max(2, metrics?.blogMetrics?.completionRate || 1.2)}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Répartition par Piliers Stratégiques */}
+            <div className="space-y-4">
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                <PieChart className="w-4 h-4 text-amber-400" />
+                <span>Les 5 Piliers Piliers du Catalogue (Chacun 65 Articles Détaillés)</span>
+              </h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3.5">
+                {[
+                  {
+                    title: "E-Commerce Mono-Produit",
+                    desc: "Sourcing, tests de marché, packaging et rentabilité en Afrique.",
+                    color: "border-sky-500/30 text-sky-400 bg-sky-500/10",
+                    badge: "sky",
+                    count: 65,
+                  },
+                  {
+                    title: "Paiements & Mobile Money",
+                    desc: "Wave, MTN, Orange, Moov & solutions contre le rejet en Cash-on-Delivery.",
+                    color: "border-emerald-500/30 text-emerald-400 bg-emerald-500/10",
+                    badge: "emerald",
+                    count: 65,
+                  },
+                  {
+                    title: "Copywriting Africain",
+                    desc: "Psychologie d'achat, storytelling WhatsApp, réassurance et urgence.",
+                    color: "border-purple-500/30 text-purple-400 bg-purple-500/10",
+                    badge: "purple",
+                    count: 65,
+                  },
+                  {
+                    title: "Publicités & Acquisition",
+                    desc: "TikTok Ads, Facebook Ads et tunnels WhatsApp à coût par clic ultra-bas.",
+                    color: "border-rose-500/30 text-rose-400 bg-rose-500/10",
+                    badge: "rose",
+                    count: 65,
+                  },
+                  {
+                    title: "Tunnels vs Sites Web",
+                    desc: "Pourquoi les sites lents tuent les ventes et comment convertir à 8%.",
+                    color: "border-amber-500/30 text-amber-400 bg-amber-500/10",
+                    badge: "amber",
+                    count: 65,
+                  },
+                ].map((pillar, pIdx) => (
+                  <div
+                    key={pIdx}
+                    className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-2 flex flex-col justify-between"
+                  >
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${pillar.color}`}>
+                          Pilier #{pIdx + 1}
+                        </span>
+                        <span className="text-xs font-mono font-bold text-white">
+                          {pillar.count} articles
+                        </span>
+                      </div>
+                      <h4 className="text-sm font-bold text-white pt-1">
+                        {pillar.title}
+                      </h4>
+                      <p className="text-[11px] text-slate-400 leading-relaxed">
+                        {pillar.desc}
+                      </p>
+                    </div>
+                    <div className="pt-2 text-[10px] text-slate-500 font-mono">
+                      Couverture : ~13 semaines
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Articles du Jour & Articles de Demain */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Articles Publiés Aujourd'hui */}
+              <div className="p-6 rounded-3xl bg-slate-900/80 border border-emerald-500/30 shadow-xl space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                    <h3 className="font-bold text-sm text-white uppercase tracking-wider">
+                      Articles Publiés Aujourd'hui (Actifs en Ligne)
+                    </h3>
+                  </div>
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold border border-emerald-500/30">
+                    2 en ligne
+                  </span>
+                </div>
+
+                <div className="space-y-3">
+                  {(metrics?.blogMetrics?.todayArticles || []).map((art: any) => (
+                    <div
+                      key={art.id}
+                      className="p-4 rounded-2xl bg-slate-950/70 border border-white/5 hover:border-emerald-500/40 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                    >
+                      <div className="space-y-1 min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span
+                            className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase"
+                            style={{
+                              backgroundColor: `${art.categoryColor}20`,
+                              color: art.categoryColor,
+                            }}
+                          >
+                            {art.category}
+                          </span>
+                          <span className="text-[11px] text-slate-400 font-mono">
+                            Créneau : {art.publishTime}
+                          </span>
+                        </div>
+                        <h4 className="text-sm font-bold text-white truncate">
+                          {art.title}
+                        </h4>
+                      </div>
+
+                      <Link
+                        href={`/blog/${art.slug}`}
+                        target="_blank"
+                        className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-emerald-600 text-slate-200 hover:text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 shrink-0"
+                      >
+                        <span>Lire l'Article</span>
+                        <ArrowUpRight className="w-3.5 h-3.5" />
+                      </Link>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Prochains Articles Programmés pour Demain */}
+              <div className="p-6 rounded-3xl bg-slate-900/80 border border-indigo-500/30 shadow-xl space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-indigo-400" />
+                    <h3 className="font-bold text-sm text-white uppercase tracking-wider">
+                      Prochains Articles (Déblocage Automatique Demain)
+                    </h3>
+                  </div>
+                  <span className="px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 text-[10px] font-bold border border-indigo-500/30">
+                    Prévus à 06h & 14h UTC
+                  </span>
+                </div>
+
+                <div className="space-y-3">
+                  {(metrics?.blogMetrics?.tomorrowArticles || []).map((art: any) => (
+                    <div
+                      key={art.id}
+                      className="p-4 rounded-2xl bg-slate-950/70 border border-white/5 space-y-1"
+                    >
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span
+                          className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase"
+                          style={{
+                            backgroundColor: `${art.categoryColor}20`,
+                            color: art.categoryColor,
+                          }}
+                        >
+                          {art.category}
+                        </span>
+                        <span className="text-[11px] text-amber-400 font-mono flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          <span>Demain à {art.publishTime}</span>
+                        </span>
+                      </div>
+                      <h4 className="text-sm font-semibold text-slate-200 truncate">
+                        {art.title}
+                      </h4>
+                      <p className="text-[11px] text-slate-500 font-mono">
+                        Déclenchera également la génération de 5 nouvelles vidéos TikTok adaptées
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+
+        {activeAdminTab !== "tiktok" && activeAdminTab !== "blog" && (
           <>
         {/* 1. CARTES KPI CLÉS */}
-        <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
+        <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
           {/* KPI 1 : Chiffre d'Affaires Global */}
           <div className="p-5 rounded-2xl bg-slate-900/80 border border-emerald-500/25 shadow-xl backdrop-blur-md space-y-2">
             <div className="flex items-center justify-between">
@@ -548,6 +795,28 @@ export default function SuperAdminDashboard() {
             </div>
             <p className="text-[11px] text-slate-400">
               MoMo, FedaPay, WhatsApp & Livraison
+            </p>
+          </div>
+
+          {/* KPI 5 : Articles Blog Publiés */}
+          <div className="p-5 rounded-2xl bg-slate-900/80 border border-amber-500/25 shadow-xl backdrop-blur-md space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">
+                Articles Blog Publiés
+              </span>
+              <div className="p-2 rounded-xl bg-amber-500/10 text-amber-400">
+                <BookOpen className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="text-xl sm:text-2xl font-black text-white font-mono tracking-tight flex items-baseline gap-1.5">
+              <span>{metrics?.blogMetrics?.publishedCount ?? 4}</span>
+              <span className="text-xs font-normal text-slate-400">/ {metrics?.blogMetrics?.totalScheduledTopics ?? 325}</span>
+            </div>
+            <p className="text-[11px] text-amber-300/90 flex items-center justify-between">
+              <span>+{metrics?.blogMetrics?.ratePerDay ?? 2} articles / jour</span>
+              <span className="font-mono text-[10px] bg-amber-500/10 px-1.5 py-0.5 rounded text-amber-300 border border-amber-500/20">
+                {metrics?.blogMetrics?.completionRate ?? 1}% actif
+              </span>
             </p>
           </div>
         </section>

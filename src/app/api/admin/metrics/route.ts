@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAllFunnels, getAllOrders } from "@/lib/storage/funnels";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getPublishedTopics, BLOG_TOPICS, BLOG_CATEGORIES } from "@/lib/blog/topics";
 import fs from "fs";
 import path from "path";
 
@@ -259,6 +260,50 @@ export async function GET(req: NextRequest) {
       },
     ];
 
+    const publishedTopics = getPublishedTopics();
+    const totalScheduled = BLOG_TOPICS.length;
+    const completionRate = Math.round((publishedTopics.length / (totalScheduled || 1)) * 100);
+    const BASE_DATE = new Date("2026-09-08T00:00:00Z");
+    const diffDays = Math.floor(Math.max(0, Date.now() - BASE_DATE.getTime()) / 86400000);
+
+    const todayArticles = publishedTopics.slice(-2);
+    const tomorrowIndexStart = publishedTopics.length;
+    const tomorrowArticles = BLOG_TOPICS.slice(tomorrowIndexStart, tomorrowIndexStart + 2);
+
+    const blogMetrics = {
+      publishedCount: publishedTopics.length,
+      totalScheduledTopics: totalScheduled,
+      remainingCount: Math.max(0, totalScheduled - publishedTopics.length),
+      completionRate,
+      ratePerDay: 2,
+      daysActive: diffDays + 1,
+      todayArticles: todayArticles.map((a) => ({
+        title: a.title,
+        slug: a.slug,
+        categoryLabel: a.categoryLabel,
+        readTime: a.readTime,
+      })),
+      tomorrowArticles: tomorrowArticles.map((a) => ({
+        title: a.title,
+        slug: a.slug,
+        categoryLabel: a.categoryLabel,
+        readTime: a.readTime,
+      })),
+      categoriesStats: Object.entries(BLOG_CATEGORIES).map(([key, cat]) => {
+        const catPublished = publishedTopics.filter((t) => t.category === key).length;
+        const catTotal = BLOG_TOPICS.filter((t) => t.category === key).length;
+        return {
+          key,
+          label: cat.label,
+          icon: cat.icon,
+          color: cat.color,
+          published: catPublished,
+          total: catTotal,
+          rate: Math.round((catPublished / (catTotal || 1)) * 100),
+        };
+      }),
+    };
+
     return NextResponse.json({
       summary: {
         totalUsers: registeredUsers.length,
@@ -268,6 +313,7 @@ export async function GET(req: NextRequest) {
         totalGmv,
         currency: "FCFA",
       },
+      blogMetrics,
       provenance,
       useCases,
       paymentMethodsStats,

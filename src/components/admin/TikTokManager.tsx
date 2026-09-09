@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { TikTokVideoPost, TikTokScene } from "@/lib/tiktok/generator";
+import { compileTikTokVideo, CompiledVideoResult, VideoRenderProgress } from "@/lib/tiktok/videoCompiler";
 import {
   Play,
   Pause,
@@ -33,6 +34,8 @@ import {
   Check,
   AlertCircle,
   UploadCloud,
+  Download,
+  Film,
 } from "lucide-react";
 
 interface TikTokAuthStatus {
@@ -59,6 +62,13 @@ export function TikTokManager() {
   const [savingKeys, setSavingKeys] = useState(false);
   const [authNotification, setAuthNotification] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [publishingPostId, setPublishingPostId] = useState<string | null>(null);
+
+  // Moteur de compilation vidéo MP4 / WebM
+  const [compiledVideos, setCompiledVideos] = useState<Record<string, CompiledVideoResult>>({});
+  const [compilingPostId, setCompilingPostId] = useState<string | null>(null);
+  const [compilingAll, setCompilingAll] = useState<boolean>(false);
+  const [renderProgress, setRenderProgress] = useState<Record<string, VideoRenderProgress>>({});
+  const [viewMode, setViewMode] = useState<"simulator" | "compiled">("simulator");
 
   // État du lecteur 9:16
   const [isPlaying, setIsPlaying] = useState(true);
@@ -282,6 +292,58 @@ export function TikTokManager() {
     navigator.clipboard.writeText(text);
     setCopiedUrlType(type);
     setTimeout(() => setCopiedUrlType(null), 2500);
+  };
+
+  // Compilation d'une vidéo unique
+  const handleCompileSingle = async (post: TikTokVideoPost) => {
+    try {
+      setCompilingPostId(post.id);
+      const res = await compileTikTokVideo(post, (p) => {
+        setRenderProgress((prev) => ({ ...prev, [post.id]: p }));
+      });
+      setCompiledVideos((prev) => ({ ...prev, [post.id]: res }));
+      if (selectedPostId === post.id || !selectedPostId) {
+        setViewMode("compiled");
+      }
+    } catch (err: any) {
+      console.error("Erreur compilation vidéo:", err);
+      alert("Erreur lors de la compilation : " + (err?.message || "Échec"));
+    } finally {
+      setCompilingPostId(null);
+    }
+  };
+
+  // Compilation séquentielle des vidéos du jour
+  const handleCompileAll = async () => {
+    if (posts.length === 0) return;
+    try {
+      setCompilingAll(true);
+      for (const post of posts) {
+        setCompilingPostId(post.id);
+        const res = await compileTikTokVideo(post, (p) => {
+          setRenderProgress((prev) => ({ ...prev, [post.id]: p }));
+        });
+        setCompiledVideos((prev) => ({ ...prev, [post.id]: res }));
+      }
+      setViewMode("compiled");
+    } catch (err: any) {
+      console.error("Erreur compilation globale:", err);
+    } finally {
+      setCompilingPostId(null);
+      setCompilingAll(false);
+    }
+  };
+
+  // Téléchargement du fichier MP4
+  const handleDownloadVideo = (post: TikTokVideoPost) => {
+    const compiled = compiledVideos[post.id];
+    if (!compiled) return;
+    const a = document.createElement("a");
+    a.href = compiled.url;
+    a.download = compiled.fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   };
 
   const copyScript = (post: TikTokVideoPost) => {
@@ -543,6 +605,26 @@ SON: ${post.musicTrack}`;
 
           <button
             type="button"
+            onClick={handleCompileAll}
+            disabled={compilingAll || posts.length === 0}
+            className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white text-xs font-black shadow-xl shadow-purple-500/20 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+            title="Compiler automatiquement les vidéos en vrais fichiers vidéo MP4 avec voix et musique"
+          >
+            {compilingAll ? (
+              <>
+                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                <span>Rendu ({Object.keys(compiledVideos).length}/{posts.length})...</span>
+              </>
+            ) : (
+              <>
+                <Film className="w-3.5 h-3.5 text-pink-300" />
+                <span>Compiler les {posts.length} Vidéos (MP4)</span>
+              </>
+            )}
+          </button>
+
+          <button
+            type="button"
             onClick={handleGenerate}
             disabled={generating}
             className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-rose-500 via-pink-500 to-purple-600 hover:from-rose-400 hover:to-purple-500 text-white text-xs font-black shadow-xl shadow-rose-500/20 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
@@ -595,12 +677,57 @@ SON: ${post.musicTrack}`;
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Simulateur Smartphone 9:16 (5 colonnes) */}
         <div className="lg:col-span-5 flex flex-col items-center">
-          <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-            <Video className="w-3.5 h-3.5 text-rose-400" />
-            <span>Simulateur Plein Écran TikTok 9:16</span>
+          <div className="flex flex-col sm:flex-row items-center justify-between w-full max-w-[340px] mb-2 gap-2">
+            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+              <Video className="w-3.5 h-3.5 text-rose-400" />
+              <span>Aperçu TikTok 9:16</span>
+            </div>
+
+            <div className="flex items-center gap-1 bg-slate-900/90 p-1 rounded-xl border border-slate-800 text-[11px]">
+              <button
+                type="button"
+                onClick={() => setViewMode("simulator")}
+                className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
+                  viewMode === "simulator"
+                    ? "bg-slate-800 text-white shadow-sm"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                👁️ Scénario
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (selectedPost && compiledVideos[selectedPost.id]) {
+                    setViewMode("compiled");
+                  } else if (selectedPost) {
+                    handleCompileSingle(selectedPost);
+                  }
+                }}
+                className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                  viewMode === "compiled"
+                    ? "bg-gradient-to-r from-rose-500 to-pink-600 text-white shadow-md"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                <Film className="w-3 h-3 text-pink-300" />
+                <span>{selectedPost && compiledVideos[selectedPost.id] ? "🎬 MP4 Prêt" : "🎥 Rendre MP4"}</span>
+              </button>
+            </div>
           </div>
 
-          {selectedPost && (
+          {selectedPost && viewMode === "compiled" && compiledVideos[selectedPost.id] ? (
+            <div className="w-[320px] sm:w-[340px] h-[640px] rounded-[44px] bg-black border-[6px] border-slate-800 shadow-2xl relative overflow-hidden flex flex-col justify-center items-center">
+              <video
+                src={compiledVideos[selectedPost.id].url}
+                controls
+                autoPlay
+                loop
+                playsInline
+                className="w-full h-full object-cover rounded-[38px]"
+              />
+            </div>
+          ) : selectedPost ? (
             <div className="w-[320px] sm:w-[340px] h-[640px] rounded-[44px] bg-black p-3.5 border-[6px] border-slate-800 shadow-2xl relative overflow-hidden flex flex-col justify-between">
               {/* Fond Vidéo avec Zoom Lent Ken Burns */}
               <div className="absolute inset-0 z-0 overflow-hidden">
@@ -730,6 +857,42 @@ SON: ${post.musicTrack}`;
                 />
               </div>
             </div>
+          ) : null}
+
+          {/* Progression de compilation active */}
+          {selectedPost && compilingPostId === selectedPost.id && renderProgress[selectedPost.id] && (
+            <div className="w-[320px] sm:w-[340px] p-4 mt-3 rounded-2xl bg-slate-900 border border-indigo-500/40 text-xs space-y-2 shadow-xl animate-in fade-in">
+              <div className="flex items-center justify-between text-indigo-300 font-bold">
+                <span className="flex items-center gap-1.5">
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                  <span>Rendu de la vraie vidéo MP4...</span>
+                </span>
+                <span className="font-mono">{renderProgress[selectedPost.id].percent}%</span>
+              </div>
+              <div className="w-full h-2 rounded-full bg-slate-950 overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-rose-500 via-purple-500 to-indigo-500 transition-all duration-200"
+                  style={{ width: `${renderProgress[selectedPost.id].percent}%` }}
+                />
+              </div>
+              <p className="text-[10px] text-slate-400 font-mono truncate">
+                {renderProgress[selectedPost.id].statusText}
+              </p>
+            </div>
+          )}
+
+          {/* Bouton Téléchargement MP4 si vidéo compilée */}
+          {selectedPost && compiledVideos[selectedPost.id] && (
+            <div className="flex items-center gap-2 mt-3">
+              <button
+                type="button"
+                onClick={() => handleDownloadVideo(selectedPost)}
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold flex items-center gap-2 shadow-lg shadow-emerald-600/20 transition-all cursor-pointer"
+              >
+                <Download className="w-4 h-4" />
+                <span>Télécharger la Vidéo ({compiledVideos[selectedPost.id].fileName})</span>
+              </button>
+            </div>
           )}
 
           {/* Commandes du Lecteur */}
@@ -820,6 +983,38 @@ SON: ${post.musicTrack}`;
 
                     {/* Actions sur le post */}
                     <div className="flex items-center gap-2 shrink-0 pt-2 sm:pt-0" onClick={(e) => e.stopPropagation()}>
+                      {/* Bouton Compilation / Téléchargement Vidéo MP4 */}
+                      {compiledVideos[post.id] ? (
+                        <button
+                          type="button"
+                          onClick={() => handleDownloadVideo(post)}
+                          className="px-3 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
+                          title="Télécharger la vraie vidéo compilée"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                          <span>MP4 Prêt</span>
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => handleCompileSingle(post)}
+                          disabled={compilingPostId === post.id}
+                          className="px-3 py-1.5 rounded-xl bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 border border-indigo-500/40 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm disabled:opacity-50"
+                          title="Compiler en vraie vidéo avec voix, musique et sous-titres"
+                        >
+                          {compilingPostId === post.id ? (
+                            <>
+                              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                              <span>{renderProgress[post.id]?.percent || 0}%</span>
+                            </>
+                          ) : (
+                            <>
+                              <Film className="w-3.5 h-3.5 text-indigo-300" />
+                              <span>Rendu MP4</span>
+                            </>
+                          )}
+                        </button>
+                      )}
                       {/* Bouton Publier Directement sur TikTok */}
                       <button
                         type="button"
