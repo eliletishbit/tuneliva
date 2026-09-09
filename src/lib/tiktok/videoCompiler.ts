@@ -1,9 +1,12 @@
 /**
- * Tuneliva TikTok Video Compiler Engine
- * Moteur de rendu 9:16 vertical 100% gratuit et automatique
- * Compile les concepts et scripts en vraies vidéos vidéo/webm ou vidéo/mp4
- * Intègre : animations Ken Burns, sous-titres cinétiques mot par mot (style Alex Hormozi),
- * bande sonore dynamique (Web Audio API) et voix de synthèse TTS (SpeechSynthesis).
+ * Tuneliva TikTok Video Compiler Engine (Version 2.0 Pro)
+ * Moteur de rendu 9:16 vertical haute fidélité
+ * - Visuels dynamiques et variés par scène (avec proxy anti-CORS et transitions fondues)
+ * - Mouvements de caméra cinématographiques Ken Burns (zoom in, pan gauche, zoom out, pan droite, pulse)
+ * - Voix off haute qualité enregistrée directement dans le flux MP4 via Web Audio API + AudioDestination
+ * - Deux voix professionnelles : Aïcha (Femme ~30 ans, Experte marketing) et Kouamé (Homme ~30 ans, Entrepreneur confiant)
+ * - Vraie bande sonore instrumentale libre de droits (Lo-Fi / Afrobeats chill en fond subtil à -18dB)
+ * - Sous-titres cinétiques mot par mot style Alex Hormozi (jaune néon surbrillant)
  */
 
 import { TikTokVideoPost, TikTokScene } from "./generator";
@@ -22,126 +25,88 @@ export interface CompiledVideoResult {
   fileName: string;
 }
 
-// Fonction utilitaire pour charger une image en toute sécurité avec fallback si CORS
-async function loadImageSafe(url: string): Promise<HTMLImageElement | null> {
+export type VoiceOption = "female" | "male";
+export type MusicOption = "afrobeat" | "lofi" | "none";
+
+export interface VideoCompilerOptions {
+  voice?: VoiceOption;
+  music?: MusicOption;
+}
+
+// Chargement sécurisé de chaque image via le proxy local anti-CORS
+async function loadImageThroughProxy(rawUrl: string): Promise<HTMLImageElement | null> {
   return new Promise((resolve) => {
+    const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(rawUrl)}`;
     const img = new Image();
     img.crossOrigin = "anonymous";
     img.onload = () => resolve(img);
     img.onerror = () => {
-      // Deuxième tentative sans crossOrigin
-      const retryImg = new Image();
-      retryImg.onload = () => resolve(retryImg);
-      retryImg.onerror = () => resolve(null);
-      retryImg.src = url;
+      // Deuxième tentative directe
+      const directImg = new Image();
+      directImg.crossOrigin = "anonymous";
+      directImg.onload = () => resolve(directImg);
+      directImg.onerror = () => resolve(null);
+      directImg.src = rawUrl;
     };
-    img.src = url;
+    img.src = proxyUrl;
   });
 }
 
-// Création d'une ambiance sonore rythmique Lo-Fi / Amapiano via Web Audio API (100% gratuit)
-function createAudioTrack(audioCtx: AudioContext, durationSec: number): MediaStreamAudioDestinationNode {
-  const destination = audioCtx.createMediaStreamDestination();
-  const masterGain = audioCtx.createGain();
-  masterGain.gain.setValueAtTime(0.35, audioCtx.currentTime);
-  masterGain.connect(destination);
-
-  const tempoBpm = 110;
-  const beatInterval = 60 / tempoBpm;
-  const totalBeats = Math.floor(durationSec / beatInterval);
-
-  // Synthèse de percussions rythmées (Kick + Hi-hat + Bassline)
-  for (let i = 0; i < totalBeats; i++) {
-    const time = audioCtx.currentTime + i * beatInterval;
-
-    // Kick sur les temps 1 et 3
-    if (i % 2 === 0) {
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(130, time);
-      osc.frequency.exponentialRampToValueAtTime(38, time + 0.15);
-      gain.gain.setValueAtTime(0.7, time);
-      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.2);
-      osc.connect(gain);
-      gain.connect(masterGain);
-      osc.start(time);
-      osc.stop(time + 0.22);
-    }
-
-    // Hi-hat sur chaque temps
-    const hatOsc = audioCtx.createOscillator();
-    const hatGain = audioCtx.createGain();
-    hatOsc.type = "triangle";
-    hatOsc.frequency.setValueAtTime(7000, time + (i % 2 === 1 ? 0 : beatInterval * 0.5));
-    hatGain.gain.setValueAtTime(0.12, time + (i % 2 === 1 ? 0 : beatInterval * 0.5));
-    hatGain.gain.exponentialRampToValueAtTime(0.001, time + (i % 2 === 1 ? 0 : beatInterval * 0.5) + 0.05);
-    hatOsc.connect(hatGain);
-    hatGain.connect(masterGain);
-    hatOsc.start(time);
-    hatOsc.stop(time + 0.08);
-
-    // Accord mélodique doux tous les 4 temps
-    if (i % 4 === 0) {
-      const chordNotes = [220, 277.18, 329.63, 440]; // Accord Am
-      chordNotes.forEach((freq) => {
-        const chordOsc = audioCtx.createOscillator();
-        const chordGain = audioCtx.createGain();
-        chordOsc.type = "sine";
-        chordOsc.frequency.setValueAtTime(freq, time);
-        chordGain.gain.setValueAtTime(0.08, time);
-        chordGain.gain.exponentialRampToValueAtTime(0.001, time + beatInterval * 3.5);
-        chordOsc.connect(chordGain);
-        chordGain.connect(masterGain);
-        chordOsc.start(time);
-        chordOsc.stop(time + beatInterval * 3.8);
-      });
-    }
+// Récupération et décodage de l'audio TTS pour une phrase donnée
+async function fetchAndDecodeTTS(
+  audioCtx: AudioContext,
+  text: string
+): Promise<AudioBuffer | null> {
+  try {
+    const url = `/api/tiktok/tts?text=${encodeURIComponent(text)}&lang=fr-FR`;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const arrayBuf = await res.arrayBuffer();
+    return await audioCtx.decodeAudioData(arrayBuf);
+  } catch (err) {
+    console.warn("Erreur fetch/decode TTS:", err);
+    return null;
   }
-
-  return destination;
 }
 
-// Déclencheur vocal TTS (SpeechSynthesis) synchronisé
-function speakTextSync(text: string) {
-  if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+// Chargement de la vraie musique de fond libre de droits (MP3)
+async function fetchAndDecodeMusic(
+  audioCtx: AudioContext,
+  track: MusicOption
+): Promise<AudioBuffer | null> {
+  if (track === "none") return null;
+  const fileName = track === "afrobeat" ? "afrobeat-chill.mp3" : "lofi-business.mp3";
   try {
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = "fr-FR";
-    utterance.rate = 1.12;
-    utterance.pitch = 1.02;
-
-    const voices = window.speechSynthesis.getVoices();
-    const frVoice = voices.find((v) => v.lang.startsWith("fr"));
-    if (frVoice) utterance.voice = frVoice;
-
-    window.speechSynthesis.speak(utterance);
-  } catch {
-    // Ignoré si SpeechSynthesis non disponible
+    const res = await fetch(`/audio/${fileName}`);
+    if (!res.ok) return null;
+    const arrayBuf = await res.arrayBuffer();
+    return await audioCtx.decodeAudioData(arrayBuf);
+  } catch (err) {
+    console.warn("Erreur chargement musique MP3:", err);
+    return null;
   }
 }
 
 /**
- * Compile un TikTokVideoPost en vraie vidéo MP4 / WebM
- * @param post TikTokVideoPost
- * @param onProgress Callback de progression
+ * Compile un TikTokVideoPost en vraie vidéo MP4 / WebM avec voix off réelle et musique
  */
 export async function compileTikTokVideo(
   post: TikTokVideoPost,
-  onProgress?: (p: VideoRenderProgress) => void
+  onProgress?: (p: VideoRenderProgress) => void,
+  options: VideoCompilerOptions = {}
 ): Promise<CompiledVideoResult> {
   if (typeof window === "undefined") {
     throw new Error("La compilation vidéo s'exécute dans l'environnement navigateur.");
   }
 
-  // Dimensions verticales standard 9:16 (HD 720 x 1280 pour rapidité et fluidité maximale)
+  const voiceType: VoiceOption = options.voice || "female";
+  const musicType: MusicOption = options.music || "afrobeat";
+
   const WIDTH = 720;
   const HEIGHT = 1280;
   const FPS = 30;
-  const TOTAL_DURATION_SEC = post.durationSec || 20;
 
-  // Création du canvas hors écran
+  // Création du canvas 9:16
   const canvas = document.createElement("canvas");
   canvas.width = WIDTH;
   canvas.height = HEIGHT;
@@ -152,50 +117,111 @@ export async function compileTikTokVideo(
 
   onProgress?.({
     currentSec: 0,
-    totalSec: TOTAL_DURATION_SEC,
+    totalSec: 25,
     percent: 5,
-    statusText: "Préchargement des visuels haute définition...",
+    statusText: "Chargement des visuels haute définition par scène...",
   });
 
-  // 1. Préchargement de toutes les images des scènes
+  // 1. Chargement de toutes les images des scènes avec le proxy anti-CORS
   const sceneImages: (HTMLImageElement | null)[] = [];
   for (let i = 0; i < post.scenes.length; i++) {
     const scene = post.scenes[i];
-    const img = await loadImageSafe(scene.bgImageUrl);
+    const img = await loadImageThroughProxy(scene.bgImageUrl);
     sceneImages.push(img);
   }
 
-  // 2. Initialisation Web Audio pour la bande sonore
-  const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-  let audioCtx: AudioContext | null = null;
-  let audioDestination: MediaStreamAudioDestinationNode | null = null;
+  onProgress?.({
+    currentSec: 0,
+    totalSec: 25,
+    percent: 15,
+    statusText: `Synthèse de la voix off ${voiceType === "female" ? "d'Aïcha" : "de Kouamé"} et de la musique...`,
+  });
 
-  try {
-    if (AudioContextClass) {
-      audioCtx = new AudioContextClass();
-      if (audioCtx.state === "suspended") {
-        await audioCtx.resume();
-      }
-      audioDestination = createAudioTrack(audioCtx, TOTAL_DURATION_SEC);
-    }
-  } catch {
-    // Si audio bloqué par politique autoplay, continuer avec vidéo muette
+  // 2. Initialisation Web Audio & Décodage des pistes audio
+  const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+  if (!AudioContextClass) {
+    throw new Error("L'API Web Audio n'est pas supportée par ce navigateur.");
+  }
+
+  const audioCtx = new AudioContextClass();
+  if (audioCtx.state === "suspended") {
+    await audioCtx.resume();
+  }
+
+  const audioDestination = audioCtx.createMediaStreamDestination();
+
+  // Nœud de sortie principal connecté à la destination d'enregistrement ET aux haut-parleurs
+  const masterVoiceGain = audioCtx.createGain();
+  masterVoiceGain.gain.setValueAtTime(1.0, audioCtx.currentTime);
+  masterVoiceGain.connect(audioDestination);
+  masterVoiceGain.connect(audioCtx.destination);
+
+  // Égaliseur vocal adapté au profil d'entrepreneur trentenaire
+  const voiceFilter = audioCtx.createBiquadFilter();
+  if (voiceType === "female") {
+    // Aïcha (~30 ans, experte marketing, dynamique, chaleureuse)
+    voiceFilter.type = "peaking";
+    voiceFilter.frequency.setValueAtTime(2800, audioCtx.currentTime);
+    voiceFilter.gain.setValueAtTime(3.0, audioCtx.currentTime);
+    voiceFilter.Q.setValueAtTime(1.1, audioCtx.currentTime);
+  } else {
+    // Kouamé (~30 ans, entrepreneur confiant, convivial, posé)
+    voiceFilter.type = "lowshelf";
+    voiceFilter.frequency.setValueAtTime(220, audioCtx.currentTime);
+    voiceFilter.gain.setValueAtTime(4.0, audioCtx.currentTime);
+  }
+  voiceFilter.connect(masterVoiceGain);
+
+  // Pré-chargement des voix TTS pour chaque scène
+  const sceneAudioBuffers: (AudioBuffer | null)[] = [];
+  for (let i = 0; i < post.scenes.length; i++) {
+    const buf = await fetchAndDecodeTTS(audioCtx, post.scenes[i].subtitle);
+    sceneAudioBuffers.push(buf);
+  }
+
+  // Calcul des timings synchronisés scène par scène selon la durée réelle de parole
+  const sceneTimings: { startSec: number; durationSec: number }[] = [];
+  let currentAccumulatedSec = 0;
+
+  for (let i = 0; i < post.scenes.length; i++) {
+    const audioBuf = sceneAudioBuffers[i];
+    // Durée de la scène basée sur la parole + marge d'aération
+    const rawAudioDuration = audioBuf ? audioBuf.duration : 4.0;
+    const sceneDur = Math.max(3.8, rawAudioDuration + 0.6);
+    sceneTimings.push({
+      startSec: currentAccumulatedSec,
+      durationSec: sceneDur,
+    });
+    currentAccumulatedSec += sceneDur;
+  }
+
+  const TOTAL_DURATION_SEC = Math.ceil(currentAccumulatedSec);
+
+  // Chargement et lecture en boucle de la vraie musique de fond MP3
+  const musicBuffer = await fetchAndDecodeMusic(audioCtx, musicType);
+  if (musicBuffer) {
+    const musicSource = audioCtx.createBufferSource();
+    musicSource.buffer = musicBuffer;
+    musicSource.loop = true;
+
+    // Volume subtil de fond (-18 dB, environ 0.12)
+    const musicGain = audioCtx.createGain();
+    musicGain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+
+    musicSource.connect(musicGain);
+    musicGain.connect(audioDestination);
+    musicGain.connect(audioCtx.destination);
+    musicSource.start(0);
   }
 
   // 3. Configuration du flux MediaStream et MediaRecorder
   const videoStream = canvas.captureStream(FPS);
-  const tracks: MediaStreamTrack[] = [...videoStream.getVideoTracks()];
+  const combinedTracks: MediaStreamTrack[] = [
+    ...videoStream.getVideoTracks(),
+    ...audioDestination.stream.getAudioTracks(),
+  ];
+  const combinedStream = new MediaStream(combinedTracks);
 
-  if (audioDestination && audioDestination.stream) {
-    const audioTracks = audioDestination.stream.getAudioTracks();
-    if (audioTracks.length > 0) {
-      tracks.push(audioTracks[0]);
-    }
-  }
-
-  const combinedStream = new MediaStream(tracks);
-
-  // Choix du codec supporté (mp4 en priorité si supporté, sinon webm compatible universel)
   let mimeType = "video/webm;codecs=vp9,opus";
   if (MediaRecorder.isTypeSupported("video/mp4;codecs=avc1,mp4a.40.2")) {
     mimeType = "video/mp4;codecs=avc1,mp4a.40.2";
@@ -209,7 +235,7 @@ export async function compileTikTokVideo(
 
   const recorder = new MediaRecorder(combinedStream, {
     mimeType,
-    videoBitsPerSecond: 3_500_000, // 3.5 Mbps haute fidélité
+    videoBitsPerSecond: 4_000_000,
   });
 
   const recordedChunks: Blob[] = [];
@@ -221,21 +247,35 @@ export async function compileTikTokVideo(
 
   recorder.start(100);
 
-  // Déclencher la première narration vocale
-  speakTextSync(post.scenes[0]?.subtitle || post.hookText);
+  // Fonction de lecture de la voix pour une scène
+  const playSceneAudio = (index: number) => {
+    const buf = sceneAudioBuffers[index];
+    if (!buf) return;
+    const source = audioCtx.createBufferSource();
+    source.buffer = buf;
+    // Pitch ajusté : légèrement plus enjoué pour femme (+5%), légèrement plus grave pour homme (-5%)
+    source.playbackRate.setValueAtTime(voiceType === "female" ? 1.05 : 0.94, audioCtx.currentTime);
+    source.connect(voiceFilter);
+    source.start(0);
+  };
 
-  // 4. Boucle de rendu frame par frame synchronisée
-  let lastSpokenSceneIndex = 0;
-  const startTime = Date.now();
+  // Jouer la première scène immédiatement
+  playSceneAudio(0);
+
+  const SCENE_STAGE_LABELS = [
+    "⚡ ACCROCHE STRATÉGIQUE",
+    "💡 POINT 1 : L'OFFRE PHARE",
+    "💳 POINT 2 : LE PAIEMENT LOCAL",
+    "📦 POINT 3 : LIVRAISON & WHATSAPP",
+    "🎯 PASSAGE À L'ACTION",
+  ];
 
   return new Promise((resolve, reject) => {
     recorder.onerror = (err) => reject(err);
 
     recorder.onstop = () => {
       try {
-        if (audioCtx) {
-          audioCtx.close();
-        }
+        audioCtx.close();
       } catch {}
 
       const outputMime = mimeType.startsWith("video/mp4") ? "video/mp4" : "video/webm";
@@ -249,7 +289,7 @@ export async function compileTikTokVideo(
         currentSec: TOTAL_DURATION_SEC,
         totalSec: TOTAL_DURATION_SEC,
         percent: 100,
-        statusText: "Compilation terminée avec succès !",
+        statusText: "Vidéo générée avec succès (voix off et musique incluses) !",
       });
 
       resolve({
@@ -260,6 +300,9 @@ export async function compileTikTokVideo(
       });
     };
 
+    let lastTriggeredSceneIndex = 0;
+    const startTime = Date.now();
+
     const renderLoop = () => {
       const elapsedSec = (Date.now() - startTime) / 1000;
 
@@ -268,9 +311,9 @@ export async function compileTikTokVideo(
         return;
       }
 
-      // Déterminer la scène active
-      let sceneIndex = post.scenes.findIndex(
-        (sc) => elapsedSec >= sc.second && elapsedSec < sc.second + sc.durationSec
+      // Déterminer la scène active selon les timings réels
+      let sceneIndex = sceneTimings.findIndex(
+        (t) => elapsedSec >= t.startSec && elapsedSec < t.startSec + t.durationSec
       );
       if (sceneIndex === -1) {
         sceneIndex = post.scenes.length - 1;
@@ -278,87 +321,137 @@ export async function compileTikTokVideo(
 
       const activeScene: TikTokScene = post.scenes[sceneIndex] || post.scenes[0];
       const activeImg = sceneImages[sceneIndex] || sceneImages[0];
+      const timing = sceneTimings[sceneIndex] || { startSec: 0, durationSec: 4 };
 
-      // Déclencher la voix TTS au changement de scène
-      if (sceneIndex !== lastSpokenSceneIndex) {
-        lastSpokenSceneIndex = sceneIndex;
-        speakTextSync(activeScene.subtitle);
+      // Déclencher l'audio vocal synchronisé lors du passage à la nouvelle scène
+      if (sceneIndex !== lastTriggeredSceneIndex) {
+        lastTriggeredSceneIndex = sceneIndex;
+        playSceneAudio(sceneIndex);
       }
 
       // Progression dans la scène actuelle (0 à 1)
-      const sceneElapsed = Math.max(0, elapsedSec - activeScene.second);
-      const sceneProgress = Math.min(1, sceneElapsed / (activeScene.durationSec || 1));
+      const sceneElapsed = Math.max(0, elapsedSec - timing.startSec);
+      const sceneProgress = Math.min(1, sceneElapsed / (timing.durationSec || 1));
 
-      // --- DESSIN DU FOND AVEC EFFET KEN BURNS (ZOOM PROGRESSIF) ---
-      ctx.fillStyle = "#0a0d18";
+      // 1. Fond noir par défaut
+      ctx.fillStyle = "#070913";
       ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
-      if (activeImg) {
-        const zoom = 1.0 + sceneProgress * 0.12; // Zoom de 1.0x à 1.12x
-        const imgWidth = WIDTH * zoom;
-        const imgHeight = HEIGHT * zoom;
-        const offsetX = (WIDTH - imgWidth) / 2;
-        const offsetY = (HEIGHT - imgHeight) / 2;
+      // 2. Mouvement de caméra dynamique Ken Burns différent pour chaque scène
+      // Scène 0 : Zoom In lent
+      // Scène 1 : Panoramique vers la gauche
+      // Scène 2 : Zoom Out lent
+      // Scène 3 : Panoramique vers la droite
+      // Scène 4 : Zoom In avec pulsation
+      let zoom = 1.05;
+      let panX = 0;
+      let panY = 0;
 
+      if (sceneIndex === 0) {
+        zoom = 1.02 + sceneProgress * 0.12;
+      } else if (sceneIndex === 1) {
+        zoom = 1.1;
+        panX = (1 - sceneProgress * 2) * 35; // déplacement horizontal
+      } else if (sceneIndex === 2) {
+        zoom = 1.14 - sceneProgress * 0.1;
+      } else if (sceneIndex === 3) {
+        zoom = 1.1;
+        panX = (sceneProgress * 2 - 1) * 35;
+      } else {
+        zoom = 1.04 + Math.sin(sceneProgress * Math.PI) * 0.08;
+      }
+
+      const imgWidth = WIDTH * zoom;
+      const imgHeight = HEIGHT * zoom;
+      const offsetX = (WIDTH - imgWidth) / 2 + panX;
+      const offsetY = (HEIGHT - imgHeight) / 2 + panY;
+
+      // Dessin de l'image de la scène courante
+      if (activeImg) {
         ctx.drawImage(activeImg, offsetX, offsetY, imgWidth, imgHeight);
       } else {
-        // Dégradé géométrique stylisé si image inaccessible
+        // Dégradé stylisé avec motifs si chargement différé
         const grad = ctx.createLinearGradient(0, 0, WIDTH, HEIGHT);
-        grad.addColorStop(0, "#311042");
-        grad.addColorStop(0.5, "#101935");
-        grad.addColorStop(1, "#07202b");
+        grad.addColorStop(0, "#1e1b4b");
+        grad.addColorStop(0.5, "#0f172a");
+        grad.addColorStop(1, "#1e293b");
         ctx.fillStyle = grad;
         ctx.fillRect(0, 0, WIDTH, HEIGHT);
       }
 
-      // Dégradés sombres TikTok (Haut et Bas) pour lisibilité optimale
-      const topGrad = ctx.createLinearGradient(0, 0, 0, 260);
-      topGrad.addColorStop(0, "rgba(0, 0, 0, 0.85)");
+      // Fondu enchaîné (Cross-dissolve) dans les 0.4 dernières secondes de la scène
+      const timeRemainingInScene = timing.durationSec - sceneElapsed;
+      if (timeRemainingInScene < 0.4 && sceneIndex < post.scenes.length - 1) {
+        const nextImg = sceneImages[sceneIndex + 1];
+        if (nextImg) {
+          const crossAlpha = (0.4 - timeRemainingInScene) / 0.4;
+          ctx.save();
+          ctx.globalAlpha = crossAlpha;
+          ctx.drawImage(nextImg, (WIDTH - WIDTH * 1.05) / 2, (HEIGHT - HEIGHT * 1.05) / 2, WIDTH * 1.05, HEIGHT * 1.05);
+          ctx.restore();
+        }
+      }
+
+      // Flash lumineux subtil au tout début de chaque nouvelle scène (0.12s)
+      if (sceneElapsed < 0.12) {
+        const flashAlpha = (1 - sceneElapsed / 0.12) * 0.28;
+        ctx.fillStyle = `rgba(255, 255, 255, ${flashAlpha})`;
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+      }
+
+      // Dégradés sombres d'ambiance TikTok (Haut et Bas)
+      const topGrad = ctx.createLinearGradient(0, 0, 0, 280);
+      topGrad.addColorStop(0, "rgba(0, 0, 0, 0.88)");
       topGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
       ctx.fillStyle = topGrad;
-      ctx.fillRect(0, 0, WIDTH, 260);
+      ctx.fillRect(0, 0, WIDTH, 280);
 
-      const bottomGrad = ctx.createLinearGradient(0, HEIGHT - 420, 0, HEIGHT);
+      const bottomGrad = ctx.createLinearGradient(0, HEIGHT - 450, 0, HEIGHT);
       bottomGrad.addColorStop(0, "rgba(0, 0, 0, 0)");
-      bottomGrad.addColorStop(1, "rgba(0, 0, 0, 0.92)");
+      bottomGrad.addColorStop(1, "rgba(0, 0, 0, 0.94)");
       ctx.fillStyle = bottomGrad;
-      ctx.fillRect(0, HEIGHT - 420, WIDTH, 420);
+      ctx.fillRect(0, HEIGHT - 450, WIDTH, 450);
 
       // --- BARRE SUPÉRIEURE TIKTOK ---
       ctx.fillStyle = "#ffffff";
       ctx.font = "bold 22px sans-serif";
+      ctx.textAlign = "left";
       ctx.fillText(post.scheduledTime, 40, 50);
 
-      ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+      ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
       ctx.font = "900 24px sans-serif";
       ctx.textAlign = "center";
       ctx.fillText("Pour toi", WIDTH / 2, 70);
 
-      // Badge Pilier / Catégorie
-      const catBadgeWidth = 320;
-      const catBadgeX = (WIDTH - catBadgeWidth) / 2;
-      ctx.fillStyle = "rgba(0, 0, 0, 0.65)";
+      // Badge de l'étape active (ex: "💡 POINT 1 : L'OFFRE PHARE")
+      const stageLabel = SCENE_STAGE_LABELS[sceneIndex] || "CONSEIL E-COMMERCE";
+      const stageBadgeWidth = 340;
+      const stageBadgeX = (WIDTH - stageBadgeWidth) / 2;
+
+      ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
       ctx.beginPath();
-      ctx.roundRect(catBadgeX, 95, catBadgeWidth, 38, 19);
+      ctx.roundRect(stageBadgeX, 95, stageBadgeWidth, 36, 18);
       ctx.fill();
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
 
       ctx.fillStyle = post.categoryColor || "#38bdf8";
-      ctx.font = "bold 15px sans-serif";
+      ctx.font = "900 14px sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText(post.category.toUpperCase(), WIDTH / 2, 120);
+      ctx.fillText(stageLabel, WIDTH / 2, 118);
 
       // --- SOUS-TITRES CINÉTIQUES MOT PAR MOT (STYLE ALEX HORMOZI) ---
-      ctx.textAlign = "center";
       const subtitleText = activeScene.subtitle;
       const words = subtitleText.split(" ");
       const highlightWordClean = (activeScene.highlightWord || "").toLowerCase().replace(/[^a-zA-Z0-9]/g, "");
 
-      // Mesure et découpage en 2 lignes maximum
+      // Découpage automatique sur 2 ou 3 lignes
       const lines: string[][] = [[]];
       let currentLineLength = 0;
 
       for (const word of words) {
-        if (currentLineLength + word.length > 22 && lines.length < 3) {
+        if (currentLineLength + word.length > 20 && lines.length < 3) {
           lines.push([word]);
           currentLineLength = word.length;
         } else {
@@ -367,26 +460,23 @@ export async function compileTikTokVideo(
         }
       }
 
-      // Boîte de sous-titres flottante
-      const boxHeight = lines.length * 52 + 36;
+      const boxHeight = lines.length * 54 + 36;
       const boxY = HEIGHT / 2 - boxHeight / 2;
-      const boxWidth = WIDTH - 60;
-      const boxX = 30;
+      const boxWidth = WIDTH - 50;
+      const boxX = 25;
 
-      ctx.fillStyle = "rgba(0, 0, 0, 0.78)";
+      ctx.fillStyle = "rgba(4, 7, 18, 0.84)";
       ctx.beginPath();
-      ctx.roundRect(boxX, boxY, boxWidth, boxHeight, 24);
+      ctx.roundRect(boxX, boxY, boxWidth, boxHeight, 26);
       ctx.fill();
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.18)";
       ctx.lineWidth = 2;
       ctx.stroke();
 
-      // Dessin des mots avec surbrillance jaune néon sur le mot clé
       lines.forEach((lineWords, lineIdx) => {
-        const lineY = boxY + 44 + lineIdx * 50;
-        ctx.font = "900 32px sans-serif";
+        const lineY = boxY + 46 + lineIdx * 52;
+        ctx.font = "900 33px sans-serif";
 
-        // Calcul de la largeur totale de la ligne
         const totalLineWidth = lineWords.reduce((acc, w) => acc + ctx.measureText(w + " ").width, 0);
         let currentX = WIDTH / 2 - totalLineWidth / 2;
 
@@ -395,55 +485,54 @@ export async function compileTikTokVideo(
           const isHighlight = cleanW === highlightWordClean;
 
           if (isHighlight) {
-            ctx.fillStyle = "#facc15"; // Jaune néon TikTok
-            ctx.shadowColor = "rgba(250, 204, 21, 0.8)";
-            ctx.shadowBlur = 15;
-            ctx.font = "900 35px sans-serif";
+            ctx.fillStyle = "#facc15"; // Jaune néon ultra-lumineux
+            ctx.shadowColor = "rgba(250, 204, 21, 0.9)";
+            ctx.shadowBlur = 18;
+            ctx.font = "900 36px sans-serif";
           } else {
             ctx.fillStyle = "#ffffff";
-            ctx.shadowColor = "rgba(0, 0, 0, 0.8)";
-            ctx.shadowBlur = 4;
-            ctx.font = "900 32px sans-serif";
+            ctx.shadowColor = "rgba(0, 0, 0, 0.9)";
+            ctx.shadowBlur = 6;
+            ctx.font = "900 33px sans-serif";
           }
 
           ctx.textAlign = "left";
           ctx.fillText(word, currentX, lineY);
 
-          // Réinitialiser les ombres
           ctx.shadowBlur = 0;
           currentX += ctx.measureText(word + " ").width;
         });
       });
 
-      // --- INFOS BAS DU SMARTPHONE (PROFIL CRÉATEUR & ENGAGEMENT) ---
-      // Profil à gauche
+      // --- INFOS BAS DE L'ÉCRAN (PROFIL CRÉATEUR & ENGAGEMENT) ---
       ctx.textAlign = "left";
       ctx.fillStyle = "#ffffff";
-      ctx.font = "bold 20px sans-serif";
+      ctx.font = "bold 21px sans-serif";
       ctx.fillText("@tuneliva.officiel", 40, HEIGHT - 150);
 
-      // Titre / Hook
-      ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+      // Titre accrocheur court
+      ctx.fillStyle = "rgba(255, 255, 255, 0.92)";
       ctx.font = "16px sans-serif";
-      const hookShort = post.hookText.slice(0, 52) + (post.hookText.length > 52 ? "..." : "");
+      const hookShort = post.hookText.slice(0, 50) + (post.hookText.length > 50 ? "..." : "");
       ctx.fillText(hookShort, 40, HEIGHT - 118);
 
-      // Musique avec icône note
-      ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
+      // Musique avec titre
+      ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
       ctx.font = "14px monospace";
-      ctx.fillText(`🎵 ${post.musicTrack.slice(0, 36)}`, 40, HEIGHT - 85);
+      const musicLabel = musicType === "afrobeat" ? "🎵 Afrobeats Chill • Hustle Mode" : "🎵 Lo-Fi Study Beats • Vente en Ligne";
+      ctx.fillText(musicLabel, 40, HEIGHT - 85);
 
       // Bouton CTA "Lien en bio"
       ctx.fillStyle = "#ec4899";
       ctx.beginPath();
-      ctx.roundRect(40, HEIGHT - 65, 300, 32, 16);
+      ctx.roundRect(40, HEIGHT - 65, 310, 34, 17);
       ctx.fill();
       ctx.fillStyle = "#ffffff";
       ctx.font = "bold 13px sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText("👉 Lien en bio • Découvrir l'article", 190, HEIGHT - 44);
+      ctx.fillText("👉 Lien en bio • Lancer mon tunnel gratuit", 195, HEIGHT - 43);
 
-      // --- BARRE LATÉRALE DROITE (LIKES, COMMENTAIRES, PARTAGES) ---
+      // --- BARRE LATÉRALE DROITE (LIKES, COMMENTAIRES, PARTAGES & VISUALISEUR AUDIO) ---
       const rightX = WIDTH - 65;
 
       // Like
@@ -480,10 +569,18 @@ export async function compileTikTokVideo(
       ctx.font = "bold 14px sans-serif";
       ctx.fillText((post.sharesCount || 210).toString(), rightX, HEIGHT - 135);
 
-      // Vinyle tournant
-      const vinylAngle = elapsedSec * 2.5;
+      // Barres d'égaliseur sonore dansantes
+      const barCount = 4;
+      for (let b = 0; b < barCount; b++) {
+        const barHeight = 8 + Math.abs(Math.sin(elapsedSec * 6 + b)) * 18;
+        ctx.fillStyle = "#38bdf8";
+        ctx.fillRect(rightX - 18 + b * 10, HEIGHT - 105 - barHeight, 5, barHeight);
+      }
+
+      // Vinyle tournant en bas à droite
+      const vinylAngle = elapsedSec * 2.8;
       ctx.save();
-      ctx.translate(rightX, HEIGHT - 75);
+      ctx.translate(rightX, HEIGHT - 65);
       ctx.rotate(vinylAngle);
       ctx.fillStyle = "#111827";
       ctx.beginPath();
@@ -492,7 +589,7 @@ export async function compileTikTokVideo(
       ctx.strokeStyle = "#ffffff";
       ctx.lineWidth = 3;
       ctx.stroke();
-      ctx.fillStyle = "#ef4444";
+      ctx.fillStyle = "#f43f5e";
       ctx.beginPath();
       ctx.arc(0, 0, 7, 0, Math.PI * 2);
       ctx.fill();
@@ -500,7 +597,7 @@ export async function compileTikTokVideo(
 
       // --- BARRE DE PROGRESSION INFÉRIEURE ---
       const progressWidth = (elapsedSec / TOTAL_DURATION_SEC) * WIDTH;
-      ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
+      ctx.fillStyle = "rgba(255, 255, 255, 0.25)";
       ctx.fillRect(0, HEIGHT - 5, WIDTH, 5);
       ctx.fillStyle = "#f43f5e";
       ctx.fillRect(0, HEIGHT - 5, progressWidth, 5);
@@ -511,10 +608,9 @@ export async function compileTikTokVideo(
         currentSec: Math.floor(elapsedSec),
         totalSec: TOTAL_DURATION_SEC,
         percent,
-        statusText: `Rendu frame par frame 9:16 : ${Math.floor(elapsedSec)}s / ${TOTAL_DURATION_SEC}s (${percent}%)`,
+        statusText: `Rendu 9:16 scène ${sceneIndex + 1}/${post.scenes.length} : ${Math.floor(elapsedSec)}s / ${TOTAL_DURATION_SEC}s (${percent}%)`,
       });
 
-      // Frame suivante
       requestAnimationFrame(renderLoop);
     };
 

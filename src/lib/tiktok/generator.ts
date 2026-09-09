@@ -89,15 +89,45 @@ const VIRAL_MUSIC_TRACKS = [
   "Kizomba Smooth Vibe • Smart Business",
 ];
 
-const VERTICAL_BG_IMAGES = [
-  "https://images.unsplash.com/photo-1556740738-b6a63e27c4df?w=800&auto=format&fit=crop&q=80",
-  "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=800&auto=format&fit=crop&q=80",
-  "https://images.unsplash.com/photo-1563986768609-322da13575f3?w=800&auto=format&fit=crop&q=80",
-  "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=800&auto=format&fit=crop&q=80",
-  "https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=800&auto=format&fit=crop&q=80",
-  "https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=800&auto=format&fit=crop&q=80",
-  "https://images.unsplash.com/photo-1542744094-3a31f272c490?w=800&auto=format&fit=crop&q=80",
-];
+export const SCENE_VISUALS_POOLS = {
+  hook: [
+    "https://images.unsplash.com/photo-1556740738-b6a63e27c4df?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=800&auto=format&fit=crop&q=80",
+  ],
+  offer: [
+    "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1560769629-975ec94e6a86?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&auto=format&fit=crop&q=80",
+  ],
+  payment: [
+    "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1563986768609-322da13575f3?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1556742049-0a67c5574f73?w=800&auto=format&fit=crop&q=80",
+  ],
+  delivery: [
+    "https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1616401784845-180882ba9ba8?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=800&auto=format&fit=crop&q=80",
+  ],
+  cta: [
+    "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1542744094-3a31f272c490?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800&auto=format&fit=crop&q=80",
+  ],
+};
+
+const VERTICAL_BG_IMAGES = SCENE_VISUALS_POOLS.hook;
 
 export function buildTikTokPostFromTopic(topic: BlogTopic, slotIndex: number, dateStr: string): TikTokVideoPost {
   const HOOK_PATTERNS = [
@@ -142,7 +172,12 @@ export function buildTikTokPostFromTopic(topic: BlogTopic, slotIndex: number, da
   const scheduleTimes = ["08:30", "11:45", "14:15", "17:30", "20:00"];
   const scheduledTime = scheduleTimes[slotIndex % scheduleTimes.length];
 
-  const bgImg = topic.images[slotIndex % topic.images.length] || VERTICAL_BG_IMAGES[slotIndex % VERTICAL_BG_IMAGES.length];
+  // Sélection d'images variées et thématiques pour chaque scène
+  const hookImg = (topic.images && topic.images[0]) || SCENE_VISUALS_POOLS.hook[slotIndex % SCENE_VISUALS_POOLS.hook.length];
+  const offerImg = (topic.images && topic.images[1]) || SCENE_VISUALS_POOLS.offer[(slotIndex + 1) % SCENE_VISUALS_POOLS.offer.length];
+  const paymentImg = (topic.images && topic.images[2]) || SCENE_VISUALS_POOLS.payment[(slotIndex + 2) % SCENE_VISUALS_POOLS.payment.length];
+  const deliveryImg = SCENE_VISUALS_POOLS.delivery[(slotIndex + 3) % SCENE_VISUALS_POOLS.delivery.length];
+  const ctaImg = SCENE_VISUALS_POOLS.cta[(slotIndex + 4) % SCENE_VISUALS_POOLS.cta.length];
 
   const scenes: TikTokScene[] = [
     {
@@ -151,8 +186,8 @@ export function buildTikTokPostFromTopic(topic: BlogTopic, slotIndex: number, da
       durationSec: 4,
       subtitle: currentPattern.hook,
       highlightWord: currentPattern.key,
-      visualPrompt: "Smartphone en main avec notification Mobile Money verte",
-      bgImageUrl: bgImg,
+      visualPrompt: "Accroche choc : smartphone avec alerte e-commerce",
+      bgImageUrl: hookImg,
     },
     {
       id: "sc-2",
@@ -160,8 +195,8 @@ export function buildTikTokPostFromTopic(topic: BlogTopic, slotIndex: number, da
       durationSec: 5,
       subtitle: currentPattern.sub1,
       highlightWord: currentPattern.sub1.split(" ")[1] || "offre",
-      visualPrompt: "Tunnel mono-produit fluide sur écran tactile",
-      bgImageUrl: topic.images[1] || VERTICAL_BG_IMAGES[1],
+      visualPrompt: "Produit phare et packaging e-commerce soigné",
+      bgImageUrl: offerImg,
     },
     {
       id: "sc-3",
@@ -169,8 +204,8 @@ export function buildTikTokPostFromTopic(topic: BlogTopic, slotIndex: number, da
       durationSec: 5,
       subtitle: currentPattern.sub2,
       highlightWord: currentPattern.sub2.split(" ")[2] || "Wave",
-      visualPrompt: "Graphique de conversion e-commerce en forte hausse",
-      bgImageUrl: topic.images[2] || VERTICAL_BG_IMAGES[2],
+      visualPrompt: "Paiement Mobile Money Wave & MTN sur écran",
+      bgImageUrl: paymentImg,
     },
     {
       id: "sc-4",
@@ -178,8 +213,8 @@ export function buildTikTokPostFromTopic(topic: BlogTopic, slotIndex: number, da
       durationSec: 5,
       subtitle: currentPattern.sub3,
       highlightWord: currentPattern.sub3.split(" ")[1] || "WhatsApp",
-      visualPrompt: "Message WhatsApp de confirmation envoyé instantanément",
-      bgImageUrl: VERTICAL_BG_IMAGES[3],
+      visualPrompt: "Livraison rapide et relances automatiques WhatsApp",
+      bgImageUrl: deliveryImg,
     },
     {
       id: "sc-5",
@@ -188,7 +223,7 @@ export function buildTikTokPostFromTopic(topic: BlogTopic, slotIndex: number, da
       subtitle: "👉 Lien en bio pour lire l'analyse complète et lancer ton tunnel sur Tuneliva !",
       highlightWord: "Tuneliva",
       visualPrompt: "Page Tuneliva sur smartphone avec bouton Commencer Gratuitement",
-      bgImageUrl: VERTICAL_BG_IMAGES[4],
+      bgImageUrl: ctaImg,
     },
   ];
 

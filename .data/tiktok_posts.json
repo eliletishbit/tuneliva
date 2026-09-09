@@ -224,5 +224,381 @@
     "likesCount": 1920,
     "sharesCount": 268,
     "commentsCount": 130
+  },
+  {
+    "id": "tt-3-1-2026-09-09",
+    "title": "TikTok #1 (08:30) • Logistique du Dernier Kilomètre : Choisir se...",
+    "articleSlug": "logistique-du-dernier-kilometre-choisir-ses-livreurs-a-abidjan-cotonou-et-dakar",
+    "articleTitle": "Logistique du Dernier Kilomètre : Choisir ses Livreurs à Abidjan, Cotonou et Dakar",
+    "category": "E-Commerce Afrique & COD",
+    "categoryColor": "#10B981",
+    "hookText": "Arrête de perdre tes clients au moment de payer !",
+    "durationSec": 25,
+    "scenes": [
+      {
+        "id": "sc-1",
+        "second": 0,
+        "durationSec": 4,
+        "subtitle": "Arrête de perdre tes clients au moment de payer !",
+        "highlightWord": "perdre",
+        "visualPrompt": "Smartphone en main avec notification Mobile Money verte",
+        "bgImageUrl": "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=1200&auto=format&fit=crop&q=80"
+      },
+      {
+        "id": "sc-2",
+        "second": 4,
+        "durationSec": 5,
+        "subtitle": "1. Simplifie ton offre au maximum : 1 produit phare, 1 offre limpide en FCFA.",
+        "highlightWord": "Simplifie",
+        "visualPrompt": "Tunnel mono-produit fluide sur écran tactile",
+        "bgImageUrl": "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=1200&auto=format&fit=crop&q=80"
+      },
+      {
+        "id": "sc-3",
+        "second": 9,
+        "durationSec": 5,
+        "subtitle": "2. Active le double encaissement : Wave, MTN MoMo + Paiement à la livraison.",
+        "highlightWord": "le",
+        "visualPrompt": "Graphique de conversion e-commerce en forte hausse",
+        "bgImageUrl": "https://images.unsplash.com/photo-1556740738-b6a63e27c4df?w=1200&auto=format&fit=crop&q=80"
+      },
+      {
+        "id": "sc-4",
+        "second": 14,
+        "durationSec": 5,
+        "subtitle": "3. Automatise tes relances WhatsApp en 30 secondes sans coder.",
+        "highlightWord": "Automatise",
+        "visualPrompt": "Message WhatsApp de confirmation envoyé instantanément",
+        "bgImageUrl": "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=800&auto=format&fit=crop&q=80"
+      },
+      {
+        "id": "sc-5",
+        "second": 19,
+        "durationSec": 6,
+        "subtitle": "👉 Lien en bio pour lire l'analyse complète et lancer ton tunnel sur Tuneliva !",
+        "highlightWord": "Tuneliva",
+        "visualPrompt": "Page Tuneliva sur smartphone avec bouton Commencer Gratuitement",
+        "bgImageUrl": "https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=800&auto=format&fit=crop&q=80"
+      }
+    ],
+    "ctaText": "Lien dans la bio • Découvrir l'article complet sur Tuneliva",
+    "hashtags": [
+      "#EcommerceAfrique",
+      "#MobileMoney",
+      "#BusinessEnAfrique",
+      "#Tuneliva",
+      "#WaveSenegal",
+      "#MTNMoMo",
+      "#VenteEnLigne"
+    ],
+    "musicTrack": "Afrobeats Lofi • Chill Sunset Drive",
+    "viralityScore": 94,
+    "scheduledTime": "08:30",
+    "scheduledDate": "2026-09-09",
+    "status": "published",
+    "publishedAt": "2026-09-09T15:30:11.495Z",
+    "likesCount": 1450,
+    "sharesCount": 210,
+    "commentsCount": 98
+  },
+  {
+    "id": "tt-4-2-2026-09-09",
+    "title": "TikTok #2 (11:45) • Comment Trouver des Fournisseurs Fiables en ...",
+    "articleSlug": "comment-trouver-des-fournisseurs-fiables-en-chine-et-en-turquie-depuis-l-afrique",
+    "articleTitle": "Comment Trouver des Fournisseurs Fiables en Chine et en Turquie depuis l'Afrique",
+    "category": "E-Commerce Afrique & COD",
+    "categoryColor": "#10B981",
+    "hookText": "Le secret des vendeurs à 1M FCFA par mois en Afrique :",
+    "durationSec": 25,
+    "scenes": [
+      {
+        "id": "sc-1",
+        "second": 0,
+        "durationSec": 4,
+        "subtitle": "Le secret des vendeurs à 1M FCFA par mois en Afrique :",
+        "highlightWord": "secret",
+        "visualPrompt": "Smartphone en main avec notification Mobile Money verte",
+        "bgImageUrl": "https://images.unsplash.com/photo-1556740738-b6a63e27c4df?w=1200&auto=format&fit=crop&q=80"
+      },
+      {
+        "id": "sc-2",
+        "second": 4,
+        "durationSec": 5,
+        "subtitle": "1. Ils ne vendent pas sur un site vitrine lent, ils utilisent des tunnels épurés.",
+        "highlightWord": "Ils",
+        "visualPrompt": "Tunnel mono-produit fluide sur écran tactile",
+        "bgImageUrl": "https://images.unsplash.com/photo-1556740738-b6a63e27c4df?w=1200&auto=format&fit=crop&q=80"
+      },
+      {
+        "id": "sc-3",
+        "second": 9,
+        "durationSec": 5,
+        "subtitle": "2. Ils rassurent avec des preuves locales : avis WhatsApp et badge MoMo officiel.",
+        "highlightWord": "rassurent",
+        "visualPrompt": "Graphique de conversion e-commerce en forte hausse",
+        "bgImageUrl": "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1200&auto=format&fit=crop&q=80"
+      },
+      {
+        "id": "sc-4",
+        "second": 14,
+        "durationSec": 5,
+        "subtitle": "3. Ils proposent un pack avantageux qui augmente le panier moyen instantanément.",
+        "highlightWord": "Ils",
+        "visualPrompt": "Message WhatsApp de confirmation envoyé instantanément",
+        "bgImageUrl": "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=800&auto=format&fit=crop&q=80"
+      },
+      {
+        "id": "sc-5",
+        "second": 19,
+        "durationSec": 6,
+        "subtitle": "👉 Lien en bio pour lire l'analyse complète et lancer ton tunnel sur Tuneliva !",
+        "highlightWord": "Tuneliva",
+        "visualPrompt": "Page Tuneliva sur smartphone avec bouton Commencer Gratuitement",
+        "bgImageUrl": "https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=800&auto=format&fit=crop&q=80"
+      }
+    ],
+    "ctaText": "Lien dans la bio • Découvrir l'article complet sur Tuneliva",
+    "hashtags": [
+      "#EcommerceAfrique",
+      "#MobileMoney",
+      "#BusinessEnAfrique",
+      "#Tuneliva",
+      "#WaveSenegal",
+      "#MTNMoMo",
+      "#VenteEnLigne"
+    ],
+    "musicTrack": "Amapiano Deep Bassline • Hustle Mode",
+    "viralityScore": 95,
+    "scheduledTime": "11:45",
+    "scheduledDate": "2026-09-09",
+    "status": "scheduled",
+    "likesCount": 1830,
+    "sharesCount": 255,
+    "commentsCount": 120
+  },
+  {
+    "id": "tt-3-3-2026-09-09",
+    "title": "TikTok #3 (14:15) • Logistique du Dernier Kilomètre : Choisir se...",
+    "articleSlug": "logistique-du-dernier-kilometre-choisir-ses-livreurs-a-abidjan-cotonou-et-dakar",
+    "articleTitle": "Logistique du Dernier Kilomètre : Choisir ses Livreurs à Abidjan, Cotonou et Dakar",
+    "category": "E-Commerce Afrique & COD",
+    "categoryColor": "#10B981",
+    "hookText": "Si tu vends sur WhatsApp, regarde cette vidéo jusqu'au bout !",
+    "durationSec": 25,
+    "scenes": [
+      {
+        "id": "sc-1",
+        "second": 0,
+        "durationSec": 4,
+        "subtitle": "Si tu vends sur WhatsApp, regarde cette vidéo jusqu'au bout !",
+        "highlightWord": "WhatsApp",
+        "visualPrompt": "Smartphone en main avec notification Mobile Money verte",
+        "bgImageUrl": "https://images.unsplash.com/photo-1556740738-b6a63e27c4df?w=1200&auto=format&fit=crop&q=80"
+      },
+      {
+        "id": "sc-2",
+        "second": 4,
+        "durationSec": 5,
+        "subtitle": "1. Arrête de répondre manuellement aux 'Prix svp' pendant 2 heures.",
+        "highlightWord": "Arrête",
+        "visualPrompt": "Tunnel mono-produit fluide sur écran tactile",
+        "bgImageUrl": "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=1200&auto=format&fit=crop&q=80"
+      },
+      {
+        "id": "sc-3",
+        "second": 9,
+        "durationSec": 5,
+        "subtitle": "2. Envoie un lien Tuneliva où le client choisit sa ville et son moyen de paiement.",
+        "highlightWord": "un",
+        "visualPrompt": "Graphique de conversion e-commerce en forte hausse",
+        "bgImageUrl": "https://images.unsplash.com/photo-1556740738-b6a63e27c4df?w=1200&auto=format&fit=crop&q=80"
+      },
+      {
+        "id": "sc-4",
+        "second": 14,
+        "durationSec": 5,
+        "subtitle": "3. Reçois la confirmation directe et livre en moins de 24h avec zéro friction.",
+        "highlightWord": "Reçois",
+        "visualPrompt": "Message WhatsApp de confirmation envoyé instantanément",
+        "bgImageUrl": "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=800&auto=format&fit=crop&q=80"
+      },
+      {
+        "id": "sc-5",
+        "second": 19,
+        "durationSec": 6,
+        "subtitle": "👉 Lien en bio pour lire l'analyse complète et lancer ton tunnel sur Tuneliva !",
+        "highlightWord": "Tuneliva",
+        "visualPrompt": "Page Tuneliva sur smartphone avec bouton Commencer Gratuitement",
+        "bgImageUrl": "https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=800&auto=format&fit=crop&q=80"
+      }
+    ],
+    "ctaText": "Lien dans la bio • Découvrir l'article complet sur Tuneliva",
+    "hashtags": [
+      "#EcommerceAfrique",
+      "#MobileMoney",
+      "#BusinessEnAfrique",
+      "#Tuneliva",
+      "#WaveSenegal",
+      "#MTNMoMo",
+      "#VenteEnLigne"
+    ],
+    "musicTrack": "Naija Trap Synth • High Conversion",
+    "viralityScore": 96,
+    "scheduledTime": "14:15",
+    "scheduledDate": "2026-09-09",
+    "status": "scheduled",
+    "likesCount": 2210,
+    "sharesCount": 300,
+    "commentsCount": 142
+  },
+  {
+    "id": "tt-4-4-2026-09-09",
+    "title": "TikTok #4 (17:30) • Comment Trouver des Fournisseurs Fiables en ...",
+    "articleSlug": "comment-trouver-des-fournisseurs-fiables-en-chine-et-en-turquie-depuis-l-afrique",
+    "articleTitle": "Comment Trouver des Fournisseurs Fiables en Chine et en Turquie depuis l'Afrique",
+    "category": "E-Commerce Afrique & COD",
+    "categoryColor": "#10B981",
+    "hookText": "Pourquoi 80% des boutiques en ligne africaines échouent ?",
+    "durationSec": 25,
+    "scenes": [
+      {
+        "id": "sc-1",
+        "second": 0,
+        "durationSec": 4,
+        "subtitle": "Pourquoi 80% des boutiques en ligne africaines échouent ?",
+        "highlightWord": "échouent",
+        "visualPrompt": "Smartphone en main avec notification Mobile Money verte",
+        "bgImageUrl": "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=1200&auto=format&fit=crop&q=80"
+      },
+      {
+        "id": "sc-2",
+        "second": 4,
+        "durationSec": 5,
+        "subtitle": "1. Trop de produits différents qui dispersent l'attention du visiteur.",
+        "highlightWord": "Trop",
+        "visualPrompt": "Tunnel mono-produit fluide sur écran tactile",
+        "bgImageUrl": "https://images.unsplash.com/photo-1556740738-b6a63e27c4df?w=1200&auto=format&fit=crop&q=80"
+      },
+      {
+        "id": "sc-3",
+        "second": 9,
+        "durationSec": 5,
+        "subtitle": "2. Formulaires de commande trop longs qui découragent sur smartphone.",
+        "highlightWord": "de",
+        "visualPrompt": "Graphique de conversion e-commerce en forte hausse",
+        "bgImageUrl": "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1200&auto=format&fit=crop&q=80"
+      },
+      {
+        "id": "sc-4",
+        "second": 14,
+        "durationSec": 5,
+        "subtitle": "3. Absence d'un système de suivi et confirmation d'adresse rigoureux.",
+        "highlightWord": "Absence",
+        "visualPrompt": "Message WhatsApp de confirmation envoyé instantanément",
+        "bgImageUrl": "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=800&auto=format&fit=crop&q=80"
+      },
+      {
+        "id": "sc-5",
+        "second": 19,
+        "durationSec": 6,
+        "subtitle": "👉 Lien en bio pour lire l'analyse complète et lancer ton tunnel sur Tuneliva !",
+        "highlightWord": "Tuneliva",
+        "visualPrompt": "Page Tuneliva sur smartphone avec bouton Commencer Gratuitement",
+        "bgImageUrl": "https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=800&auto=format&fit=crop&q=80"
+      }
+    ],
+    "ctaText": "Lien dans la bio • Découvrir l'article complet sur Tuneliva",
+    "hashtags": [
+      "#EcommerceAfrique",
+      "#MobileMoney",
+      "#BusinessEnAfrique",
+      "#Tuneliva",
+      "#WaveSenegal",
+      "#MTNMoMo",
+      "#VenteEnLigne"
+    ],
+    "musicTrack": "Afro-Fusion Energy • Modern Tech",
+    "viralityScore": 97,
+    "scheduledTime": "17:30",
+    "scheduledDate": "2026-09-09",
+    "status": "scheduled",
+    "likesCount": 2590,
+    "sharesCount": 345,
+    "commentsCount": 164
+  },
+  {
+    "id": "tt-3-5-2026-09-09",
+    "title": "TikTok #5 (20:00) • Logistique du Dernier Kilomètre : Choisir se...",
+    "articleSlug": "logistique-du-dernier-kilometre-choisir-ses-livreurs-a-abidjan-cotonou-et-dakar",
+    "articleTitle": "Logistique du Dernier Kilomètre : Choisir ses Livreurs à Abidjan, Cotonou et Dakar",
+    "category": "E-Commerce Afrique & COD",
+    "categoryColor": "#10B981",
+    "hookText": "Comment encaisser Wave et MoMo sans payer d'abonnement ?",
+    "durationSec": 25,
+    "scenes": [
+      {
+        "id": "sc-1",
+        "second": 0,
+        "durationSec": 4,
+        "subtitle": "Comment encaisser Wave et MoMo sans payer d'abonnement ?",
+        "highlightWord": "encaisser",
+        "visualPrompt": "Smartphone en main avec notification Mobile Money verte",
+        "bgImageUrl": "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=1200&auto=format&fit=crop&q=80"
+      },
+      {
+        "id": "sc-2",
+        "second": 4,
+        "durationSec": 5,
+        "subtitle": "1. Utilise Tuneliva avec intégration native FedaPay et opérateurs télécoms.",
+        "highlightWord": "Utilise",
+        "visualPrompt": "Tunnel mono-produit fluide sur écran tactile",
+        "bgImageUrl": "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=1200&auto=format&fit=crop&q=80"
+      },
+      {
+        "id": "sc-3",
+        "second": 9,
+        "durationSec": 5,
+        "subtitle": "2. L'argent arrive directement sur ton numéro sans intermédiaire bloquant.",
+        "highlightWord": "arrive",
+        "visualPrompt": "Graphique de conversion e-commerce en forte hausse",
+        "bgImageUrl": "https://images.unsplash.com/photo-1556740738-b6a63e27c4df?w=1200&auto=format&fit=crop&q=80"
+      },
+      {
+        "id": "sc-4",
+        "second": 14,
+        "durationSec": 5,
+        "subtitle": "3. Zéro frais mensuels pour démarrer, idéal pour tester ton marché à fond.",
+        "highlightWord": "Zéro",
+        "visualPrompt": "Message WhatsApp de confirmation envoyé instantanément",
+        "bgImageUrl": "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=800&auto=format&fit=crop&q=80"
+      },
+      {
+        "id": "sc-5",
+        "second": 19,
+        "durationSec": 6,
+        "subtitle": "👉 Lien en bio pour lire l'analyse complète et lancer ton tunnel sur Tuneliva !",
+        "highlightWord": "Tuneliva",
+        "visualPrompt": "Page Tuneliva sur smartphone avec bouton Commencer Gratuitement",
+        "bgImageUrl": "https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?w=800&auto=format&fit=crop&q=80"
+      }
+    ],
+    "ctaText": "Lien dans la bio • Découvrir l'article complet sur Tuneliva",
+    "hashtags": [
+      "#EcommerceAfrique",
+      "#MobileMoney",
+      "#BusinessEnAfrique",
+      "#Tuneliva",
+      "#WaveSenegal",
+      "#MTNMoMo",
+      "#VenteEnLigne"
+    ],
+    "musicTrack": "Kizomba Smooth Vibe • Smart Business",
+    "viralityScore": 98,
+    "scheduledTime": "20:00",
+    "scheduledDate": "2026-09-09",
+    "status": "scheduled",
+    "likesCount": 2970,
+    "sharesCount": 390,
+    "commentsCount": 186
   }
 ]

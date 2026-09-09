@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { TikTokVideoPost, TikTokScene } from "@/lib/tiktok/generator";
-import { compileTikTokVideo, CompiledVideoResult, VideoRenderProgress } from "@/lib/tiktok/videoCompiler";
+import { compileTikTokVideo, CompiledVideoResult, VideoRenderProgress, VoiceOption, MusicOption } from "@/lib/tiktok/videoCompiler";
 import {
   Play,
   Pause,
@@ -69,6 +69,8 @@ export function TikTokManager() {
   const [compilingAll, setCompilingAll] = useState<boolean>(false);
   const [renderProgress, setRenderProgress] = useState<Record<string, VideoRenderProgress>>({});
   const [viewMode, setViewMode] = useState<"simulator" | "compiled">("simulator");
+  const [selectedVoice, setSelectedVoice] = useState<VoiceOption>("female");
+  const [selectedMusic, setSelectedMusic] = useState<MusicOption>("afrobeat");
 
   // État du lecteur 9:16
   const [isPlaying, setIsPlaying] = useState(true);
@@ -300,7 +302,7 @@ export function TikTokManager() {
       setCompilingPostId(post.id);
       const res = await compileTikTokVideo(post, (p) => {
         setRenderProgress((prev) => ({ ...prev, [post.id]: p }));
-      });
+      }, { voice: selectedVoice, music: selectedMusic });
       setCompiledVideos((prev) => ({ ...prev, [post.id]: res }));
       if (selectedPostId === post.id || !selectedPostId) {
         setViewMode("compiled");
@@ -322,7 +324,7 @@ export function TikTokManager() {
         setCompilingPostId(post.id);
         const res = await compileTikTokVideo(post, (p) => {
           setRenderProgress((prev) => ({ ...prev, [post.id]: p }));
-        });
+        }, { voice: selectedVoice, music: selectedMusic });
         setCompiledVideos((prev) => ({ ...prev, [post.id]: res }));
       }
       setViewMode("compiled");
@@ -641,6 +643,100 @@ SON: ${post.musicTrack}`;
               </>
             )}
           </button>
+        </div>
+      </div>
+
+      {/* 1.5. Studio Vocal IA & Musique Instrumentale de Fond */}
+      <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-slate-900 via-slate-900/95 to-indigo-950/50 border border-indigo-500/30 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-pink-500 to-indigo-600 flex items-center justify-center text-white shadow-md text-base">
+            🎙️
+          </div>
+          <div className="space-y-0.5">
+            <div className="flex items-center gap-2">
+              <h4 className="text-xs sm:text-sm font-black text-white">
+                Studio Vocal & Musical des Vidéos TikTok
+              </h4>
+              <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold border border-emerald-500/30">
+                100% Inclus dans le MP4
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-400">
+              Voix humaine trentenaire posée & musique instrumentale douce sans bruit parasite
+            </p>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
+          {/* Choix de la voix */}
+          <div className="flex items-center gap-1 bg-slate-950/80 p-1 rounded-2xl border border-slate-800 text-xs">
+            <span className="text-[10px] text-slate-400 font-bold px-2">Voix :</span>
+            <button
+              type="button"
+              onClick={() => setSelectedVoice("female")}
+              className={`px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                selectedVoice === "female"
+                  ? "bg-gradient-to-r from-pink-600 to-rose-500 text-white shadow-md shadow-pink-500/20"
+                  : "text-slate-400 hover:text-white"
+              }`}
+              title="Aïcha : Jeune femme trentenaire, entrepreneuse experte marketing, ton dynamique et percutant"
+            >
+              <span>👩 Aïcha (Experte 30s)</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedVoice("male")}
+              className={`px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                selectedVoice === "male"
+                  ? "bg-gradient-to-r from-indigo-600 to-blue-500 text-white shadow-md shadow-indigo-500/20"
+                  : "text-slate-400 hover:text-white"
+              }`}
+              title="Kouamé : Jeune homme trentenaire, entrepreneur à succès, ton chaleureux et confiant"
+            >
+              <span>👨 Kouamé (Confiant 30s)</span>
+            </button>
+          </div>
+
+          {/* Choix de la musique */}
+          <div className="flex items-center gap-1 bg-slate-950/80 p-1 rounded-2xl border border-slate-800 text-xs">
+            <span className="text-[10px] text-slate-400 font-bold px-2">Fond sonore :</span>
+            <button
+              type="button"
+              onClick={() => setSelectedMusic("afrobeat")}
+              className={`px-2.5 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
+                selectedMusic === "afrobeat"
+                  ? "bg-amber-500 text-slate-950 shadow-md font-black"
+                  : "text-slate-400 hover:text-white"
+              }`}
+              title="Afrobeats Chill : beat contemporain rythmé et moderne"
+            >
+              🎵 Afrobeats
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedMusic("lofi")}
+              className={`px-2.5 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
+                selectedMusic === "lofi"
+                  ? "bg-indigo-600 text-white shadow-md font-black"
+                  : "text-slate-400 hover:text-white"
+              }`}
+              title="Lo-Fi Business : musique douce de travail et concentration"
+            >
+              🎧 Lo-Fi
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedMusic("none")}
+              className={`px-2 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
+                selectedMusic === "none"
+                  ? "bg-slate-700 text-white shadow-md"
+                  : "text-slate-400 hover:text-white"
+              }`}
+              title="Sans musique : voix off uniquement"
+            >
+              🔇 Muet
+            </button>
+          </div>
         </div>
       </div>
 
