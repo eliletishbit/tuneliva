@@ -501,6 +501,19 @@ export default function MerchantDashboard() {
 
             <button
               onClick={() => {
+                setShowDomainModal(true);
+                if (funnels.length > 0 && !domainSlugInput) {
+                  setDomainSlugInput(funnels[0].slug);
+                }
+              }}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-indigo-500/30 hover:border-indigo-500/60 text-indigo-300 hover:text-white font-bold text-xs transition-all cursor-pointer shadow-sm"
+              title="Gérer vos noms de domaine personnalisés"
+            >
+              <Globe className="w-3.5 h-3.5 text-indigo-400" />
+              <span>Domaines</span>
+            </button>
+            <button
+              onClick={() => {
                 setShowPayoutModal(true);
                 fetchPayoutSettings();
               }}
@@ -574,9 +587,9 @@ export default function MerchantDashboard() {
 
           <div className="flex items-center gap-3 shrink-0">
             <div className="px-3.5 py-2 rounded-xl bg-slate-950 border border-white/10 text-right">
-              <span className="text-[10px] text-slate-400 font-mono block">Quota de Tunnels</span>
+              <span className="text-[10px] text-slate-400 font-mono block">Quota Tunnels Offerts</span>
               <span className="text-xs font-black text-amber-300 font-mono">
-                {funnels.length} / 10 créés
+                {funnels.length} / 3 Gratuits
               </span>
             </div>
             <a
@@ -640,6 +653,50 @@ export default function MerchantDashboard() {
             <p className="text-xl sm:text-2xl font-black font-mono text-white">
               {funnels.length} <span className="text-xs text-slate-400 font-normal">({orders.length} cmd)</span>
             </p>
+          </div>
+        </div>
+
+        {/* BANNIÈRE DÉDIÉE NOMS DE DOMAINE PERSONNALISÉS */}
+        <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950/40 border border-indigo-500/30 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4 relative overflow-hidden">
+          <div className="flex items-center gap-4 relative z-10">
+            <div className="w-12 h-12 rounded-2xl bg-indigo-600/20 border border-indigo-500/40 flex items-center justify-center text-indigo-400 shrink-0 shadow-lg shadow-indigo-600/20">
+              <Globe className="w-6 h-6" />
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm sm:text-base font-black text-white flex items-center gap-2">
+                  <span>Noms de Domaine Personnalisés</span>
+                  <span className="px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 text-[10px] font-bold border border-indigo-500/30">
+                    Pro • SSL Inclus
+                  </span>
+                </h3>
+              </div>
+              <p className="text-xs text-slate-400 max-w-xl leading-relaxed">
+                Connectez vos propres domaines professionnels (ex: <code className="text-indigo-300 font-mono">promo.maboutique.com</code>) directement à vos tunnels pour inspirer 100% de confiance à vos acheteurs.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 shrink-0 relative z-10 w-full sm:w-auto justify-end">
+            <div className="px-3.5 py-2 rounded-xl bg-slate-950 border border-white/10 text-right">
+              <span className="text-[10px] text-slate-400 font-mono block">Domaines actifs</span>
+              <span className="text-xs font-black text-emerald-400 font-mono">
+                {domains.length} connecté{domains.length > 1 ? "s" : ""}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setShowDomainModal(true);
+                if (funnels.length > 0 && !domainSlugInput) {
+                  setDomainSlugInput(funnels[0].slug);
+                }
+              }}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 transition-all cursor-pointer"
+            >
+              <Globe className="w-4 h-4" />
+              <span>Gérer / Connecter un Domaine</span>
+            </button>
           </div>
         </div>
 

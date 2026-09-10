@@ -322,7 +322,7 @@ export default function HomePage() {
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[450px] bg-gradient-to-b from-indigo-600/20 via-emerald-500/10 to-transparent blur-3xl pointer-events-none" />
 
       {/* 1. NAVBAR */}
-      <header className="relative z-10 border-b border-white/10 backdrop-blur-md px-6 py-4 flex items-center justify-between max-w-6xl mx-auto w-full">
+      <header className="relative z-50 border-b border-white/10 bg-[#06080E]/90 backdrop-blur-md px-6 py-4 flex items-center justify-between max-w-6xl mx-auto w-full">
         <div className="flex items-center gap-2.5">
           <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-indigo-500 to-emerald-400 flex items-center justify-center text-white font-black shadow-lg shadow-indigo-500/20 text-base">
             T
@@ -357,26 +357,36 @@ export default function HomePage() {
             </button>
 
             {showLangDropdown && (
-              <div className="absolute right-0 mt-2 w-40 rounded-2xl bg-slate-900/95 border border-white/15 shadow-2xl backdrop-blur-xl p-1.5 z-50 space-y-0.5">
-                {SUPPORTED_LANGUAGES.map((l) => (
-                  <button
-                    key={l.code}
-                    type="button"
-                    onClick={() => handleSelectLang(l.code)}
-                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                      lang === l.code
-                        ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
-                        : "text-slate-300 hover:bg-white/10 hover:text-white"
-                    }`}
-                  >
-                    <span className="flex items-center gap-2">
-                      <span className="text-base">{l.flag}</span>
-                      <span>{l.name}</span>
-                    </span>
-                    {lang === l.code && <Check className="w-3.5 h-3.5 text-white" />}
-                  </button>
-                ))}
-              </div>
+              <>
+                {/* Backdrop click-away */}
+                <div 
+                  className="fixed inset-0 z-40" 
+                  onClick={() => setShowLangDropdown(false)} 
+                />
+                <div className="absolute right-0 mt-2 w-48 rounded-2xl bg-[#0F172A] border border-slate-700 shadow-2xl p-1.5 z-50 space-y-1">
+                  {SUPPORTED_LANGUAGES.map((l) => (
+                    <button
+                      key={l.code}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSelectLang(l.code);
+                      }}
+                      className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                        lang === l.code
+                          ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
+                          : "text-slate-200 hover:bg-slate-800 hover:text-white"
+                      }`}
+                    >
+                      <span className="flex items-center gap-2.5">
+                        <span className="text-lg">{l.flag}</span>
+                        <span className="text-xs font-semibold">{l.name}</span>
+                      </span>
+                      {lang === l.code && <Check className="w-4 h-4 text-white shrink-0" />}
+                    </button>
+                  ))}
+                </div>
+              </>
             )}
           </div>
 

@@ -48,7 +48,6 @@ function LoginForm() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Configuration alerts
-  const [googleConfigError, setGoogleConfigError] = useState(false);
   const [phoneConfigError, setPhoneConfigError] = useState(false);
 
   // Détection automatique de session active (ex: validation email / redirection hash / déjà connecté)
@@ -84,8 +83,7 @@ function LoginForm() {
     setLoading(true);
     setErrorMessage(null);
     setSuccessMessage(null);
-    setGoogleConfigError(false);
-    setPhoneConfigError(false);
+        setPhoneConfigError(false);
 
     try {
       const origin = typeof window !== "undefined" ? window.location.origin : "";
@@ -143,8 +141,7 @@ function LoginForm() {
     setLoading(true);
     setErrorMessage(null);
     setSuccessMessage(null);
-    setGoogleConfigError(false);
-    setPhoneConfigError(false);
+        setPhoneConfigError(false);
 
     try {
       const origin = window.location.origin;
@@ -175,16 +172,17 @@ function LoginForm() {
   const handleGoogleAuth = async () => {
     setLoading(true);
     setErrorMessage(null);
-    setGoogleConfigError(false);
     setPhoneConfigError(false);
 
     try {
-      // Vérification préalable pour éviter la redirection directe vers le JSON 400 brut de Supabase
       const checkRes = await fetch("/api/auth/check-google", { cache: "no-store" });
       const checkData = await checkRes.json();
 
       if (!checkData.enabled) {
-        setGoogleConfigError(true);
+        setErrorMessage(
+          "La connexion avec Google est temporairement indisponible. Veuillez vous connecter avec votre Email ou votre Téléphone ci-dessous."
+        );
+        setAuthMethod("password");
         setLoading(false);
         return;
       }
@@ -200,25 +198,16 @@ function LoginForm() {
       });
 
       if (error) {
-        if (
-          error.message?.includes("provider is not enabled") ||
-          error.message?.includes("validation_failed") ||
-          (error as any).code === "validation_failed"
-        ) {
-          setGoogleConfigError(true);
-        } else {
-          setErrorMessage(error.message);
-        }
+        setErrorMessage(
+          "La connexion avec Google est temporairement indisponible. Veuillez utiliser votre Email ou votre Téléphone."
+        );
+        setAuthMethod("password");
       }
     } catch (err: any) {
-      if (
-        err.message?.includes("provider is not enabled") ||
-        err.message?.includes("validation_failed")
-      ) {
-        setGoogleConfigError(true);
-      } else {
-        setErrorMessage(err.message || "Erreur lors de la connexion avec Google.");
-      }
+      setErrorMessage(
+        "La connexion avec Google est temporairement indisponible. Veuillez utiliser votre Email ou votre Téléphone."
+      );
+      setAuthMethod("password");
     } finally {
       setLoading(false);
     }
@@ -410,45 +399,6 @@ function LoginForm() {
           </p>
         </div>
 
-        {/* ALERTE SPÉCIALE : ACTIVATION GOOGLE OAUTH */}
-        {googleConfigError && (
-          <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs space-y-2">
-            <div className="flex items-center gap-2 font-bold text-amber-200">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>Activation de Google OAuth requise dans Supabase</span>
-            </div>
-            <p className="text-[11px] text-amber-300/90 leading-relaxed">
-              Le fournisseur Google n'est pas encore activé dans votre console Supabase. Pour l'activer :
-            </p>
-            <ol className="list-decimal pl-4 space-y-1 text-[11px] text-slate-300">
-              <li>Rendez-vous dans votre tableau de bord Supabase &gt; Authentication &gt; Providers &gt; Google.</li>
-              <li>Activez le switch <strong>Enable Google provider</strong>.</li>
-              <li>Saisissez vos identifiants Client ID et Client Secret (Google Cloud).</li>
-            </ol>
-            <div className="pt-1 flex items-center justify-between">
-              <a
-                href="https://supabase.com/dashboard/project/lqmjupbtxjtbepmpdgsq/auth/providers"
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1 text-[11px] font-bold text-indigo-400 hover:underline"
-              >
-                <span>Ouvrir Supabase Providers</span>
-                <ExternalLink className="w-3 h-3" />
-              </a>
-              <button
-                type="button"
-                onClick={() => {
-                  setGoogleConfigError(false);
-                  setAuthMethod("password");
-                }}
-                className="text-[11px] font-bold text-white bg-indigo-600/60 hover:bg-indigo-600 px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
-              >
-                Utiliser Email & Mot de passe
-              </button>
-            </div>
-          </div>
-        )}
-
         {/* ALERTE SPÉCIALE : CONFIGURATION SMS / WHATSAPP REQUISE */}
         {phoneConfigError && (
           <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs space-y-2">
@@ -489,7 +439,7 @@ function LoginForm() {
         )}
 
         {/* MESSAGES D'ALERTE GÉNÉRAUX */}
-        {errorMessage && !googleConfigError && !phoneConfigError && (
+        {errorMessage && !phoneConfigError && (
           <div className="p-3 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs flex items-start gap-2">
             <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
             <span>{errorMessage}</span>
@@ -510,8 +460,7 @@ function LoginForm() {
             onClick={() => {
               setAuthMethod("password");
               setErrorMessage(null);
-              setGoogleConfigError(false);
-              setPhoneConfigError(false);
+                            setPhoneConfigError(false);
             }}
             className={`py-2 px-2 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer text-[11px] sm:text-xs ${
               authMethod === "password"
@@ -527,8 +476,7 @@ function LoginForm() {
             onClick={() => {
               setAuthMethod("magic_link");
               setErrorMessage(null);
-              setGoogleConfigError(false);
-              setPhoneConfigError(false);
+                            setPhoneConfigError(false);
             }}
             className={`py-2 px-2 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer text-[11px] sm:text-xs ${
               authMethod === "magic_link"
@@ -544,8 +492,7 @@ function LoginForm() {
             onClick={() => {
               setAuthMethod("phone");
               setErrorMessage(null);
-              setGoogleConfigError(false);
-              setPhoneConfigError(false);
+                            setPhoneConfigError(false);
             }}
             className={`py-2 px-2 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer text-[11px] sm:text-xs ${
               authMethod === "phone"
@@ -984,8 +931,7 @@ function LoginForm() {
                   setAuthMode("signup");
                   setErrorMessage(null);
                   setSuccessMessage(null);
-                  setGoogleConfigError(false);
-                  setPhoneConfigError(false);
+                                    setPhoneConfigError(false);
                 }}
                 className="text-indigo-400 hover:text-indigo-300 font-bold hover:underline cursor-pointer"
               >
@@ -1001,8 +947,7 @@ function LoginForm() {
                   setAuthMode("signin");
                   setErrorMessage(null);
                   setSuccessMessage(null);
-                  setGoogleConfigError(false);
-                  setPhoneConfigError(false);
+                                    setPhoneConfigError(false);
                 }}
                 className="text-indigo-400 hover:text-indigo-300 font-bold hover:underline cursor-pointer"
               >

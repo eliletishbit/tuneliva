@@ -45,6 +45,239 @@ const CURATED_STOCK_IMAGES = {
   ],
 };
 
+
+// ==============================================================================
+// 🎨 SENIOR UI/UX CREATIVE DIRECTOR - PALETTES & ARCHETYPES SUR MESURE
+// ==============================================================================
+
+export interface SeniorDesignArchetype {
+  id: string;
+  name: string;
+  theme: {
+    primaryColor: string;
+    accentColor: string;
+    pageBackground: string;
+    backgroundGradient?: string;
+    glowColor?: string;
+    ambientGlow?: boolean;
+    cardStyle: "flat" | "elevated" | "glass" | "glowing_border";
+    backgroundStyle: "solid" | "mesh_gradient" | "radial_glow" | "aurora";
+    cardBackground: string;
+    cardBorderColor: string;
+    textColor: string;
+    textMutedColor: string;
+    fontFamily: "Plus Jakarta Sans" | "Inter" | "Poppins" | "Geist";
+    isDarkTheme: boolean;
+    bannerUrgencyText?: string;
+    countdownMinutes?: number;
+    pageLayoutWidth?: "boxed" | "fluid" | "canvas";
+  };
+  headerVariant: "classic" | "centered_minimal" | "split_banner" | "floating_pill";
+  footerVariant: "modern_3cols" | "centered_luxury" | "compact_reassurance";
+}
+
+export const SENIOR_DESIGN_ARCHETYPES: SeniorDesignArchetype[] = [
+  // 1. EDITORIAL MINIMAL LUXE (Blanc épuré, typographie élégante, accents cobalt)
+  {
+    id: "editorial_minimal_white",
+    name: "Editorial Minimal Luxe",
+    theme: {
+      primaryColor: "#2563EB",
+      accentColor: "#0284C7",
+      pageBackground: "#FAFAFA",
+      backgroundGradient: "radial-gradient(ellipse 80% 50% at 50% -10%, rgba(37, 99, 235, 0.08) 0%, transparent 70%), #FAFAFA",
+      glowColor: "#2563EB",
+      ambientGlow: false,
+      cardStyle: "elevated",
+      backgroundStyle: "solid",
+      cardBackground: "#FFFFFF",
+      cardBorderColor: "rgba(15, 23, 42, 0.08)",
+      textColor: "#0F172A",
+      textMutedColor: "#64748B",
+      fontFamily: "Inter",
+      isDarkTheme: false,
+      bannerUrgencyText: "✨ OFFRE PRIVILÈGE DU JOUR : LIVRAISON GRATUITE DISPONIBLE",
+      countdownMinutes: 120,
+      pageLayoutWidth: "fluid",
+    },
+    headerVariant: "floating_pill",
+    footerVariant: "modern_3cols",
+  },
+
+  // 2. OBSIDIAN CYBER EMERALD (Fond noir absolu, halo émeraude néon et verre dépoli)
+  {
+    id: "obsidian_cyber_emerald",
+    name: "Obsidian Cyber Emerald",
+    theme: {
+      primaryColor: "#10B981",
+      accentColor: "#06B6D4",
+      pageBackground: "#040711",
+      backgroundGradient: "radial-gradient(ellipse 80% 50% at 50% -10%, rgba(16, 185, 129, 0.20) 0%, transparent 65%), radial-gradient(circle at 90% 20%, rgba(6, 182, 212, 0.12) 0%, transparent 50%), #040711",
+      glowColor: "#10B981",
+      ambientGlow: true,
+      cardStyle: "glass",
+      backgroundStyle: "mesh_gradient",
+      cardBackground: "#080F1E",
+      cardBorderColor: "rgba(16, 185, 129, 0.25)",
+      textColor: "#FFFFFF",
+      textMutedColor: "#94A3B8",
+      fontFamily: "Plus Jakarta Sans",
+      isDarkTheme: true,
+      bannerUrgencyText: "⚡ ARRIVAGE OFFICIEL : CONTRÔLEZ VOTRE COLIS AVANT DE PAYER",
+      countdownMinutes: 95,
+      pageLayoutWidth: "fluid",
+    },
+    headerVariant: "split_banner",
+    footerVariant: "compact_reassurance",
+  },
+
+  // 3. TERRACOTTA & OR CHAUD (Chaleur africaine, terre cuite et ambre solaire)
+  {
+    id: "african_terracotta_gold",
+    name: "African Terracotta & Warm Gold",
+    theme: {
+      primaryColor: "#EA580C",
+      accentColor: "#F59E0B",
+      pageBackground: "#120B07",
+      backgroundGradient: "radial-gradient(ellipse 75% 50% at 30% -5%, rgba(234, 88, 12, 0.22) 0%, transparent 60%), radial-gradient(ellipse 65% 45% at 85% 15%, rgba(245, 158, 11, 0.18) 0%, transparent 60%), #120B07",
+      glowColor: "#EA580C",
+      ambientGlow: true,
+      cardStyle: "glowing_border",
+      backgroundStyle: "mesh_gradient",
+      cardBackground: "#1B120C",
+      cardBorderColor: "rgba(234, 88, 12, 0.25)",
+      textColor: "#FFFDF9",
+      textMutedColor: "#FED7AA",
+      fontFamily: "Poppins",
+      isDarkTheme: true,
+      bannerUrgencyText: "🔥 ÉDITION PRESTIGE : STOCK LIMITÉ POUR LES PREMIERS COMMANDITAIRES",
+      countdownMinutes: 110,
+      pageLayoutWidth: "fluid",
+    },
+    headerVariant: "centered_minimal",
+    footerVariant: "centered_luxury",
+  },
+
+  // 4. BORDEAUX VELOURS & ROSE CHAMPAGNE (Glamour, cosmétique & parfumerie haut de gamme)
+  {
+    id: "velvet_bordeaux_rose",
+    name: "Velvet Bordeaux & Champagne Rose",
+    theme: {
+      primaryColor: "#F43F5E",
+      accentColor: "#FB7185",
+      pageBackground: "#0F050A",
+      backgroundGradient: "radial-gradient(ellipse 80% 50% at 50% -10%, rgba(244, 63, 94, 0.22) 0%, transparent 70%), #0F050A",
+      glowColor: "#F43F5E",
+      ambientGlow: true,
+      cardStyle: "glowing_border",
+      backgroundStyle: "aurora",
+      cardBackground: "#180A12",
+      cardBorderColor: "rgba(244, 63, 94, 0.25)",
+      textColor: "#FFFFFF",
+      textMutedColor: "#FDA4AF",
+      fontFamily: "Plus Jakarta Sans",
+      isDarkTheme: true,
+      bannerUrgencyText: "✨ FORMULE D'EXCEPTION : SATISFAIT OU 100% REMBOURSÉ SOUS 30 JOURS",
+      countdownMinutes: 105,
+      pageLayoutWidth: "fluid",
+    },
+    headerVariant: "classic",
+    footerVariant: "centered_luxury",
+  },
+
+  // 5. HIGH-TECH SAPPHIRE & ICE BLUE (Fintech, gadgets, technologie et précision)
+  {
+    id: "sapphire_ice_blue",
+    name: "Sapphire High-Tech & Ice Blue",
+    theme: {
+      primaryColor: "#3B82F6",
+      accentColor: "#38BDF8",
+      pageBackground: "#050914",
+      backgroundGradient: "radial-gradient(ellipse 80% 50% at 50% -10%, rgba(59, 130, 246, 0.24) 0%, transparent 70%), #050914",
+      glowColor: "#3B82F6",
+      ambientGlow: true,
+      cardStyle: "glass",
+      backgroundStyle: "mesh_gradient",
+      cardBackground: "#0A1224",
+      cardBorderColor: "rgba(59, 130, 246, 0.25)",
+      textColor: "#FFFFFF",
+      textMutedColor: "#93C5FD",
+      fontFamily: "Geist",
+      isDarkTheme: true,
+      bannerUrgencyText: "⚡ TECHNOLOGIE CERTIFIÉE 2026 : GARANTIE CONSTRUCTEUR 1 AN INCLUSE",
+      countdownMinutes: 80,
+      pageLayoutWidth: "fluid",
+    },
+    headerVariant: "floating_pill",
+    footerVariant: "modern_3cols",
+  },
+
+  // 6. BOTANICAL SAGE & FOREST (Naturel, bio, santé & bien-être)
+  {
+    id: "botanical_sage_cream",
+    name: "Botanical Sage & Forest Cream",
+    theme: {
+      primaryColor: "#059669",
+      accentColor: "#10B981",
+      pageBackground: "#F5F8F6",
+      backgroundGradient: "radial-gradient(ellipse 80% 50% at 50% -10%, rgba(5, 150, 105, 0.10) 0%, transparent 70%), #F5F8F6",
+      glowColor: "#059669",
+      ambientGlow: false,
+      cardStyle: "elevated",
+      backgroundStyle: "solid",
+      cardBackground: "#FFFFFF",
+      cardBorderColor: "rgba(5, 150, 105, 0.12)",
+      textColor: "#064E3B",
+      textMutedColor: "#4B5563",
+      fontFamily: "Inter",
+      isDarkTheme: false,
+      bannerUrgencyText: "🌿 100% NATUREL & SANS ADDITIF : RÉCOLTE FRAÎCHE GARANTIE",
+      countdownMinutes: 140,
+      pageLayoutWidth: "fluid",
+    },
+    headerVariant: "centered_minimal",
+    footerVariant: "modern_3cols",
+  },
+
+  // 7. MONOCHROME BRUTALIST & SOLAR AMBER (Haute énergie, impact visuel fort)
+  {
+    id: "monochrome_solar_amber",
+    name: "Monochrome Modern & Solar Amber",
+    theme: {
+      primaryColor: "#F59E0B",
+      accentColor: "#E11D48",
+      pageBackground: "#090A0F",
+      backgroundGradient: "radial-gradient(ellipse 70% 45% at 50% -5%, rgba(245, 158, 11, 0.20) 0%, transparent 65%), #090A0F",
+      glowColor: "#F59E0B",
+      ambientGlow: true,
+      cardStyle: "glowing_border",
+      backgroundStyle: "mesh_gradient",
+      cardBackground: "#11141E",
+      cardBorderColor: "rgba(245, 158, 11, 0.22)",
+      textColor: "#FFFFFF",
+      textMutedColor: "#CBD5E1",
+      fontFamily: "Plus Jakarta Sans",
+      isDarkTheme: true,
+      bannerUrgencyText: "🚀 DERNIÈRE OPPORTUNITÉ : EXPÉDITION PRIORITAIRE SOUS 12H",
+      countdownMinutes: 60,
+      pageLayoutWidth: "fluid",
+    },
+    headerVariant: "split_banner",
+    footerVariant: "compact_reassurance",
+  }
+];
+
+export function pickSurprisingSeniorArchetype(prompt: string): SeniorDesignArchetype {
+  // Calcul d'un hash pseudo-aléatoire mais reproductible basé sur le prompt et l'heure actuelle
+  let hash = 0;
+  for (let i = 0; i < prompt.length; i++) {
+    hash = (hash << 5) - hash + prompt.charCodeAt(i);
+    hash |= 0;
+  }
+  const index = Math.abs(hash) % SENIOR_DESIGN_ARCHETYPES.length;
+  return SENIOR_DESIGN_ARCHETYPES[index];
+}
+
 export function resolveBestStockImage(prompt: string): string {
   const p = prompt.toLowerCase();
   if (p.includes("serrurier") || p.includes("clé") || p.includes("serrure") || p.includes("dépannage") || p.includes("porte") || p.includes("artisan")) {
@@ -287,6 +520,12 @@ function buildEliteDesignFunnel(
   aiData?: any
 ): FunnelPageData {
   const p = prompt.trim();
+  const seniorArchetype = pickSurprisingSeniorArchetype(p);
+  const isCustomDesign = !p.toLowerCase().includes("momoopti") &&
+                         !p.toLowerCase().includes("v0app") &&
+                         !p.toLowerCase().includes("creator hub") &&
+                         !p.toLowerCase().includes("ideogram");
+
 
   // Extraction de prix
   const priceMatch = p.match(/(\d+[\s\d]*)\s*(fcfa|cfa|f|€|\$|eur|usd)?/i);
@@ -1510,227 +1749,402 @@ function buildEliteDesignFunnel(
       },
     ];
   } else {
-    // SALES (Landing page complète classique)
-    sections = [
-      // 1. HERO SECTION AVEC UN VRAI TITRE VENDEUR
-      {
-        id: "hero-1",
-        type: "hero",
-        badgeText: badgeText,
-        title: headline,
-        subtitle: subtitle,
-        ctaText: "COMMANDER MAINTENANT",
-        ctaSubtext: `📦 Livraison express sous 24h à ${city} • Vérification avant paiement`,
-        secondaryCtaText: "WhatsApp",
-        imageUrl: stockImage,
-        trustPoints: trustPoints,
-      },
+    // SENIOR UI/UX DYNAMIC ARCHITECTURAL VARIATIONS (Surprise, diversité et équilibre visuel)
+    let layoutHash = 0;
+    for (let i = 0; i < p.length; i++) {
+      layoutHash = (layoutHash << 5) - layoutHash + p.charCodeAt(i);
+      layoutHash |= 0;
+    }
+    const layoutChoice = Math.abs(layoutHash) % 3;
 
-      // 2. SUPER BLOC SPLIT (IMAGE GAUCHE / ARGUMENTS DROITE)
-      {
-        id: "split-1",
-        type: "split_showcase",
-        layoutDirection: "image_left",
-        badgeText: "⭐ CONCEPTION SUPÉRIEURE",
-        title: `Pourquoi ${productName} fait toute la différence`,
-        subtitle: "Une fabrication soignée qui allie durabilité, confort et performance pour votre quotidien :",
-        imageUrl: stockImage,
-        imageAlt: productName,
-        metricBadge: {
-          value: "99.4%",
-          label: "Taux de Satisfaction Client",
+    if (layoutChoice === 0) {
+      // ARCHITECTURE 1 : PRODUCT SPOTLIGHT, BENTO GRID & DUAL PACKS
+      sections = [
+        {
+          id: "hero-1",
+          type: "hero",
+          badgeText: badgeText,
+          title: headline,
+          subtitle: subtitle,
+          ctaText: "COMMANDER MAINTENANT",
+          ctaSubtext: `📦 Livraison express sous 24h à ${city} • Vérification avant paiement`,
+          secondaryCtaText: "WhatsApp Direct",
+          imageUrl: stockImage,
+          trustPoints: trustPoints,
         },
-        highlights: [
-          {
-            id: "hl-1",
-            title: "Finition Irréprochable & Matériaux Certifiés",
-            description: "Chaque exemplaire subit un contrôle qualité rigoureux avant toute expédition.",
+        {
+          id: "bento-1",
+          type: "bento_grid",
+          badgeText: "💎 CONÇU POUR L'EXCELLENCE",
+          title: `Ce qui rend ${productName} véritablement unique`,
+          subtitle: "Chaque détail a été pensé pour vous apporter une satisfaction absolue :",
+          cards: [
+            {
+              id: "bc-1",
+              colSpan: "col-span-2",
+              tag: "QUALITÉ SUPÉRIEURE",
+              metric: "100%",
+              title: "Matériaux Nobles & Durabilité Maximale",
+              description: `Profitez d'un produit robuste pensé pour un usage quotidien sans compromis.`,
+              imageUrl: stockImage,
+            },
+            {
+              id: "bc-2",
+              colSpan: "col-span-1",
+              tag: "SÉCURITÉ",
+              metric: "0 Risque",
+              title: "Contrôle Avant Paiement",
+              description: "Ouvrez votre colis, vérifiez son état et ne réglez que si vous êtes 100% conquis.",
+            },
+            {
+              id: "bc-3",
+              colSpan: "col-span-1",
+              tag: "RAPIDITÉ",
+              metric: "24h",
+              title: "Livraison Locale Express",
+              description: `Notre livreur dédié vous appelle et vous livre en main propre à ${city}.`,
+            },
+            {
+              id: "bc-4",
+              colSpan: "col-span-2",
+              tag: "GARANTIE TOTALE",
+              metric: "30 Jours",
+              title: "Satisfait ou 100% Remboursé",
+              description: "Notre équipe locale vous accompagne 7j/7 sur WhatsApp pour toute question ou échange.",
+              imageUrl: stockImage,
+            },
+          ],
+        },
+        {
+          id: "split-1",
+          type: "split_showcase",
+          layoutDirection: "image_right",
+          badgeText: "⭐ CONCEPTION CERTIFIÉE",
+          title: "Une expérience d'usage incomparable",
+          subtitle: "Pourquoi nos clients ne jurent plus que par ce modèle :",
+          imageUrl: stockImage,
+          imageAlt: productName,
+          metricBadge: {
+            value: "99.2%",
+            label: "Clients Conquis",
           },
-          {
-            id: "hl-2",
-            title: "Confort & Prise en Main Immédiate",
-            description: "Pensé pour répondre parfaitement à vos besoins dès les premières secondes d'usage.",
+          highlights: [
+            {
+              id: "hl-1",
+              title: "Finition Soignée & Précision Artisanale",
+              description: "Chaque composant répond aux standards les plus stricts du marché.",
+            },
+            {
+              id: "hl-2",
+              title: "Prise en Main Immédiate",
+              description: "Facile, intuitif et agréable dès la toute première utilisation.",
+            },
+            {
+              id: "hl-3",
+              title: "Service Après-Vente Réactif",
+              description: "Des conseillers disponibles par message direct pour vous assister.",
+            },
+          ],
+          ctaText: "JE COMMANDE MAINTENANT",
+          ctaLink: "#commander",
+        },
+        {
+          id: "packs-1",
+          type: "product_showcase",
+          badgeText: "🎁 OFFRE PROMOTIONNELLE",
+          title: "Choisissez la Formule Idéale",
+          subtitle: "Profitez de nos tarifs préférentiels valables jusqu'à épuisement du stock :",
+          items: showcaseItems,
+        },
+        {
+          id: "slider-1",
+          type: "interactive_slider",
+          badgeText: "💬 AVIS CLIENTS VÉRIFIÉS",
+          title: "Témoignages de nos Acheteurs",
+          subtitle: "Retours authentiques après livraison et test en conditions réelles :",
+          sliderType: "testimonials",
+          items: reviewsItems.map((r: any, i: number) => ({
+            id: `sl-${i + 1}`,
+            title: r.authorName,
+            subtitle: `${r.authorLocation} • Acheteur Certifié`,
+            description: r.comment,
+            rating: 5,
+            tag: "Avis Contrôlé",
+            imageUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80",
+          })),
+        },
+        {
+          id: "order-1",
+          type: "order_form",
+          title: "Finalisez votre Commande Express",
+          subtitle: "Remplissez ce formulaire en 30 secondes pour recevoir votre colis sous 24h :",
+          whatsappEnabled: true,
+          whatsappNumber: "+22997000000",
+          codEnabled: true,
+          onlinePaymentEnabled: true,
+          cities: [city, "Communes et environs", "Autre ville"],
+        },
+        {
+          id: "faq-1",
+          type: "faq",
+          badgeText: "❓ FAQ",
+          title: "Questions Fréquentes",
+          subtitle: "Toutes les réponses à vos questions en toute clarté :",
+          items: faqItems,
+        },
+      ];
+    } else if (layoutChoice === 1) {
+      // ARCHITECTURE 2 : DIRECT RESPONSE, REASSURANCE PILLS & 3-STEP UNBOXING
+      sections = [
+        {
+          id: "hero-1",
+          type: "hero",
+          badgeText: "🔥 ÉDITION LIMITÉE 2026 – DERNIERS EXEMPLAIRES",
+          title: headline,
+          subtitle: subtitle,
+          ctaText: "BÉNÉFICIER DU TARIF PROMO",
+          ctaSubtext: `⚡ Expédition directe sous 24h à ${city} • Inspection du colis offerte`,
+          secondaryCtaText: "WhatsApp",
+          imageUrl: stockImage,
+          trustPoints: trustPoints,
+        },
+        {
+          id: "floating-1",
+          type: "floating_cards",
+          cards: [
+            {
+              id: "c-1",
+              icon: "timer",
+              title: "Livraison Éclair 24h",
+              description: `Notre coursier vous livre à votre domicile ou bureau à ${city}.`,
+            },
+            {
+              id: "c-2",
+              icon: "check",
+              title: "Contrôle à la Réception",
+              description: "Vous ouvrez et examinez votre article avant de donner l'argent.",
+            },
+            {
+              id: "c-3",
+              icon: "shield",
+              title: "Garantie Tranquillité",
+              description: "30 jours complets pour tester votre produit en toute liberté.",
+            },
+          ],
+        },
+        {
+          id: "steps-1",
+          type: "steps",
+          badgeText: "PROCESSUS 100% SIMPLE",
+          title: "Comment se déroule votre commande ?",
+          subtitle: "3 étapes fluides et transparentes jusqu'à vos mains :",
+          items: [
+            {
+              id: "s-1",
+              stepNumber: 1,
+              title: "Remplissez le formulaire",
+              description: "Indiquez votre nom, numéro de téléphone et ville de livraison.",
+            },
+            {
+              id: "s-2",
+              stepNumber: 2,
+              title: "Appel de courtoisie du livreur",
+              description: "Nous convenons avec vous de l'heure exacte de passage selon vos disponibilités.",
+            },
+            {
+              id: "s-3",
+              stepNumber: 3,
+              title: "Inspection & Paiement en Espèces ou MoMo",
+              description: "Vous prenez en main le produit, vous constatez la qualité, et vous réglez en toute confiance.",
+            },
+          ],
+        },
+        {
+          id: "packs-1",
+          type: "product_showcase",
+          badgeText: "OFFRES SPÉCIALES",
+          title: "Sélectionnez votre Pack",
+          subtitle: "Économisez jusqu'à 40% sur le pack recommandé :",
+          items: showcaseItems,
+        },
+        {
+          id: "reviews-1",
+          type: "social_proof",
+          badgeText: "AVIS CLIENTS",
+          title: "Ils l'ont testé et approuvé",
+          ratingAverage: 5,
+          totalReviewsText: "Note de 4.9/5 sur plus de 450 avis enregistrés",
+          items: reviewsItems,
+        },
+        {
+          id: "area-1",
+          type: "service_area",
+          title: "Zone d'expédition & de livraison",
+          subtitle: "Livreurs actifs sur l'ensemble de la région",
+          zoneText: `${city} et toutes les communes périphériques`,
+          mapMode: "google_maps",
+          mapAddress: city,
+          mapZoom: 13,
+          mapImageUrl: "https://images.unsplash.com/photo-1524661135-423995f22d0b?w=1000&auto=format&fit=crop&q=80",
+        },
+        {
+          id: "order-1",
+          type: "order_form",
+          title: "Commandez en 1 Seul Clic",
+          subtitle: "Remplissez ce formulaire court pour lancer l'expédition :",
+          whatsappEnabled: true,
+          whatsappNumber: "+22997000000",
+          codEnabled: true,
+          onlinePaymentEnabled: true,
+          cities: [city, "Communes et environs", "Autre ville"],
+        },
+        {
+          id: "faq-1",
+          type: "faq",
+          badgeText: "QUESTIONS & RÉPONSES",
+          title: "Besoin d'un renseignement ?",
+          subtitle: "Voici les réponses aux questions les plus posées :",
+          items: faqItems,
+        },
+      ];
+    } else {
+      // ARCHITECTURE 3 : EDITORIAL AUTHORITY, STATS IMPACT & SPLIT SHOWCASE
+      sections = [
+        {
+          id: "hero-1",
+          type: "hero",
+          badgeText: badgeText,
+          title: headline,
+          subtitle: subtitle,
+          ctaText: "COMMANDER EN TOUTE SÉCURITÉ",
+          ctaSubtext: `🛡️ Garantie 30 jours • Paiement à la réception du colis`,
+          secondaryCtaText: "WhatsApp VIP",
+          imageUrl: stockImage,
+          trustPoints: trustPoints,
+        },
+        {
+          id: "split-1",
+          type: "split_showcase",
+          layoutDirection: "image_left",
+          badgeText: "⭐ CONCEPTION SUPÉRIEURE",
+          title: `Pourquoi ${productName} fait toute la différence`,
+          subtitle: "Une fabrication soignée qui allie durabilité, confort et performance :",
+          imageUrl: stockImage,
+          imageAlt: productName,
+          metricBadge: {
+            value: "99.4%",
+            label: "Taux de Satisfaction Client",
           },
-          {
-            id: "hl-3",
-            title: "Assistance VIP & Garantie 30 Jours Incluses",
-            description: "Notre équipe locale vous accompagne en toute sérénité à chaque étape.",
-          },
-        ],
-        ctaText: "COMMANDER MAINTENANT",
-        ctaLink: "#commander",
-      },
-
-      // 3. CARTES FLOTTANTES DE CONFIANCE
-      {
-        id: "floating-1",
-        type: "floating_cards",
-        cards: [
-          {
-            id: "c-1",
-            icon: "timer",
-            title: "Livraison Express 24h",
-            description: `Nous vous livrons rapidement où que vous soyez à ${city} et ses environs.`,
-          },
-          {
-            id: "c-2",
-            icon: "check",
-            title: "Contrôle à la Réception",
-            description: "Vous ouvrez et inspectez votre colis avant de régler au coursier.",
-          },
-          {
-            id: "c-3",
-            icon: "shield",
-            title: "Produit 100% Garanti",
-            description: "30 jours de garantie satisfait ou remboursé sans discussion.",
-          },
-        ],
-      },
-
-      // 4. STATISTIQUES SOCIALES
-      {
-        id: "stats-1",
-        type: "stats",
-        badgeText: "IMPACT RÉEL",
-        items: [
-          { id: "st-1", value: "1 400+", label: "Clients livrés" },
-          { id: "st-2", value: "98.7%", label: "Satisfaction client" },
-          { id: "st-3", value: "24h", label: "Délai moyen d'expédition" },
-        ],
-      },
-
-      // 5. SLIDER INTERACTIF DE TÉMOIGNAGES
-      {
-        id: "slider-1",
-        type: "interactive_slider",
-        badgeText: "💬 AVIS CLIENTS 5 ÉTOILES",
-        title: "Ce que nos clients racontent",
-        subtitle: "Découvrez les retours d'expérience de personnes qui ont déjà sauté le pas :",
-        sliderType: "testimonials",
-        items: reviewsItems.map((r: any, i: number) => ({
-          id: `sl-${i + 1}`,
-          title: r.authorName,
-          subtitle: `${r.authorLocation} • Achat Vérifié`,
-          description: r.comment,
-          rating: 5,
-          tag: "Client Vérifié",
-          imageUrl: r.authorName.includes("Amina")
-            ? "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80"
-            : r.authorName.includes("Marc")
-            ? "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80"
-            : "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&auto=format&fit=crop&q=80",
-        })),
-      },
-
-      // 6. COMMENT ÇA MARCHE ?
-      {
-        id: "steps-1",
-        type: "steps",
-        badgeText: "SIMPLE & SÉCURISÉ",
-        title: "Comment commander ?",
-        subtitle: "3 étapes rapides pour recevoir votre colis chez vous :",
-        items: [
-          {
-            id: "s-1",
-            stepNumber: 1,
-            title: "Remplissez le formulaire",
-            description: "Indiquez votre nom, numéro WhatsApp et lieu de livraison.",
-          },
-          {
-            id: "s-2",
-            stepNumber: 2,
-            title: "Confirmation d'Expédition",
-            description: "Notre livreur vous contacte rapidement pour planifier l'heure de passage.",
-          },
-          {
-            id: "s-3",
-            stepNumber: 3,
-            title: "Contrôle & Règlement en Espèces",
-            description: "Vous recevez votre produit, vous vérifiez et vous payez en toute sécurité.",
-          },
-        ],
-      },
-
-      // 7. GRILLE BENTO MODERNE
-      {
-        id: "bento-1",
-        type: "bento_grid",
-        badgeText: "🏆 EXCELLENCE TUNELIVA",
-        title: "La sérénité totale à chaque commande",
-        subtitle: "Un service pensé pour vous apporter une sécurité maximale :",
-        cards: [
-          {
-            id: "bc-1",
-            colSpan: "col-span-2",
-            tag: "CONTRÔLE TOTAL",
-            metric: "0 Avance",
-            title: "Paiement 100% à la Livraison",
-            description: `Vous ne réglez rien en ligne si vous préférez ! Vous ouvrez et inspectez votre colis devant le livreur à ${city} avant de régler.`,
-            imageUrl: stockImage,
-          },
-          {
-            id: "bc-2",
-            colSpan: "col-span-1",
-            tag: "RAPIDITÉ",
-            metric: "24h",
-            title: "Expédition Express",
-            description: "Notre livreur vous contacte rapidement pour convenir de l'horaire idéal.",
-          },
-          {
-            id: "bc-3",
-            colSpan: "col-span-1",
-            tag: "CONFIANCE",
-            metric: "30 Jours",
-            title: "Garantie Satisfait ou Remboursé",
-            description: "Un souci ou une question ? Notre service client vous échange ou vous rembourse sans tracas.",
-          },
-          {
-            id: "bc-4",
-            colSpan: "col-span-2",
-            tag: "ASSISTANCE 7J/7",
-            metric: "< 15 min",
-            title: "Support WhatsApp Réactif",
-            description: "Des conseillers dévoués pour vous répondre en direct à la moindre question.",
-          },
-        ],
-      },
-
-      // 8. ZONE DE LIVRAISON / COUVERTURE (GOOGLE MAPS)
-      {
-        id: "area-1",
-        type: "service_area",
-        title: "Notre zone de livraison & d'intervention",
-        subtitle: "Zone de couverture garantie avec expédition suivie",
-        zoneText: `${city}, communes et environs immédiats`,
-        mapMode: "google_maps",
-        mapAddress: city,
-        mapZoom: 13,
-        mapImageUrl: "https://images.unsplash.com/photo-1524661135-423995f22d0b?w=1000&auto=format&fit=crop&q=80",
-      },
-
-      // 9. FORMULAIRE DE COMMANDE DIRECTE COD
-      {
-        id: "order-1",
-        type: "order_form",
-        title: "Formulaire de Commande Express",
-        subtitle: "Remplissez ce formulaire court pour recevoir votre colis sous 24h :",
-        whatsappEnabled: true,
-        whatsappNumber: "+22997000000",
-        codEnabled: true,
-        onlinePaymentEnabled: true,
-        cities: [city, "Communes et environs", "Autre ville"],
-      },
-
-      // 10. FAQ ACCORDÉON
-      {
-        id: "faq-1",
-        type: "faq",
-        badgeText: "❓ FAQ",
-        title: "Questions Fréquentes",
-        subtitle: "Toutes les réponses à vos questions en toute transparence :",
-        items: faqItems,
-      },
-    ];
+          highlights: [
+            {
+              id: "hl-1",
+              title: "Finition Irréprochable & Matériaux Certifiés",
+              description: "Chaque exemplaire subit un contrôle qualité rigoureux avant toute expédition.",
+            },
+            {
+              id: "hl-2",
+              title: "Confort & Prise en Main Immédiate",
+              description: "Pensé pour répondre parfaitement à vos besoins dès les premières secondes d'usage.",
+            },
+            {
+              id: "hl-3",
+              title: "Assistance VIP & Garantie 30 Jours Incluses",
+              description: "Notre équipe locale vous accompagne en toute sérénité à chaque étape.",
+            },
+          ],
+          ctaText: "COMMANDER MAINTENANT",
+          ctaLink: "#commander",
+        },
+        {
+          id: "stats-1",
+          type: "stats",
+          badgeText: "IMPACT RÉEL",
+          items: [
+            { id: "st-1", value: "1 850+", label: "Commandes honorées" },
+            { id: "st-2", value: "99.1%", label: "Clients satisfaits" },
+            { id: "st-3", value: "12-24h", label: "Délai moyen de livraison" },
+          ],
+        },
+        {
+          id: "bento-1",
+          type: "bento_grid",
+          badgeText: "🏆 EXCELLENCE TUNELIVA",
+          title: "La sérénité absolue à chaque étape",
+          subtitle: "Un engagement sans compromis pour votre satisfaction :",
+          cards: [
+            {
+              id: "bc-1",
+              colSpan: "col-span-2",
+              tag: "CONTRÔLE TOTAL",
+              metric: "0 FCFA Avance",
+              title: "Paiement 100% à la Livraison",
+              description: `Vous ouvrez et inspectez votre colis devant le livreur à ${city} avant de régler.`,
+              imageUrl: stockImage,
+            },
+            {
+              id: "bc-2",
+              colSpan: "col-span-1",
+              tag: "RAPIDITÉ",
+              metric: "24h",
+              title: "Expédition Express",
+              description: "Le livreur vous appelle pour convenir du meilleur moment.",
+            },
+            {
+              id: "bc-3",
+              colSpan: "col-span-1",
+              tag: "CONFIANCE",
+              metric: "30 Jours",
+              title: "Garantie Totale",
+              description: "Satisfait ou remboursé sans tracas ni question inutile.",
+            },
+            {
+              id: "bc-4",
+              colSpan: "col-span-2",
+              tag: "ASSISTANCE 7J/7",
+              metric: "< 10 min",
+              title: "Support WhatsApp Immédiat",
+              description: "Des conseillers dévoués pour répondre en direct à chacune de vos demandes.",
+            },
+          ],
+        },
+        {
+          id: "slider-1",
+          type: "interactive_slider",
+          badgeText: "💬 AVIS CLIENTS 5 ÉTOILES",
+          title: "Ce que nos clients en disent",
+          subtitle: "Découvrez les retours authentiques de nos clients :",
+          sliderType: "testimonials",
+          items: reviewsItems.map((r: any, i: number) => ({
+            id: `sl-${i + 1}`,
+            title: r.authorName,
+            subtitle: `${r.authorLocation} • Achat Vérifié`,
+            description: r.comment,
+            rating: 5,
+            tag: "Client Vérifié",
+            imageUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80",
+          })),
+        },
+        {
+          id: "order-1",
+          type: "order_form",
+          title: "Formulaire de Commande Express",
+          subtitle: "Remplissez ce formulaire pour recevoir votre colis sous 24h :",
+          whatsappEnabled: true,
+          whatsappNumber: "+22997000000",
+          codEnabled: true,
+          onlinePaymentEnabled: true,
+          cities: [city, "Communes et environs", "Autre ville"],
+        },
+        {
+          id: "faq-1",
+          type: "faq",
+          badgeText: "❓ FAQ",
+          title: "Questions Fréquentes",
+          subtitle: "Toutes les réponses pour commander en toute tranquillité :",
+          items: faqItems,
+        },
+      ];
+    }
   }
 
   return {
@@ -1742,6 +2156,8 @@ function buildEliteDesignFunnel(
     branding: {
       businessName: productName,
       tagline: "Qualité Certifiée & Service d'Excellence",
+      headerVariant: isCustomDesign ? seniorArchetype.headerVariant : "classic",
+      footerVariant: isCustomDesign ? seniorArchetype.footerVariant : "modern_3cols",
       whatsappNumber: "+22997000000",
       phone: "+229 01 53 29 52 82",
       socialLinks: {
@@ -1756,11 +2172,17 @@ function buildEliteDesignFunnel(
         serviceZone: `Zone d'intervention : ${city}, Calavi, Porto-Novo et environs`,
       },
     },
-    theme: {
-      preset,
-      ...presetConfig,
-      pageLayoutWidth: "fluid",
-    },
+    theme: isCustomDesign
+      ? {
+          preset: seniorArchetype.id as any,
+          ...seniorArchetype.theme,
+          pageLayoutWidth: "fluid",
+        }
+      : {
+          preset,
+          ...presetConfig,
+          pageLayoutWidth: "fluid",
+        },
     sections,
     eventDetails:
       pageType === "event_booking"
