@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
+import { normalizeForSpeech } from "@/lib/tiktok/speechNormalizer";
 
 export const dynamic = "force-dynamic";
 
-// Cache mémoire serveur pour éviter de rappeler l'API pour les mêmes sous-titres
+// Cache mémoire serveur pour stocker les morceaux audio déjà transcrits
 const audioCache = new Map<string, ArrayBuffer>();
 
 export async function GET(request: Request) {
@@ -15,14 +16,13 @@ export async function GET(request: Request) {
       return new NextResponse("Paramètre 'text' manquant.", { status: 400 });
     }
 
-    // Nettoyage et limitation sécurisée à 190 caractères par chunk
-    const cleanText = rawText
-      .replace(/[\r\n]+/g, " ")
-      .replace(/[^\p{L}\p{N}\p{P}\s]/gu, "")
+    // Traduction et normalisation phonétique du texte (1M -> un million, etc.)
+    const spokenText = normalizeForSpeech(rawText)
+      .replace(/[^\p{L}\p{N}\p{P}\s']/gu, "")
       .trim()
-      .slice(0, 190);
+      .slice(0, 195);
 
-    const cacheKey = `${lang}:${cleanText}`;
+    const cacheKey = `${lang}:${spokenText}`;
     if (audioCache.has(cacheKey)) {
       const cachedBuffer = audioCache.get(cacheKey)!;
       return new NextResponse(cachedBuffer, {
@@ -36,15 +36,19 @@ export async function GET(request: Request) {
 
     const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${encodeURIComponent(
       lang
-    )}&client=tw-ob&q=${encodeURIComponent(cleanText)}`;
+    )}&client=tw-ob&q=${encodeURIComponent(spokenText)}`;
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 6000);
 
     const response = await fetch(ttsUrl, {
+      signal: controller.signal,
       headers: {
         "User-Agent":
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
         Referer: "https://translate.google.com/",
       },
-    });
+    }).finally(() => clearTimeout(timeoutId));
 
     if (!response.ok) {
       return new NextResponse(`Erreur TTS : ${response.status}`, { status: response.status });
@@ -52,8 +56,8 @@ export async function GET(request: Request) {
 
     const audioArrayBuffer = await response.arrayBuffer();
 
-    // Mise en cache (limite à 300 entrées pour la mémoire)
-    if (audioCache.size < 300) {
+    // Mise en cache mémoire
+    if (audioCache.size < 400) {
       audioCache.set(cacheKey, audioArrayBuffer);
     }
 

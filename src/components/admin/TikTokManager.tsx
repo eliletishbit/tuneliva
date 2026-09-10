@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { TikTokVideoPost, TikTokScene } from "@/lib/tiktok/generator";
-import { compileTikTokVideo, CompiledVideoResult, VideoRenderProgress, VoiceOption, MusicOption } from "@/lib/tiktok/videoCompiler";
+import { compileTikTokVideo, CompiledVideoResult, VideoRenderProgress, VoiceOption, MusicOption, SpeedOption } from "@/lib/tiktok/videoCompiler";
 import {
   Play,
   Pause,
@@ -71,6 +71,7 @@ export function TikTokManager() {
   const [viewMode, setViewMode] = useState<"simulator" | "compiled">("simulator");
   const [selectedVoice, setSelectedVoice] = useState<VoiceOption>("female");
   const [selectedMusic, setSelectedMusic] = useState<MusicOption>("afrobeat");
+  const [selectedSpeed, setSelectedSpeed] = useState<SpeedOption>("viral");
 
   // État du lecteur 9:16
   const [isPlaying, setIsPlaying] = useState(true);
@@ -302,7 +303,7 @@ export function TikTokManager() {
       setCompilingPostId(post.id);
       const res = await compileTikTokVideo(post, (p) => {
         setRenderProgress((prev) => ({ ...prev, [post.id]: p }));
-      }, { voice: selectedVoice, music: selectedMusic });
+      }, { voice: selectedVoice, music: selectedMusic, speed: selectedSpeed });
       setCompiledVideos((prev) => ({ ...prev, [post.id]: res }));
       if (selectedPostId === post.id || !selectedPostId) {
         setViewMode("compiled");
@@ -324,7 +325,7 @@ export function TikTokManager() {
         setCompilingPostId(post.id);
         const res = await compileTikTokVideo(post, (p) => {
           setRenderProgress((prev) => ({ ...prev, [post.id]: p }));
-        }, { voice: selectedVoice, music: selectedMusic });
+        }, { voice: selectedVoice, music: selectedMusic, speed: selectedSpeed });
         setCompiledVideos((prev) => ({ ...prev, [post.id]: res }));
       }
       setViewMode("compiled");
@@ -735,6 +736,35 @@ SON: ${post.musicTrack}`;
               title="Sans musique : voix off uniquement"
             >
               🔇 Muet
+            </button>
+          </div>
+
+          {/* Choix du rythme / cadence */}
+          <div className="flex items-center gap-1 bg-slate-950/80 p-1 rounded-2xl border border-slate-800 text-xs">
+            <span className="text-[10px] text-slate-400 font-bold px-2">Cadence :</span>
+            <button
+              type="button"
+              onClick={() => setSelectedSpeed("viral")}
+              className={`px-2.5 py-1.5 rounded-xl font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                selectedSpeed === "viral"
+                  ? "bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-md shadow-rose-500/20 font-black"
+                  : "text-slate-400 hover:text-white"
+              }`}
+              title="Rythme Viral (~17s) : Diction énergique 1.2x et coupures de scènes instantanées (0.12s) pour maximiser le taux de complétion TikTok"
+            >
+              <span>⚡ Viral (~17s)</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedSpeed("normal")}
+              className={`px-2.5 py-1.5 rounded-xl font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                selectedSpeed === "normal"
+                  ? "bg-slate-700 text-white shadow-md font-black"
+                  : "text-slate-400 hover:text-white"
+              }`}
+              title="Rythme Posé (~24s) : Diction calme avec transitions plus douces"
+            >
+              <span>🎙️ Posé (~24s)</span>
             </button>
           </div>
         </div>

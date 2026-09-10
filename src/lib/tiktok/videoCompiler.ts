@@ -10,6 +10,7 @@
  */
 
 import { TikTokVideoPost, TikTokScene } from "./generator";
+import { normalizeForSpeech } from "./speechNormalizer";
 
 export interface VideoRenderProgress {
   currentSec: number;
@@ -27,10 +28,12 @@ export interface CompiledVideoResult {
 
 export type VoiceOption = "female" | "male";
 export type MusicOption = "afrobeat" | "lofi" | "none";
+export type SpeedOption = "viral" | "normal";
 
 export interface VideoCompilerOptions {
   voice?: VoiceOption;
   music?: MusicOption;
+  speed?: SpeedOption;
 }
 
 // Chargement sécurisé de chaque image via le proxy local anti-CORS
@@ -57,16 +60,33 @@ async function fetchAndDecodeTTS(
   audioCtx: AudioContext,
   text: string
 ): Promise<AudioBuffer | null> {
+  const normalized = normalizeForSpeech(text);
+
+  // 1ère tentative : via la route serverless locale
   try {
-    const url = `/api/tiktok/tts?text=${encodeURIComponent(text)}&lang=fr-FR`;
+    const url = `/api/tiktok/tts?text=${encodeURIComponent(normalized)}&lang=fr-FR`;
     const res = await fetch(url);
-    if (!res.ok) return null;
-    const arrayBuf = await res.arrayBuffer();
-    return await audioCtx.decodeAudioData(arrayBuf);
-  } catch (err) {
-    console.warn("Erreur fetch/decode TTS:", err);
-    return null;
+    if (res.ok) {
+      const arrayBuf = await res.arrayBuffer();
+      return await audioCtx.decodeAudioData(arrayBuf);
+    }
+  } catch (e) {
+    console.warn("Route TTS locale inaccessible, bascule directe:", e);
   }
+
+  // 2ème tentative : appel direct depuis le navigateur avec le texte normalisé
+  try {
+    const directUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=fr-FR&client=tw-ob&q=${encodeURIComponent(normalized)}`;
+    const directRes = await fetch(directUrl);
+    if (directRes.ok) {
+      const arrayBuf = await directRes.arrayBuffer();
+      return await audioCtx.decodeAudioData(arrayBuf);
+    }
+  } catch (err) {
+    console.warn("Erreur chargement direct TTS:", err);
+  }
+
+  return null;
 }
 
 // Chargement de la vraie musique de fond libre de droits (MP3)
@@ -101,6 +121,7 @@ export async function compileTikTokVideo(
 
   const voiceType: VoiceOption = options.voice || "female";
   const musicType: MusicOption = options.music || "afrobeat";
+  const speedType: SpeedOption = options.speed || "viral";
 
   const WIDTH = 720;
   const HEIGHT = 1280;
@@ -179,15 +200,24 @@ export async function compileTikTokVideo(
     sceneAudioBuffers.push(buf);
   }
 
+  // Vitesse de lecture dynamique selon la cadence choisie (Viral 1.20x vs Posé 1.05x)
+  const isViral = speedType === "viral";
+  const effectiveSpeechRate = isViral
+    ? (voiceType === "female" ? 1.20 : 1.16)
+    : (voiceType === "female" ? 1.05 : 1.02);
+  const gapPadding = isViral ? 0.12 : 0.35;
+  const minSceneDur = isViral ? 2.3 : 3.0;
+
   // Calcul des timings synchronisés scène par scène selon la durée réelle de parole
   const sceneTimings: { startSec: number; durationSec: number }[] = [];
   let currentAccumulatedSec = 0;
 
   for (let i = 0; i < post.scenes.length; i++) {
     const audioBuf = sceneAudioBuffers[i];
-    // Durée de la scène basée sur la parole + marge d'aération
-    const rawAudioDuration = audioBuf ? audioBuf.duration : 4.0;
-    const sceneDur = Math.max(3.8, rawAudioDuration + 0.6);
+    const rawAudioDuration = audioBuf ? audioBuf.duration : 3.0;
+    const realSpokenDuration = rawAudioDuration / effectiveSpeechRate;
+    // Coupure ajustée : rythme ultra nerveux Alex Hormozi (0.12s) ou plus posé (0.35s)
+    const sceneDur = Math.max(minSceneDur, realSpokenDuration + gapPadding);
     sceneTimings.push({
       startSec: currentAccumulatedSec,
       durationSec: sceneDur,
@@ -253,8 +283,8 @@ export async function compileTikTokVideo(
     if (!buf) return;
     const source = audioCtx.createBufferSource();
     source.buffer = buf;
-    // Pitch ajusté : légèrement plus enjoué pour femme (+5%), légèrement plus grave pour homme (-5%)
-    source.playbackRate.setValueAtTime(voiceType === "female" ? 1.05 : 0.94, audioCtx.currentTime);
+    // Vitesse accélérée et dynamique (1.18x pour Aïcha / 1.14x pour Kouamé)
+    source.playbackRate.setValueAtTime(effectiveSpeechRate, audioCtx.currentTime);
     source.connect(voiceFilter);
     source.start(0);
   };
@@ -381,10 +411,10 @@ export async function compileTikTokVideo(
 
       // Fondu enchaîné (Cross-dissolve) dans les 0.4 dernières secondes de la scène
       const timeRemainingInScene = timing.durationSec - sceneElapsed;
-      if (timeRemainingInScene < 0.4 && sceneIndex < post.scenes.length - 1) {
+      if (timeRemainingInScene < 0.25 && sceneIndex < post.scenes.length - 1) {
         const nextImg = sceneImages[sceneIndex + 1];
         if (nextImg) {
-          const crossAlpha = (0.4 - timeRemainingInScene) / 0.4;
+          const crossAlpha = (0.25 - timeRemainingInScene) / 0.25;
           ctx.save();
           ctx.globalAlpha = crossAlpha;
           ctx.drawImage(nextImg, (WIDTH - WIDTH * 1.05) / 2, (HEIGHT - HEIGHT * 1.05) / 2, WIDTH * 1.05, HEIGHT * 1.05);
