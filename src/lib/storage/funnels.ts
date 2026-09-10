@@ -27,6 +27,9 @@ export interface OrderRecord {
   platformFee?: number;
   merchantNetAmount?: number;
   commissionRate?: number;
+  payoutStatus?: "pending" | "processing" | "transferred" | "failed";
+  payoutMethod?: "sub_account" | "momo" | "bank";
+  payoutTransactionId?: string;
   createdAt: string;
 }
 
@@ -485,6 +488,44 @@ export async function saveOrder(order: Partial<OrderRecord>): Promise<OrderRecor
   } catch {}
 
   return newOrder;
+}
+
+export async function updateOrderPayoutStatus(
+  orderId: string,
+  payoutStatus: "pending" | "processing" | "transferred" | "failed",
+  payoutMethod?: "sub_account" | "momo" | "bank",
+  payoutTransactionId?: string
+): Promise<void> {
+  // 1. Supabase update
+  try {
+    const supabase = createAdminClient();
+    await supabase
+      .from("orders")
+      .update({
+        payout_status: payoutStatus,
+        payout_method: payoutMethod || null,
+        payout_transaction_id: payoutTransactionId || null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", orderId);
+  } catch (e) {
+    console.warn("Erreur updateOrderPayoutStatus Supabase:", e);
+  }
+
+  // 2. Local update
+  try {
+    ensureDataDir();
+    if (fs.existsSync(ORDERS_FILE)) {
+      const orders: OrderRecord[] = JSON.parse(fs.readFileSync(ORDERS_FILE, "utf-8"));
+      const idx = orders.findIndex((o) => o.id === orderId);
+      if (idx !== -1) {
+        orders[idx].payoutStatus = payoutStatus;
+        if (payoutMethod) orders[idx].payoutMethod = payoutMethod;
+        if (payoutTransactionId) orders[idx].payoutTransactionId = payoutTransactionId;
+        fs.writeFileSync(ORDERS_FILE, JSON.stringify(orders, null, 2), "utf-8");
+      }
+    }
+  } catch {}
 }
 
 export async function updateOrderStatus(

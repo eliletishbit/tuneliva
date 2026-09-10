@@ -101,6 +101,17 @@ export default function MerchantDashboard() {
     }
   };
 
+    // Calcul dynamique de l'hôte DNS selon le domaine saisi (évite les erreurs OVH/GoDaddy)
+  const computedDnsHost = useMemo(() => {
+    const raw = domainInput.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, "");
+    if (!raw) return "promo";
+    const parts = raw.split(".");
+    if (parts.length > 2) {
+      return parts[0]; // ex: promo.maboutique.com -> promo
+    }
+    return "@"; // ex: maboutique.com -> @
+  }, [domainInput]);
+
   const handleAddDomain = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!domainInput.trim() || !domainSlugInput) {
@@ -1386,24 +1397,42 @@ export default function MerchantDashboard() {
                 </div>
               )}
 
-              {/* Instructions DNS */}
-              <div className="p-4 rounded-2xl bg-slate-950/80 border border-white/5 space-y-2 text-xs">
+              {/* Instructions DNS Dynamiques & Explicites */}
+              <div className="p-4 rounded-2xl bg-slate-950/80 border border-white/5 space-y-3 text-xs">
                 <span className="font-bold text-amber-300 uppercase text-[10px] tracking-wider block">
-                  ⚙️ Configuration DNS requise chez votre hébergeur (OVH, GoDaddy, Namecheap...) :
+                  ⚙️ Enregistrement DNS à copier chez votre hébergeur (OVH, GoDaddy, LWS, Namecheap...) :
                 </span>
-                <div className="grid grid-cols-3 gap-2 p-2.5 rounded-xl bg-slate-900 border border-white/5 font-mono text-[11px]">
+
+                <div className="grid grid-cols-3 gap-2 p-3 rounded-xl bg-slate-900 border border-white/5 font-mono text-[11px]">
                   <div>
-                    <span className="text-slate-400 block text-[9px]">TYPE</span>
+                    <span className="text-slate-400 block text-[9px] font-sans">TYPE</span>
                     <span className="text-white font-bold">CNAME</span>
                   </div>
                   <div>
-                    <span className="text-slate-400 block text-[9px]">NOM / HÔTE</span>
-                    <span className="text-white font-bold">boutique (ou @)</span>
+                    <span className="text-slate-400 block text-[9px] font-sans">NOM / HÔTE</span>
+                    <span className="text-emerald-400 font-bold bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20 inline-block font-mono">
+                      {computedDnsHost}
+                    </span>
                   </div>
                   <div>
-                    <span className="text-slate-400 block text-[9px]">CIBLE / VALEUR</span>
-                    <span className="text-indigo-400 font-bold">cname.vercel-dns.com</span>
+                    <span className="text-slate-400 block text-[9px] font-sans">VALEUR / CIBLE</span>
+                    <span className="text-indigo-400 font-bold break-all font-mono">cname.vercel-dns.com</span>
                   </div>
+                </div>
+
+                <div className="p-2.5 rounded-xl bg-slate-900/70 border border-white/5 text-[11px] text-slate-300 space-y-1.5">
+                  <p className="font-bold text-white flex items-center gap-1.5">
+                    <span>👉</span>
+                    <span>Comment remplir le champ "Hôte" sans vous tromper :</span>
+                  </p>
+                  <ul className="list-disc pl-4 space-y-1 text-slate-300 text-[10px] leading-relaxed">
+                    <li>
+                      <strong className="text-amber-200">Pour un sous-domaine (Conseillé) :</strong> Si vous voulez <code className="text-indigo-300 font-mono font-bold">promo.maboutique.com</code>, mettez uniquement <strong className="text-emerald-300 font-mono font-bold">promo</strong> dans la case Hôte.
+                    </li>
+                    <li>
+                      <strong className="text-amber-200">Pour votre domaine principal :</strong> Si vous voulez <code className="text-indigo-300 font-mono font-bold">maboutique.com</code> directement, mettez <strong className="text-emerald-300 font-mono font-bold">@</strong> (ou laissez vide selon OVH/Namecheap).
+                    </li>
+                  </ul>
                 </div>
               </div>
 

@@ -9,10 +9,12 @@ function getAdminTokenSecret(): string {
   );
 }
 
-export function generateAdminSessionToken(email: string): string {
+export function generateAdminSessionToken(email: string, userId?: string): string {
   const payload = {
     email,
+    userId: userId || "usr-admin-rodrigue-master",
     role: "super_admin",
+    is_admin: true,
     exp: Date.now() + 1000 * 60 * 60 * 24 * 7, // 7 jours
   };
   const str = JSON.stringify(payload);
@@ -37,8 +39,8 @@ export function verifyAdminSessionToken(token: string): boolean {
 
     if (signature !== expectedSig) return false;
     const payload = JSON.parse(payloadStr);
+    if (payload.role !== "super_admin" && !payload.is_admin) return false;
     if (payload.email !== "rodrigueapothey@gmail.com") return false;
-    if (payload.role !== "super_admin") return false;
     if (payload.exp < Date.now()) return false;
     return true;
   } catch {
@@ -54,52 +56,115 @@ export async function POST(req: NextRequest) {
     const trimmedEmail = (email || "").trim().toLowerCase();
     const trimmedPassword = (password || "").trim();
 
-    // 1. VÉRIFICATION STRICTE DE L'EMAIL ET DU MOT DE PASSE SUPER ADMIN
-    if (
-      trimmedEmail !== "rodrigueapothey@gmail.com" ||
-      trimmedPassword !== "Mes2meilleur@"
-    ) {
+    if (!trimmedEmail || !trimmedPassword) {
       return NextResponse.json(
-        {
-          error:
-            "Accès refusé : Identifiants super admin non valides ou permissions insuffisantes.",
-        },
-        { status: 401 }
+        { error: "Email et mot de passe requis." },
+        { status: 400 }
       );
     }
 
-    // 2. INFORMATION UTILISATEUR & TENTATIVE DE CONNEXION SUPABASE
+    const adminSupabase = createAdminClient();
+
+    let authenticatedUserId: string | null = null;
+    let isAdminConfirmed = false;
     let userMetadata: any = {
       id: "usr-admin-rodrigue-master",
       email: trimmedEmail,
       name: "Rodrigue Apothey",
       role: "super_admin",
+      is_admin: true,
     };
 
+    // 1. TENTATIVE D'AUTHENTIFICATION VIA SUPABASE AUTH
     try {
-      const adminSupabase = createAdminClient();
-      const { data: usersData } = await adminSupabase.auth.admin.listUsers({ perPage: 100 });
-      const foundUser = usersData?.users?.find(
-        (u) => u.email?.toLowerCase() === "rodrigueapothey@gmail.com"
-      );
-      if (foundUser) {
-        userMetadata = {
-          id: foundUser.id,
-          email: foundUser.email,
-          name: foundUser.user_metadata?.full_name || foundUser.user_metadata?.name || "Rodrigue Apothey",
-          role: "super_admin",
-        };
+      const { data: authData } = await adminSupabase.auth.signInWithPassword({
+        email: trimmedEmail,
+        password: trimmedPassword,
+      });
+      if (authData?.user) {
+        authenticatedUserId = authData.user.id;
+        userMetadata.id = authData.user.id;
+        userMetadata.name =
+          authData.user.user_metadata?.full_name ||
+          authData.user.user_metadata?.name ||
+          "Rodrigue Apothey";
       }
-    } catch (supabaseErr: any) {
-      console.warn("Supabase auth check bypassed for master credentials:", supabaseErr?.message);
+    } catch (authErr) {
+      console.warn("Supabase auth direct sign-in fallback:", authErr);
     }
 
-    // 3. GÉNÉRATION DU JETON DE SESSION SÉCURISÉ
-    const token = generateAdminSessionToken(trimmedEmail);
+    // 2. VÉRIFICATION DES IDENTIFIANTS DU SUPER ADMINISTRATEUR FONDATION
+    if (!authenticatedUserId) {
+      if (
+        trimmedEmail === "rodrigueapothey@gmail.com" &&
+        trimmedPassword === "Mes2meilleur@"
+      ) {
+        authenticatedUserId = "usr-admin-rodrigue-master";
+        isAdminConfirmed = true;
+      } else {
+        return NextResponse.json(
+          {
+            error:
+              "Accès refusé : Identifiants super admin non valides ou compte introuvable.",
+          },
+          { status: 401 }
+        );
+      }
+    }
+
+    // 3. VÉRIFICATION STRICTE DU FLAG IS_ADMIN EN BASE DE DONNÉES (PROFILES)
+    try {
+      if (trimmedEmail === "rodrigueapothey@gmail.com") {
+        // Enregistre et garantit la présence de is_admin: true dans profiles
+        await adminSupabase
+          .from("profiles")
+          .upsert(
+            {
+              id: authenticatedUserId,
+              email: trimmedEmail,
+              is_admin: true,
+              role: "super_admin",
+              full_name: userMetadata.name,
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: "id" }
+          );
+        isAdminConfirmed = true;
+      } else if (authenticatedUserId) {
+        // Pour tout autre compte : lecture stricte en base de données
+        const { data: profile } = await adminSupabase
+          .from("profiles")
+          .select("is_admin, role")
+          .eq("id", authenticatedUserId)
+          .maybeSingle();
+
+        if (profile && (profile.is_admin === true || profile.role === "super_admin")) {
+          isAdminConfirmed = true;
+        }
+      }
+    } catch (dbErr) {
+      console.warn("Erreur vérification profiles is_admin:", dbErr);
+      if (trimmedEmail === "rodrigueapothey@gmail.com") {
+        isAdminConfirmed = true;
+      }
+    }
+
+    if (!isAdminConfirmed) {
+      return NextResponse.json(
+        {
+          error:
+            "Accès refusé : Ce compte utilisateur ne dispose pas de la valeur 'is_admin: true' en base de données.",
+        },
+        { status: 403 }
+      );
+    }
+
+    // 4. GÉNÉRATION DU JETON DE SESSION SÉCURISÉ
+    const token = generateAdminSessionToken(trimmedEmail, authenticatedUserId);
 
     const response = NextResponse.json({
       success: true,
-      message: "Authentification Super Admin réussie.",
+      message: "Authentification Super Admin réussie (is_admin vérifié).",
       user: userMetadata,
       token,
     });
@@ -138,6 +203,7 @@ export async function GET(req: NextRequest) {
         email: "rodrigueapothey@gmail.com",
         name: "Rodrigue Apothey",
         role: "super_admin",
+        is_admin: true,
       },
     });
   }

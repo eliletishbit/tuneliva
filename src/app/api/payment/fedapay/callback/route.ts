@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyFedaPayTransaction } from "@/lib/fedapay/client";
 import { updateOrderStatus, getOrderById } from "@/lib/storage/funnels";
 import { sendOrderNotificationEmail } from "@/lib/notifications/email";
+import { triggerInstantMerchantPayout } from "@/lib/fedapay/payouts";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -34,6 +35,12 @@ export async function GET(req: NextRequest) {
       const order = await getOrderById(orderId);
 
       if (order) {
+        // Déclenchement automatique du reversement instantané (Méthode B vers MoMo ou validation Méthode A)
+        try {
+          await triggerInstantMerchantPayout(order.id);
+        } catch (payoutErr) {
+          console.warn("Erreur reversement payout:", payoutErr);
+        }
         // Envoi de la notification email Resend
         await sendOrderNotificationEmail({
           customerName: order.customerName,

@@ -112,6 +112,31 @@ export function PublicFunnelClient({
     }
   }, []);
 
+    // Auto-fermeture progressive des bannières de notification après redirection
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (showSuccessBanner) {
+      timer = setTimeout(() => {
+        setShowSuccessBanner(false);
+      }, 8500);
+    }
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [showSuccessBanner]);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (showErrorBanner) {
+      timer = setTimeout(() => {
+        setShowErrorBanner(false);
+      }, 10000);
+    }
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [showErrorBanner]);
+
   const handleOrderSuccess = async (orderDetails: any) => {
     try {
       await fetch("/api/orders", {
@@ -258,6 +283,9 @@ export function PublicFunnelClient({
                     ? "Votre opérateur (MTN, Moov, Wave, Carte) n'a pas validé le prélèvement. Votre compte n'a pas été débité."
                     : "Votre commande est enregistrée en attente. Aucun montant n'a été prélevé."}
                   {orderId && <span className="font-mono text-[11px] ml-1 opacity-80">(Réf: #{orderId})</span>}
+                  <span className="text-[10px] text-rose-400/80 font-mono block pt-0.5">
+                    ⏱️ Notification temporaire (se referme automatiquement)
+                  </span>
                 </p>
               </div>
             </div>
@@ -320,6 +348,9 @@ export function PublicFunnelClient({
                 </h4>
                 <p className="text-xs text-emerald-300/90 leading-relaxed">
                   Votre transaction a été approuvée. Notre équipe prépare votre envoi et vous contacte sur votre numéro.
+                  <span className="text-[10px] text-emerald-400/80 font-mono block pt-0.5">
+                    ⏱️ Notification confirmée (se referme automatiquement dans quelques secondes)
+                  </span>
                   {orderId && (
                     <span className="font-mono text-[11px] ml-1.5 font-bold bg-emerald-500/20 px-2 py-0.5 rounded-md text-emerald-300">
                       Réf: #{orderId}

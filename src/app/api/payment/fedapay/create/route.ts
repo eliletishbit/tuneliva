@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createFedaPayTransaction } from "@/lib/fedapay/client";
-import { saveOrder, getFunnelBySlug } from "@/lib/storage/funnels";
+import { saveOrder, getFunnelBySlug, getAllFunnels } from "@/lib/storage/funnels";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { calculateCommissionSplit } from "@/lib/fedapay/subaccounts";
+import { calculateCommissionSplit, createFedaPaySubAccount } from "@/lib/fedapay/subaccounts";
 
 export async function POST(req: NextRequest) {
   try {
@@ -30,10 +30,11 @@ export async function POST(req: NextRequest) {
       .toString(36)
       .substring(2, 6)}`;
 
-    // 1. Récupération du créateur du tunnel et de ses paramètres de commission / sous-compte
+    // 1. Récupération du créateur du tunnel et routage intelligent (Méthode A vs Méthode B)
     let userId: string | undefined = undefined;
     let plan: "free" | "pro" = "free";
     let fedapaySubAccountId: string | undefined = undefined;
+    let userFunnelsCount = 0;
 
     if (funnelSlug) {
       try {
@@ -43,13 +44,38 @@ export async function POST(req: NextRequest) {
           const admin = createAdminClient();
           const { data: profile } = await admin
             .from("profiles")
-            .select("plan, fedapay_sub_account_id")
+            .select("plan, fedapay_sub_account_id, payout_method, payout_momo_phone, full_name, business_name")
             .eq("id", userId)
             .maybeSingle();
+
+          const allUserFunnels = await getAllFunnels(userId);
+          userFunnelsCount = allUserFunnels.length;
 
           if (profile) {
             plan = (profile.plan as "free" | "pro") || "free";
             fedapaySubAccountId = profile.fedapay_sub_account_id || undefined;
+
+            // MÉTHODE A (Sous-compte FedaPay & Split natif) :
+            // Si le vendeur a dépassé son quota gratuit (3 tunnels) ou est sur le plan Pro,
+            // on s'assure qu'un sous-compte FedaPay officiel lui est provisionné.
+            const isQuotaExceededOrPro = plan === "pro" || userFunnelsCount > 3;
+            if (isQuotaExceededOrPro && !fedapaySubAccountId && profile.payout_momo_phone) {
+              try {
+                const subAcc = await createFedaPaySubAccount({
+                  name: profile.business_name || profile.full_name || "Marchand Tuneliva",
+                  phone: profile.payout_momo_phone,
+                });
+                if (subAcc?.id) {
+                  fedapaySubAccountId = subAcc.id;
+                  await admin
+                    .from("profiles")
+                    .update({ fedapay_sub_account_id: subAcc.id })
+                    .eq("id", userId);
+                }
+              } catch (subErr) {
+                console.warn("Sous-compte FedaPay auto-provisioning:", subErr);
+              }
+            }
           }
         }
       } catch (err) {
@@ -61,6 +87,7 @@ export async function POST(req: NextRequest) {
     const split = calculateCommissionSplit(Number(amount), plan);
 
     // 3. Enregistrer la commande en statut "en attente de paiement" avec transparence des commissions
+    const isMethodA = Boolean(fedapaySubAccountId && !fedapaySubAccountId.startsWith("sub_fed_"));
     await saveOrder({
       id: orderId,
       funnelSlug: funnelSlug || "offre-speciale",
@@ -78,7 +105,9 @@ export async function POST(req: NextRequest) {
       platformFee: split.platformFee,
       merchantNetAmount: split.merchantNetAmount,
       commissionRate: split.commissionRate,
-      fedapaySubAccountId,
+      fedapaySubAccountId: isMethodA ? fedapaySubAccountId : undefined,
+      payoutStatus: "pending",
+      payoutMethod: isMethodA ? "sub_account" : "momo",
     });
 
     // 4. Générer la transaction FedaPay (avec reversement automatique au sous-compte si lié)
@@ -99,7 +128,7 @@ export async function POST(req: NextRequest) {
       customerPhone,
       customerEmail,
       callbackUrl,
-      subAccountId: fedapaySubAccountId,
+      subAccountId: isMethodA ? fedapaySubAccountId : undefined,
       merchantNetAmount: split.merchantNetAmount,
       customMetadata: {
         orderId,

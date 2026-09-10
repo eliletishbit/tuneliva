@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { updateOrderStatus, getOrderById } from "@/lib/storage/funnels";
 import { sendOrderNotificationEmail } from "@/lib/notifications/email";
+import { triggerInstantMerchantPayout } from "@/lib/fedapay/payouts";
 
 export async function POST(req: NextRequest) {
   try {
@@ -20,6 +21,11 @@ export async function POST(req: NextRequest) {
         const order = await getOrderById(orderId);
 
         if (order) {
+          try {
+            await triggerInstantMerchantPayout(order.id);
+          } catch (payoutErr) {
+            console.warn("Webhook payout notice:", payoutErr);
+          }
           await sendOrderNotificationEmail({
             customerName: order.customerName,
             customerPhone: order.customerPhone,
