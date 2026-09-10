@@ -264,8 +264,249 @@ export const SENIOR_DESIGN_ARCHETYPES: SeniorDesignArchetype[] = [
     },
     headerVariant: "split_banner",
     footerVariant: "compact_reassurance",
-  }
+  },
+  // 8. EARLY EDUCATION & CREATIVE LEARNING (Inspiré Image 1 : Crème pastel, émeraude, lilas & jaune solaire)
+  {
+    id: "early_education_playful",
+    name: "Early Education & Creative Learning",
+    theme: {
+      primaryColor: "#10B981",
+      accentColor: "#8B5CF6",
+      pageBackground: "#FAF9F6",
+      backgroundGradient: "radial-gradient(ellipse 80% 50% at 50% -10%, rgba(16, 185, 129, 0.12) 0%, transparent 65%), radial-gradient(circle at 90% 25%, rgba(139, 92, 246, 0.08) 0%, transparent 50%), #FAF9F6",
+      glowColor: "#10B981",
+      ambientGlow: true,
+      cardStyle: "elevated",
+      backgroundStyle: "solid",
+      cardBackground: "#FFFFFF",
+      cardBorderColor: "rgba(16, 185, 129, 0.15)",
+      textColor: "#0F2A4A",
+      textMutedColor: "#475569",
+      fontFamily: "Plus Jakarta Sans",
+      isDarkTheme: false,
+      bannerUrgencyText: "🎉 INSCRIPTIONS OUVERTES : ATELIERS & ACTIVITÉS INTERACTIVES 2026",
+      countdownMinutes: 180,
+      pageLayoutWidth: "fluid",
+    },
+    headerVariant: "floating_pill",
+    footerVariant: "modern_3cols",
+  },
+
+  // 9. MODERN AI SAAS & SUNSET GLOW (Inspiré Image 2 : Ivoire chaud, corail fiery, cyan & orbes 3D)
+  {
+    id: "modern_saas_sunset",
+    name: "Modern AI SaaS & Sunset Glow",
+    theme: {
+      primaryColor: "#F95738",
+      accentColor: "#06B6D4",
+      pageBackground: "#FAFAF9",
+      backgroundGradient: "radial-gradient(ellipse 80% 50% at 50% -10%, rgba(249, 87, 56, 0.14) 0%, transparent 65%), radial-gradient(circle at 85% 15%, rgba(6, 182, 212, 0.10) 0%, transparent 55%), #FAFAF9",
+      glowColor: "#F95738",
+      ambientGlow: true,
+      cardStyle: "elevated",
+      backgroundStyle: "mesh_gradient",
+      cardBackground: "#FFFFFF",
+      cardBorderColor: "rgba(249, 87, 56, 0.15)",
+      textColor: "#0F172A",
+      textMutedColor: "#64748B",
+      fontFamily: "Plus Jakarta Sans",
+      isDarkTheme: false,
+      bannerUrgencyText: "⚡ ESSAI GRATUIT SANS ENGAGEMENT : DÉPLOYEZ EN MOINS DE 60 SECONDES",
+      countdownMinutes: 90,
+      pageLayoutWidth: "fluid",
+    },
+    headerVariant: "floating_pill",
+    footerVariant: "modern_3cols",
+  },
+
+  // 10. ARTISAN EXPRESS & DÉPANNAGE PRO (Intervention urgente, réassurance forte)
+  {
+    id: "artisan_emergency_amber",
+    name: "Artisan Express & Dépannage Pro",
+    theme: {
+      primaryColor: "#EA580C",
+      accentColor: "#0284C7",
+      pageBackground: "#070B14",
+      backgroundGradient: "radial-gradient(ellipse 80% 50% at 50% -10%, rgba(234, 88, 12, 0.20) 0%, transparent 65%), #070B14",
+      glowColor: "#EA580C",
+      ambientGlow: true,
+      cardStyle: "glowing_border",
+      backgroundStyle: "mesh_gradient",
+      cardBackground: "#0F172A",
+      cardBorderColor: "rgba(234, 88, 12, 0.25)",
+      textColor: "#FFFFFF",
+      textMutedColor: "#94A3B8",
+      fontFamily: "Inter",
+      isDarkTheme: true,
+      bannerUrgencyText: "🚨 INTERVENTION SOUS 15 MINUTES : APPEL DIRECT & WHATSAPP 24/7",
+      countdownMinutes: 45,
+      pageLayoutWidth: "fluid",
+    },
+    headerVariant: "split_banner",
+    footerVariant: "compact_reassurance",
+  },
+
+  // 11. SOLIDARITÉ & CROWDFUNDING D'IMPACT (Causes, ONG, levée de fonds)
+  {
+    id: "crowdfund_solidarity_hope",
+    name: "Solidarité & Crowdfunding d'Impact",
+    theme: {
+      primaryColor: "#16A34A",
+      accentColor: "#EA580C",
+      pageBackground: "#F8FAF9",
+      backgroundGradient: "radial-gradient(ellipse 80% 50% at 50% -10%, rgba(22, 163, 74, 0.12) 0%, transparent 65%), #F8FAF9",
+      glowColor: "#16A34A",
+      ambientGlow: true,
+      cardStyle: "elevated",
+      backgroundStyle: "solid",
+      cardBackground: "#FFFFFF",
+      cardBorderColor: "rgba(22, 163, 74, 0.15)",
+      textColor: "#064E3B",
+      textMutedColor: "#4B5563",
+      fontFamily: "Plus Jakarta Sans",
+      isDarkTheme: false,
+      bannerUrgencyText: "💚 OBJECTIF ATTEINT À 74% : SOUTENEZ NOTRE MISSION COMMUNAUTAIRE",
+      countdownMinutes: 240,
+      pageLayoutWidth: "fluid",
+    },
+    headerVariant: "centered_minimal",
+    footerVariant: "modern_3cols",
+  },
+
+  // 12. CABINET & PRISE DE RENDEZ-VOUS ZEN (Consultants, salons, santé)
+  {
+    id: "reservation_wellness_clinic",
+    name: "Cabinet & Prise de Rendez-vous Zen",
+    theme: {
+      primaryColor: "#0D9488",
+      accentColor: "#38BDF8",
+      pageBackground: "#F8FAFC",
+      backgroundGradient: "radial-gradient(ellipse 80% 50% at 50% -10%, rgba(13, 148, 136, 0.10) 0%, transparent 65%), #F8FAFC",
+      glowColor: "#0D9488",
+      ambientGlow: true,
+      cardStyle: "glass",
+      backgroundStyle: "solid",
+      cardBackground: "#FFFFFF",
+      cardBorderColor: "rgba(13, 148, 136, 0.12)",
+      textColor: "#134E4A",
+      textMutedColor: "#64748B",
+      fontFamily: "Inter",
+      isDarkTheme: false,
+      bannerUrgencyText: "🌿 CRÉNEAUX DISPONIBLES CETTE SEMAINE : RÉSERVATION SANS AVANCE",
+      countdownMinutes: 120,
+      pageLayoutWidth: "fluid",
+    },
+    headerVariant: "centered_minimal",
+    footerVariant: "modern_3cols",
+  },
+
+  // 13. SITE VITRINE & AGENCE PRESTIGE (Services corporate, architectes, SaaS)
+  {
+    id: "corporate_elite_vitrine",
+    name: "Site Vitrine & Agence Prestige",
+    theme: {
+      primaryColor: "#2563EB",
+      accentColor: "#F59E0B",
+      pageBackground: "#0B0F19",
+      backgroundGradient: "radial-gradient(ellipse 80% 50% at 50% -10%, rgba(37, 99, 235, 0.18) 0%, transparent 70%), #0B0F19",
+      glowColor: "#2563EB",
+      ambientGlow: true,
+      cardStyle: "glass",
+      backgroundStyle: "mesh_gradient",
+      cardBackground: "#111827",
+      cardBorderColor: "rgba(37, 99, 235, 0.22)",
+      textColor: "#FFFFFF",
+      textMutedColor: "#94A3B8",
+      fontFamily: "Plus Jakarta Sans",
+      isDarkTheme: true,
+      bannerUrgencyText: "✨ CONCEPTION SUR-MESURE & ACCOMPAGNEMENT STRATÉGIQUE HAUT DE GAMME",
+      countdownMinutes: 150,
+      pageLayoutWidth: "fluid",
+    },
+    headerVariant: "floating_pill",
+    footerVariant: "modern_3cols",
+  },
+
 ];
+
+
+export function resolveBespokeArchetype(prompt: string, aiDesign?: any): SeniorDesignArchetype {
+  // 1. Si l'IA a généré un style sur-mesure explicite dans sa réponse Groq
+  if (aiDesign && aiDesign.primaryColor) {
+    const isDark = aiDesign.isDarkTheme !== false;
+    const bg = aiDesign.pageBackground || (isDark ? "#070B19" : "#FAFAF9");
+    const primary = aiDesign.primaryColor;
+    const accent = aiDesign.accentColor || (isDark ? "#38BDF8" : "#F59E0B");
+
+    return {
+      id: `ai_bespoke_${Date.now()}`,
+      name: "Direction Artistique IA Sur-Mesure",
+      theme: {
+        primaryColor: primary,
+        accentColor: accent,
+        pageBackground: bg,
+        backgroundGradient: `radial-gradient(ellipse 80% 50% at 50% -10%, ${primary}25 0%, transparent 65%), ${bg}`,
+        glowColor: primary,
+        ambientGlow: true,
+        cardStyle: aiDesign.cardStyle || (isDark ? "glass" : "elevated"),
+        backgroundStyle: isDark ? "mesh_gradient" : "solid",
+        cardBackground: isDark ? "#0E1528" : "#FFFFFF",
+        cardBorderColor: `${primary}30`,
+        textColor: isDark ? "#FFFFFF" : "#0F172A",
+        textMutedColor: isDark ? "#94A3B8" : "#64748B",
+        fontFamily: aiDesign.fontFamily || "Plus Jakarta Sans",
+        isDarkTheme: isDark,
+        bannerUrgencyText: "✨ ÉDITION OFFICIELLE 2026 : SATISFACTION 100% GARANTIE",
+        countdownMinutes: 120,
+        pageLayoutWidth: "fluid",
+      },
+      headerVariant: aiDesign.headerVariant || "floating_pill",
+      footerVariant: aiDesign.footerVariant || "modern_3cols",
+    };
+  }
+
+  // 2. Analyse sémantique ciblée des secteurs d'activité
+  const p = prompt.toLowerCase();
+
+  // Éducation, Cours pour enfants, Ateliers, Formation (Inspiré Image 1)
+  if (p.includes("enfant") || p.includes("education") || p.includes("ecole") || p.includes("atelier") || p.includes("maternelle") || p.includes("activite") || p.includes("apprenant") || p.includes("eleve") || p.includes("cours")) {
+    return SENIOR_DESIGN_ARCHETYPES.find((a) => a.id === "early_education_playful") || SENIOR_DESIGN_ARCHETYPES[0];
+  }
+
+  // SaaS, Marketing, Intelligence Artificielle, Tech, Automatisation (Inspiré Image 2)
+  if (p.includes("saas") || p.includes("ia") || p.includes("marketing") || p.includes("automatisation") || p.includes("logiciel") || p.includes("crm") || p.includes("dashboard") || p.includes("tech") || p.includes("startup")) {
+    return SENIOR_DESIGN_ARCHETYPES.find((a) => a.id === "modern_saas_sunset") || SENIOR_DESIGN_ARCHETYPES[0];
+  }
+
+  // Artisans, Dépannage urgent, Serrurerie, Plomberie, Climatisation
+  if (p.includes("serrurier") || p.includes("artisan") || p.includes("plombier") || p.includes("depannage") || p.includes("urgence") || p.includes("reparation") || p.includes("electricien") || p.includes("garage")) {
+    return SENIOR_DESIGN_ARCHETYPES.find((a) => a.id === "artisan_emergency_amber") || SENIOR_DESIGN_ARCHETYPES[0];
+  }
+
+  // Crowdfunding, Don, Association, Humanitaire, Levée de fonds
+  if (p.includes("don") || p.includes("solidarite") || p.includes("ong") || p.includes("association") || p.includes("crowdfund") || p.includes("humanitaire") || p.includes("levee de fond") || p.includes("projet communautaire")) {
+    return SENIOR_DESIGN_ARCHETYPES.find((a) => a.id === "crowdfund_solidarity_hope") || SENIOR_DESIGN_ARCHETYPES[0];
+  }
+
+  // Réservation, Rendez-vous, Salon, Coiffure, Clinique, Soin
+  if (p.includes("rendez-vous") || p.includes("reservation") || p.includes("salon") || p.includes("coiffure") || p.includes("clinique") || p.includes("massage") || p.includes("therapie") || p.includes("dentiste")) {
+    return SENIOR_DESIGN_ARCHETYPES.find((a) => a.id === "reservation_wellness_clinic") || SENIOR_DESIGN_ARCHETYPES[0];
+  }
+
+  // Site vitrine, Agence, Architecture, Conseil
+  if (p.includes("vitrine") || p.includes("agence") || p.includes("consultant") || p.includes("conseil") || p.includes("architecte") || p.includes("portfolio")) {
+    return SENIOR_DESIGN_ARCHETYPES.find((a) => a.id === "corporate_elite_vitrine") || SENIOR_DESIGN_ARCHETYPES[0];
+  }
+
+  // Fallback : Sélection équilibrée avec hash
+  let hash = 0;
+  for (let i = 0; i < prompt.length; i++) {
+    hash = (hash << 5) - hash + prompt.charCodeAt(i);
+    hash |= 0;
+  }
+  const index = Math.abs(hash) % SENIOR_DESIGN_ARCHETYPES.length;
+  return SENIOR_DESIGN_ARCHETYPES[index];
+}
 
 export function pickSurprisingSeniorArchetype(prompt: string): SeniorDesignArchetype {
   // Calcul d'un hash pseudo-aléatoire mais reproductible basé sur le prompt et l'heure actuelle
@@ -429,26 +670,56 @@ export async function generateSmartFunnel(
     const groqModels = ["openai/gpt-oss-120b", "qwen/qwen3.8-27b", "openai/gpt-oss-20b"];
     for (const model of groqModels) {
       try {
-        const systemPrompt = `Tu es un directeur marketing élite et copywriter d'exception pour le e-commerce en Afrique francophone.
-À partir du prompt de l'utilisateur, tu dois rédiger un texte de vente ultra-accrocheur et crédible.
-RÉPONDS STRICTEMENT AVEC UN OBJET JSON (aucun texte autour) avec les clés :
+        const systemPrompt = `Tu es un Directeur Artistique UI/UX Senior et Copywriter d'Élite international.
+Tu conçois des pages web et tunnels à très haute conversion, visuellement époustouflants et sur-mesure pour TOUS les usages (écoles/enfants, formations, SaaS moderne, artisans d'urgence, grossistes, e-commerce COD, réservations, événements et levée de fonds).
+
+À partir de la demande de l'utilisateur, génère à la fois un COPYWRITING percutant et une DIRECTION ARTISTIQUE visuelle inédite et sur-mesure.
+
+RÉPONDS STRICTEMENT AVEC UN OBJET JSON (aucun texte autour) contenant les clés :
 {
-  "productName": "Nom commercial percutant du produit",
-  "headline": "Titre Hero ultra vendeur (évite le prompt brut, formule une promesse forte)",
-  "subtitle": "Sous-titre persuasif détaillant le bénéfice majeur",
-  "badgeText": "⭐ ARRIVAGE OFFICIEL 2026 – Stock limité",
-  "trustPoints": ["Bénéfice concret 1", "Bénéfice concret 2", "Garantie ou livraison rapide"],
+  "productName": "Nom commercial accrocheur",
+  "headline": "Titre Hero ultra vendeur avec promesse majeure",
+  "subtitle": "Sous-titre persuasif détaillant le bénéfice clé",
+  "badgeText": "Badge court percutant (ex: FAST. INTELLIGENT. FUTURE-READY ou APPRENTISSAGE LUDIQUE 2026 ou ARRIVAGE OFFICIEL)",
+  "industry": "education" | "saas" | "artisan" | "ecommerce" | "event" | "crowdfund" | "booking" | "vitrine",
+  "design": {
+    "primaryColor": "#hex (ex: #10B981 émeraude, #F95738 corail, #EA580C orange artisan, #2563EB cobalt)",
+    "accentColor": "#hex contrasté harmonieux",
+    "pageBackground": "#hex (ex: #FAF9F6 crème doux, #FAFAF9 ivoire moderne, #070B19 nuit bleue, #040711 noir obsidienne)",
+    "isDarkTheme": false,
+    "cardStyle": "elevated" | "glass" | "glowing_border",
+    "fontFamily": "Plus Jakarta Sans" | "Inter" | "Poppins" | "Geist",
+    "headerVariant": "floating_pill" | "centered_minimal" | "split_banner",
+    "footerVariant": "modern_3cols" | "centered_luxury" | "compact_reassurance"
+  },
+  "trustPoints": ["Bénéfice concret 1", "Bénéfice concret 2", "Garantie ou atout majeur"],
+  "stats": [
+    { "value": "50+", "label": "Activités / Indicateur 1" },
+    { "value": "2M", "label": "Clients / Utilisateurs" },
+    { "value": "98%", "label": "Satisfaction client" }
+  ],
+  "bentoCards": [
+    { "title": "Titre Bento 1", "description": "Description concise", "tag": "Point Fort", "colSpan": "col-span-1" },
+    { "title": "Titre Bento 2 (Large)", "description": "Bénéfice développé avec impact", "tag": "Performance", "colSpan": "col-span-2", "metric": "+35%" },
+    { "title": "Titre Bento 3", "description": "Rassurance ou fonctionnalité", "tag": "Sécurité", "colSpan": "col-span-1" },
+    { "title": "Titre Bento 4 (Large)", "description": "Détail de l'offre ou méthodologie", "tag": "Excellence", "colSpan": "col-span-2", "metric": "100%" }
+  ],
+  "steps": [
+    { "stepNumber": 1, "title": "Étape 1", "description": "Explication claire" },
+    { "stepNumber": 2, "title": "Étape 2", "description": "Action concrète" },
+    { "stepNumber": 3, "title": "Étape 3", "description": "Résultat obtenu" }
+  ],
   "packs": [
     { "name": "Pack Découverte (1 Exemplaire)", "multiplier": 1, "badge": "Économique", "description": "Idéal pour essayer la qualité" },
     { "name": "Pack Duo Privilège (2 Exemplaires)", "multiplier": 1.7, "badge": "Meilleur Choix", "description": "Le choix préféré de nos clients" }
   ],
   "faq": [
-    { "question": "Comment se déroule la livraison ?", "answer": "Livraison en 24h avec contrôle du colis avant tout paiement." },
-    { "question": "Le produit est-il garanti ?", "answer": "Oui, 100% authentique avec garantie satisfait ou remboursé 30 jours." }
+    { "question": "Question fréquente 1 ?", "answer": "Réponse transparente et rassurante." },
+    { "question": "Question fréquente 2 ?", "answer": "Réponse claire et directe." }
   ],
   "reviews": [
-    { "author": "Amina K.", "city": "Cotonou", "comment": "Produit exceptionnel, livraison rapide et soignée !" },
-    { "author": "Koffi M.", "city": "Lomé", "comment": "Conforme à la description, très satisfait de mon achat." }
+    { "author": "Amina K.", "city": "Cotonou", "comment": "Produit/service remarquable, conforme à mes attentes !" },
+    { "author": "Koffi M.", "city": "Lomé", "comment": "Excellente expérience, je recommande chaudement !" }
   ]
 }`;
 
@@ -520,7 +791,7 @@ function buildEliteDesignFunnel(
   aiData?: any
 ): FunnelPageData {
   const p = prompt.trim();
-  const seniorArchetype = pickSurprisingSeniorArchetype(p);
+  const seniorArchetype = resolveBespokeArchetype(p, aiData?.design);
   const isCustomDesign = !p.toLowerCase().includes("momoopti") &&
                          !p.toLowerCase().includes("v0app") &&
                          !p.toLowerCase().includes("creator hub") &&
@@ -1750,6 +2021,29 @@ function buildEliteDesignFunnel(
     ];
   } else {
     // SENIOR UI/UX DYNAMIC ARCHITECTURAL VARIATIONS (Surprise, diversité et équilibre visuel)
+
+    // Si l'IA a généré des cartes Bento personnalisées, les utiliser en priorité
+    const customBentoCards = Array.isArray(aiData?.bentoCards) && aiData.bentoCards.length > 0
+      ? aiData.bentoCards.map((bc: any, idx: number) => ({
+          id: `bc-${idx + 1}`,
+          colSpan: bc.colSpan === "col-span-2" ? "col-span-2" : "col-span-1",
+          tag: bc.tag || "AVANTAGE",
+          metric: bc.metric || (idx === 0 ? "100%" : undefined),
+          title: bc.title || `Atout ${idx + 1}`,
+          description: bc.description || "Conçu pour vous offrir le maximum d'efficacité et de satisfaction.",
+          imageUrl: idx === 0 ? stockImage : undefined,
+        }))
+      : null;
+
+    // Si l'IA a généré des statistiques clés, les intégrer
+    const customStatsItems = Array.isArray(aiData?.stats) && aiData.stats.length > 0
+      ? aiData.stats.map((st: any, idx: number) => ({
+          id: `st-${idx + 1}`,
+          value: st.value || "100%",
+          label: st.label || "Satisfaction garantie",
+        }))
+      : null;
+
     let layoutHash = 0;
     for (let i = 0; i < p.length; i++) {
       layoutHash = (layoutHash << 5) - layoutHash + p.charCodeAt(i);
@@ -1778,7 +2072,7 @@ function buildEliteDesignFunnel(
           badgeText: "💎 CONÇU POUR L'EXCELLENCE",
           title: `Ce qui rend ${productName} véritablement unique`,
           subtitle: "Chaque détail a été pensé pour vous apporter une satisfaction absolue :",
-          cards: [
+          cards: customBentoCards || [
             {
               id: "bc-1",
               colSpan: "col-span-2",

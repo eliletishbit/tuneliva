@@ -4,6 +4,7 @@ import {
   getFunnelBySlug,
   saveFunnel,
   deleteFunnel,
+  getUserFunnelQuota,
 } from "@/lib/storage/funnels";
 import { createClient } from "@/lib/supabase/server";
 
@@ -58,6 +59,20 @@ export async function POST(req: NextRequest) {
       userId = user?.id;
     } catch {}
 
+        if (userId && body.slug) {
+      const quota = await getUserFunnelQuota(userId);
+      const existing = await getFunnelBySlug(body.slug);
+      if (!existing && !quota.canCreateNew) {
+        return NextResponse.json(
+          {
+            error: "Quota des 3 tunnels offerts atteint. Passez au plan Pro pour créer des tunnels illimités !",
+            quotaExceeded: true,
+            lifetimeCreated: quota.lifetimeCreated,
+          },
+          { status: 403 }
+        );
+      }
+    }
     const saved = await saveFunnel(body, userId);
     return NextResponse.json({ success: true, funnel: saved });
   } catch (error) {

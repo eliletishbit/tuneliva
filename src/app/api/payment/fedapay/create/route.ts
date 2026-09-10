@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
           const admin = createAdminClient();
           const { data: profile } = await admin
             .from("profiles")
-            .select("plan, fedapay_sub_account_id, payout_method, payout_momo_phone, full_name, business_name")
+            .select("plan, fedapay_sub_account_id, payout_method, payout_momo_phone, full_name, business_name, lifetime_funnels_created")
             .eq("id", userId)
             .maybeSingle();
 
@@ -58,7 +58,8 @@ export async function POST(req: NextRequest) {
             // MÉTHODE A (Sous-compte FedaPay & Split natif) :
             // Si le vendeur a dépassé son quota gratuit (3 tunnels) ou est sur le plan Pro,
             // on s'assure qu'un sous-compte FedaPay officiel lui est provisionné.
-            const isQuotaExceededOrPro = plan === "pro" || userFunnelsCount > 3;
+            const lifetimeCreated = Number(profile.lifetime_funnels_created || 0);
+            const isQuotaExceededOrPro = plan === "pro" || userFunnelsCount > 3 || lifetimeCreated >= 3;
             if (isQuotaExceededOrPro && !fedapaySubAccountId && profile.payout_momo_phone) {
               try {
                 const subAcc = await createFedaPaySubAccount({

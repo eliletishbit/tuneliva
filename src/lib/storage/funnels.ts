@@ -229,6 +229,16 @@ export async function saveFunnel(
         .replace(/^-+|-+$/g, "") || "offre-speciale";
   }
 
+  // Enregistrement cumulatif à vie si nouveau tunnel
+  if (userId) {
+    try {
+      const existingFunnel = await getFunnelBySlug(slug);
+      if (!existingFunnel) {
+        await recordLifetimeFunnelCreation(userId);
+      }
+    } catch {}
+  }
+
   const updatedFunnel: FunnelPageData = {
     ...funnel,
     slug,
@@ -317,6 +327,87 @@ export async function deleteFunnel(slug: string, userId?: string): Promise<boole
 }
 
 // ==============================================================================
+
+// ==============================================================================
+// 📊 CONTRÔLE ANTI-CONTOURNEMENT & QUOTAS À VIE (LIFETIME FUNNEL TRACKING)
+// Un utilisateur ne peut pas supprimer un tunnel pour en recréer un autre gratuitement
+// ==============================================================================
+
+export interface UserQuotaInfo {
+  plan: "free" | "pro";
+  lifetimeCreated: number;
+  activeFunnelsCount: number;
+  canCreateNew: boolean;
+  isQuotaExceeded: boolean;
+}
+
+export async function getUserFunnelQuota(userId: string): Promise<UserQuotaInfo> {
+  let plan: "free" | "pro" = "free";
+  let lifetimeCreated = 0;
+  let activeFunnelsCount = 0;
+
+  try {
+    const supabase = createAdminClient();
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("plan, lifetime_funnels_created")
+      .eq("id", userId)
+      .single();
+
+    if (profile) {
+      plan = (profile.plan as "free" | "pro") || "free";
+      lifetimeCreated = Number(profile.lifetime_funnels_created || 0);
+    }
+  } catch (err) {
+    console.warn("getUserFunnelQuota profile notice:", err);
+  }
+
+  try {
+    const funnels = await getAllFunnels(userId);
+    activeFunnelsCount = funnels.length;
+    // Si lifetimeCreated n'était pas encore persisté, le minimum est le nombre actuel de tunnels
+    if (lifetimeCreated < activeFunnelsCount) {
+      lifetimeCreated = activeFunnelsCount;
+    }
+  } catch {}
+
+  const isPro = plan === "pro";
+  const isQuotaExceeded = !isPro && lifetimeCreated >= 3;
+  const canCreateNew = isPro || lifetimeCreated < 3;
+
+  return {
+    plan,
+    lifetimeCreated,
+    activeFunnelsCount,
+    canCreateNew,
+    isQuotaExceeded,
+  };
+}
+
+export async function recordLifetimeFunnelCreation(userId: string): Promise<number> {
+  try {
+    const supabase = createAdminClient();
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("lifetime_funnels_created")
+      .eq("id", userId)
+      .single();
+
+    const currentCount = Number(profile?.lifetime_funnels_created || 0);
+    const nextCount = currentCount + 1;
+
+    await supabase
+      .from("profiles")
+      .update({ lifetime_funnels_created: nextCount })
+      .eq("id", userId);
+
+    return nextCount;
+  } catch (e) {
+    console.warn("recordLifetimeFunnelCreation notice:", e);
+    return 1;
+  }
+}
+
 // 2. GESTION DES COMMANDES (SUPABASE POSTGRESQL + LOCAL FALLBACK)
 // ==============================================================================
 

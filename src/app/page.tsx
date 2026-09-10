@@ -25,144 +25,10 @@ import {
   ChevronRight,
   ChevronLeft,
   PackageCheck,
+  CheckCircle,
 } from "lucide-react";
 import { generateSmartFunnel } from "@/lib/ai/smart-engine";
 import { SUPPORTED_LANGUAGES, TRANSLATIONS, LanguageCode } from "@/lib/i18n/translations";
-
-const STARTER_TEMPLATES = [
-  {
-    id: "momoopti_fintech",
-    icon: Zap,
-    name: "MomoOpti – Fintech & SaaS",
-    badge: "Comparateur MoMo",
-    desc: "Simulateur de taux Mobile Money, grille de tarifs transparente et API marchands.",
-    prompt: "MomoOpti choisir le bon reseau Mobile Money pour payer moins comparateur MTN Moov Wave",
-  },
-  {
-    id: "event_masterclass",
-    icon: Sparkles,
-    name: "The Art of Agentic AI (v0app)",
-    badge: "Live Masterclass VIP",
-    desc: "Conférence en direct Zoom, speaker bio, 3 modules et billetterie VIP.",
-    prompt: "The Art of Agentic AI Live Masterclass 2026 avec pass Standard et VIP en direct sur Zoom v0app",
-  },
-  {
-    id: "creator_hub",
-    icon: Crown,
-    name: "Creator Hub – Plateforme Créateurs",
-    badge: "Produits Digitaux",
-    desc: "Vente de formations et coaching avec encaissement hybride MoMo & Cartes et relance WhatsApp.",
-    prompt: "Creator Hub la plateforme tout-en-un pour créateurs et infopreneurs monétisation produits digitaux",
-  },
-  {
-    id: "visual_ai_studio",
-    icon: Layers,
-    name: "Visual AI Studio (Ideogram)",
-    badge: "Studio Graphique IA",
-    desc: "Design épuré et aéré haute définition pour outils créatifs, mockups et intégration API.",
-    prompt: "Visual AI Studio donnez vie à vos idées en haute définition Ideogram studio ia",
-  },
-  {
-    id: "service_artisan",
-    icon: Wrench,
-    name: "Artisan & Prestataire Pro",
-    badge: "PME & Dépannage",
-    desc: "Cabinet, serrurerie, plomberie avec appel direct et WhatsApp 24/7.",
-    prompt: "Serrurier d'urgence à Cotonou intervention sous 15 minutes",
-  },
-  {
-    id: "ecommerce_light",
-    icon: ShoppingBag,
-    name: "Boutique & E-commerce",
-    badge: "Produit Physique",
-    desc: "Produits physiques, packs en vedette et option paiement à la livraison.",
-    prompt: "Boutique Cosmétique Bio & Sérum Éclat avec livraison express",
-  },
-];
-
-const SHOWCASE_CREATIVES = [
-  {
-    id: "momo",
-    title: "MomoOpti – Fintech MoMo",
-    subtitle: "Comparateur de frais en temps réel • MTN / Moov / Wave",
-    theme: "Fintech Mint & Obsidian",
-    stats: "Économie moyenne : +14.2%",
-    imageUrl: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=1000&auto=format&fit=crop&q=80",
-    color: "#00F5A0",
-    prompt: "MomoOpti choisir le bon reseau Mobile Money pour payer moins comparateur MTN Moov Wave",
-  },
-  {
-    id: "masterclass",
-    title: "The Art of Agentic AI (v0app)",
-    subtitle: "Live Masterclass 2026 • 3h intensives sur Zoom",
-    theme: "Midnight Navy & Electric Violet",
-    stats: "+3 482 participants certifiés",
-    imageUrl: "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=1000&auto=format&fit=crop&q=80",
-    color: "#8B5CF6",
-    prompt: "The Art of Agentic AI Live Masterclass 2026 avec pass Standard et VIP en direct sur Zoom v0app",
-  },
-  {
-    id: "creator",
-    title: "Creator Hub – Monétisation",
-    subtitle: "La suite tout-en-un des infopreneurs • MoMo & Cartes",
-    theme: "Deep Carbon & Neon Magenta",
-    stats: "Multiplicateur conversion : 3.4x",
-    imageUrl: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1000&auto=format&fit=crop&q=80",
-    color: "#EC4899",
-    prompt: "Creator Hub la plateforme tout-en-un pour créateurs et infopreneurs monétisation produits digitaux",
-  },
-  {
-    id: "visual_ai",
-    title: "Visual AI Studio (Ideogram)",
-    subtitle: "Studio créatif IA • Rendu 4K & Typographie haute précision",
-    theme: "Pastel Mesh Minimaliste",
-    stats: "Temps d'inférence : 2.8s",
-    imageUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1000&auto=format&fit=crop&q=80",
-    color: "#6366F1",
-    prompt: "Visual AI Studio donnez vie à vos idées en haute définition Ideogram studio ia",
-  },
-  {
-    id: "artisan",
-    title: "Serrurier Urgence Cotonou",
-    subtitle: "Dépannage express 15 min • Appel direct & WhatsApp",
-    theme: "Bleu Pro & Orange",
-    stats: "Taux de conversion : 24.8%",
-    imageUrl: "https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=1000&auto=format&fit=crop&q=80",
-    color: "#EA580C",
-    prompt: "Serrurier à Cotonou intervention sous 15 minutes devis gratuit",
-  },
-  {
-    id: "serum",
-    title: "Sérum Éclat Anti-Taches",
-    subtitle: "Paiement à la livraison • Dakar & Abidjan",
-    theme: "Mode Clair Pur E-commerce",
-    stats: "+340 commandes / semaine",
-    imageUrl: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=1000&auto=format&fit=crop&q=80",
-    color: "#10B981",
-    prompt: "Sérum visage éclat bio anti-taches 15000 FCFA Dakar",
-  },
-];
-
-const TESTIMONIALS = [
-  {
-    name: "Koffi Mensah",
-    role: "E-commerçant (Cotonou & Lomé)",
-    text: "Avant Tuneliva, mes clients abandonnaient à cause des formulaires compliqués. Avec le paiement à la livraison et WhatsApp en 1 clic, mes ventes ont triplé en 2 semaines.",
-    rating: 5,
-  },
-  {
-    name: "Aïssatou Diallo",
-    role: "Formatrice & Consultante (Paris / Dakar)",
-    text: "Vendant depuis la France vers l'Afrique, j'avais besoin d'encaisser à la fois en cartes bancaires et en Mobile Money. Tuneliva est le seul outil qui gère cette double réalité sans prise de tête.",
-    rating: 5,
-  },
-  {
-    name: "Stéphane Kouamé",
-    role: "Artisan Électricien (Abidjan)",
-    text: "En 5 minutes ma page était en ligne avec le bouton d'appel direct et WhatsApp. Les clients m'appellent directement depuis leur smartphone.",
-    rating: 5,
-  },
-];
 
 export default function HomePage() {
   const [lang, setLang] = useState<LanguageCode>("fr");
@@ -237,7 +103,11 @@ export default function HomePage() {
   const handleGenerate = async (targetPrompt?: string) => {
     const textToUse = targetPrompt || prompt;
     if (!textToUse.trim()) {
-      setErrorMessage("Veuillez décrire votre produit ou choisir un modèle ci-dessous.");
+      setErrorMessage(
+        lang === "en"
+          ? "Please describe your product or choose a template below."
+          : "Veuillez décrire votre produit ou choisir un modèle ci-dessous."
+      );
       return;
     }
 
@@ -292,9 +162,11 @@ export default function HomePage() {
         </div>
         <div className="space-y-1 text-center">
           <h2 className="font-extrabold text-base tracking-tight text-white">
-            Ouverture du Studio Tuneliva...
+            {lang === "en" ? "Opening Tuneliva Studio..." : "Ouverture du Studio Tuneliva..."}
           </h2>
-          <p className="text-xs text-slate-400">Chargement de votre tunnel de vente en cours.</p>
+          <p className="text-xs text-slate-400">
+            {lang === "en" ? "Loading your sales funnel." : "Chargement de votre tunnel de vente en cours."}
+          </p>
         </div>
         <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
       </div>
@@ -308,13 +180,20 @@ export default function HomePage() {
         onBackToPrompt={() => setGeneratedFunnel(null)}
         onSave={(updatedData) => {
           setGeneratedFunnel(updatedData);
-          alert("Votre tunnel a été enregistré avec succès !");
+          alert(
+            lang === "en"
+              ? "Your funnel was saved successfully!"
+              : "Votre tunnel a été enregistré avec succès !"
+          );
         }}
       />
     );
   }
 
-  const currentCreative = SHOWCASE_CREATIVES[activeCreativeIndex];
+  const creatives = t.creativesShowcase.items;
+  const currentCreative = creatives[activeCreativeIndex] || creatives[0];
+
+  const templateIcons = [Zap, Sparkles, Crown, Layers, Wrench, ShoppingBag];
 
   return (
     <div className="min-h-screen bg-[#06080E] text-slate-100 flex flex-col selection:bg-indigo-500 selection:text-white font-sans relative overflow-x-hidden">
@@ -343,7 +222,7 @@ export default function HomePage() {
             <span>{t.header.regions}</span>
           </div>
 
-                    {/* SÉLECTEUR DE LANGUE MULTILINGUE */}
+          {/* SÉLECTEUR DE LANGUE MULTILINGUE */}
           <div className="relative">
             <button
               type="button"
@@ -394,7 +273,7 @@ export default function HomePage() {
             href="/blog"
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-white/10 hover:border-amber-500/50 text-amber-300 text-xs font-bold transition-all shadow-sm cursor-pointer"
           >
-            <span>📚 Blog</span>
+            <span>{t.header.blog}</span>
           </a>
 
           <a
@@ -423,8 +302,7 @@ export default function HomePage() {
           </h1>
 
           <p className="text-sm sm:text-base text-slate-400 max-w-2xl mx-auto leading-relaxed">
-            Pour les <strong>formateurs</strong>, <strong>créateurs</strong>, <strong>organisateurs d'événements</strong>, <strong>startups</strong>, <strong>artisans</strong> et <strong>entreprises</strong>.
-            Générez des pages haute conversion avec encaissement combiné <strong>Mobile Money &amp; Cartes Bancaires</strong>, redirection multicanale (Zoom, Téléchargement, Calendly) et <strong>COD</strong> pour les boutiques physiques.
+            {t.hero.subtitle}
           </p>
         </div>
 
@@ -434,27 +312,20 @@ export default function HomePage() {
             {/* TYPE DE PAGE À CRÉER */}
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 px-1 text-xs">
               <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider hidden sm:inline mr-1">
-                Type :
+                {t.hero.typeLabel}
               </span>
-              {[
-                { id: "sales", label: "🚀 Page de Vente", desc: "Produit ou Service" },
-                { id: "event_booking", label: "🎟️ Événement & Billetterie", desc: "Pass VIP & Live" },
-                { id: "digital_product", label: "🎓 Formation & Coaching", desc: "Accès Immédiat" },
-                { id: "app_launch", label: "📱 Lancement d'App", desc: "Waitlist & Bêta" },
-                { id: "capture", label: "🧲 Page de Capture", desc: "Opt-in Lead" },
-                { id: "checkout", label: "🛒 Commande Directe", desc: "Paiement 1-clic" },
-              ].map((t) => (
+              {(Object.keys(t.pageTypes) as FunnelPageType[]).map((typeKey) => (
                 <button
-                  key={t.id}
+                  key={typeKey}
                   type="button"
-                  onClick={() => setPageType(t.id as FunnelPageType)}
+                  onClick={() => setPageType(typeKey)}
                   className={`px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer whitespace-nowrap text-xs ${
-                    pageType === t.id
+                    pageType === typeKey
                       ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30 ring-1 ring-indigo-400"
                       : "bg-slate-950/80 border border-white/10 text-slate-400 hover:text-white hover:border-white/20"
                   }`}
                 >
-                  {t.label}
+                  {t.pageTypes[typeKey]?.label || typeKey}
                 </button>
               ))}
             </div>
@@ -473,11 +344,11 @@ export default function HomePage() {
                 onChange={(e) => setCurrency(e.target.value as CurrencyCode)}
                 className="px-3 py-2 rounded-xl bg-slate-950 border border-white/10 text-slate-300 text-xs focus:outline-none focus:border-indigo-500 font-semibold w-full sm:w-auto"
               >
-                <option value="XOF">FCFA (Bénin, Côte d'Ivoire, Sénégal, Togo)</option>
-                <option value="XAF">FCFA (Cameroun, Gabon, Congo)</option>
-                <option value="GNF">GNF (Guinée)</option>
-                <option value="EUR">Euro (€ - Diaspora & Europe)</option>
-                <option value="USD">Dollar ($ - International)</option>
+                {(Object.keys(t.currencies) as CurrencyCode[]).map((cKey) => (
+                  <option key={cKey} value={cKey}>
+                    {t.currencies[cKey]}
+                  </option>
+                ))}
               </select>
 
               <button
@@ -509,27 +380,27 @@ export default function HomePage() {
 
         {/* BANDEAU DES PAIEMENTS ACCEPTÉS (MOMO + CARTES) */}
         <div className="pt-2 pb-4 max-w-2xl mx-auto flex flex-wrap items-center justify-center gap-2 text-[11px] text-slate-400">
-          <span className="font-bold text-slate-300">Paiements pris en charge :</span>
+          <span className="font-bold text-slate-300">{t.paymentsStrip.label}</span>
           <span className="px-2.5 py-1 rounded-lg bg-yellow-500/10 text-yellow-400 font-bold border border-yellow-500/20">MTN MoMo</span>
           <span className="px-2.5 py-1 rounded-lg bg-blue-500/10 text-blue-400 font-bold border border-blue-500/20">Moov Money</span>
           <span className="px-2.5 py-1 rounded-lg bg-orange-500/10 text-orange-400 font-bold border border-orange-500/20">Orange Money</span>
           <span className="px-2.5 py-1 rounded-lg bg-cyan-500/10 text-cyan-400 font-bold border border-cyan-500/20">Wave</span>
-          <span className="px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-400 font-bold border border-indigo-500/20">Cartes Visa & Mastercard</span>
-          <span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 font-bold border border-emerald-500/20">Espèces à la livraison</span>
+          <span className="px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-400 font-bold border border-indigo-500/20">{t.paymentsStrip.cards}</span>
+          <span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 font-bold border border-emerald-500/20">{t.paymentsStrip.cod}</span>
         </div>
       </section>
 
-      {/* 3. DÉMARRAGE DIRECT AVEC LES 4 MODÈLES PRÊTS À L'EMPLOI (SANS IA REQUISE) */}
+      {/* 3. DÉMARRAGE DIRECT AVEC LES MODÈLES PRÊTS À L'EMPLOI (SANS IA REQUISE) */}
       <section className="py-10 px-4 max-w-5xl mx-auto w-full space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-lg sm:text-xl font-extrabold text-white">
-            🚀 Démarrez directement avec un modèle pro (Sans IA requise)
+            {t.starterTemplates.sectionTitle}
           </h2>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-          {STARTER_TEMPLATES.map((tmpl) => {
-            const Icon = tmpl.icon;
+          {t.starterTemplates.items.map((tmpl, idx) => {
+            const Icon = templateIcons[idx % templateIcons.length];
             return (
               <button
                 key={tmpl.id}
@@ -560,13 +431,13 @@ export default function HomePage() {
       <section className="py-16 px-4 max-w-5xl mx-auto w-full space-y-8">
         <div className="text-center space-y-2 max-w-2xl mx-auto">
           <span className="text-xs font-bold text-amber-400 tracking-wider uppercase">
-            DESIGNS ÉLITE 2026
+            {t.creativesShowcase.badge}
           </span>
           <h2 className="text-2xl sm:text-4xl font-black text-white">
-            Des créatives spectaculaires générées en quelques clics
+            {t.creativesShowcase.title}
           </h2>
           <p className="text-xs sm:text-sm text-slate-400">
-            Chaque tunnel est pensé pour capter l'attention et maximiser le passage à l'action.
+            {t.creativesShowcase.subtitle}
           </p>
         </div>
 
@@ -598,13 +469,13 @@ export default function HomePage() {
               className="py-3 px-5 rounded-xl font-bold text-white text-xs sm:text-sm flex items-center gap-2 cursor-pointer shadow-lg hover:scale-105 transition-all"
               style={{ backgroundColor: currentCreative.color }}
             >
-              <span>Générer ce type de page</span>
+              <span>{t.creativesShowcase.ctaBtn}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
 
             {/* CONTRÔLES DU SLIDER */}
             <div className="flex items-center gap-2 pt-4 border-t border-white/10">
-              {SHOWCASE_CREATIVES.map((_, idx) => (
+              {creatives.map((_, idx) => (
                 <button
                   key={idx}
                   onClick={() => setActiveCreativeIndex(idx)}
@@ -625,7 +496,7 @@ export default function HomePage() {
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-4">
-              <span className="text-xs font-bold text-white">Aperçu en direct 2026</span>
+              <span className="text-xs font-bold text-white">{t.creativesShowcase.livePreviewBadge}</span>
             </div>
           </div>
         </div>
@@ -635,10 +506,10 @@ export default function HomePage() {
       <section className="py-16 px-4 max-w-5xl mx-auto w-full space-y-8">
         <div className="text-center space-y-2 max-w-2xl mx-auto">
           <span className="text-xs font-bold text-indigo-400 tracking-wider uppercase">
-            CAS D'USAGE CONCRETS
+            {t.useCases.badge}
           </span>
           <h2 className="text-2xl sm:text-4xl font-black text-white">
-            Une solution pensée pour votre secteur d'activité
+            {t.useCases.title}
           </h2>
         </div>
 
@@ -647,9 +518,9 @@ export default function HomePage() {
             <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">
               🛍️
             </div>
-            <h3 className="font-extrabold text-base text-white">E-commerce & Vente Directe</h3>
+            <h3 className="font-extrabold text-base text-white">{t.useCases.ecommerceTitle}</h3>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Cosmétiques, montres, chaussures, miel, agroalimentaire. Formulaire de commande COD avec vérification du colis à la livraison.
+              {t.useCases.ecommerceDesc}
             </p>
           </div>
 
@@ -657,9 +528,9 @@ export default function HomePage() {
             <div className="w-10 h-10 rounded-2xl bg-orange-500/20 text-orange-400 flex items-center justify-center font-bold">
               🛠️
             </div>
-            <h3 className="font-extrabold text-base text-white">Artisans & Dépannage Urgent</h3>
+            <h3 className="font-extrabold text-base text-white">{t.useCases.artisanTitle}</h3>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Serruriers, plombiers, électriciens, mécaniciens. Bouton d'appel immédiat, WhatsApp et zone géographique d'intervention.
+              {t.useCases.artisanDesc}
             </p>
           </div>
 
@@ -667,9 +538,9 @@ export default function HomePage() {
             <div className="w-10 h-10 rounded-2xl bg-yellow-500/20 text-yellow-400 flex items-center justify-center font-bold">
               👑
             </div>
-            <h3 className="font-extrabold text-base text-white">Infopreneurs & Diaspora</h3>
+            <h3 className="font-extrabold text-base text-white">{t.useCases.infopreneurTitle}</h3>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Formations en ligne, coaching, ebooks, conférences. Intégration vidéo VSL et double encaissement Cartes + Mobile Money.
+              {t.useCases.infopreneurDesc}
             </p>
           </div>
 
@@ -677,63 +548,155 @@ export default function HomePage() {
             <div className="w-10 h-10 rounded-2xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold">
               ⚡
             </div>
-            <h3 className="font-extrabold text-base text-white">Startups & Services</h3>
+            <h3 className="font-extrabold text-base text-white">{t.useCases.startupsTitle}</h3>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Applications mobiles, comparateurs, abonnements et lancements de produits tech avec vitesse de chargement record &lt; 800ms.
+              {t.useCases.startupsDesc}
             </p>
           </div>
         </div>
       </section>
 
-      {/* 6. SECTION : TÉMOIGNAGES CLIENTS */}
+      {/* 6. NOUVELLE SECTION : TARIFS CLAIRS & TRANSPARENCE DES QUOTAS */}
+      <section className="py-16 px-4 max-w-5xl mx-auto w-full space-y-8">
+        <div className="text-center space-y-2 max-w-2xl mx-auto">
+          <span className="text-xs font-bold text-emerald-400 tracking-wider uppercase">
+            {t.pricing.badge}
+          </span>
+          <h2 className="text-2xl sm:text-4xl font-black text-white">
+            {t.pricing.title}
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-400">
+            {t.pricing.subtitle}
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+          {/* CARTE PLAN GRATUIT */}
+          <div className="p-6 sm:p-8 rounded-3xl bg-slate-900/70 border border-white/10 flex flex-col justify-between space-y-6 shadow-xl relative overflow-hidden">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="px-3 py-1 rounded-full text-[11px] font-extrabold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                  {t.pricing.freePlan.badge}
+                </span>
+                <span className="text-xs text-slate-400">{t.pricing.freePlan.period}</span>
+              </div>
+              <div>
+                <h3 className="text-xl sm:text-2xl font-black text-white">{t.pricing.freePlan.title}</h3>
+                <div className="text-3xl sm:text-4xl font-black text-emerald-400 mt-1">
+                  {t.pricing.freePlan.price}
+                </div>
+                <p className="text-xs text-slate-400 mt-2">{t.pricing.freePlan.desc}</p>
+              </div>
+
+              <ul className="space-y-2.5 pt-4 border-t border-white/10 text-xs text-slate-300">
+                {t.pricing.freePlan.features.map((feat, idx) => (
+                  <li key={idx} className="flex items-start gap-2">
+                    <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                    <span>{feat}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <button
+              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+              className="w-full py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs sm:text-sm transition-all border border-white/10 cursor-pointer text-center"
+            >
+              {t.pricing.freePlan.cta}
+            </button>
+          </div>
+
+          {/* CARTE PLAN PRO ILLIMITÉ */}
+          <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-b from-indigo-950/60 to-slate-900 border-2 border-indigo-500/50 flex flex-col justify-between space-y-6 shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none" />
+            <div className="space-y-4 relative z-10">
+              <div className="flex items-center justify-between">
+                <span className="px-3 py-1 rounded-full text-[11px] font-extrabold bg-indigo-500 text-white shadow-md shadow-indigo-500/30">
+                  {t.pricing.proPlan.badge}
+                </span>
+                <span className="text-xs text-indigo-300 font-semibold">{t.pricing.proPlan.period}</span>
+              </div>
+              <div>
+                <h3 className="text-xl sm:text-2xl font-black text-white">{t.pricing.proPlan.title}</h3>
+                <div className="text-3xl sm:text-4xl font-black text-white mt-1">
+                  {t.pricing.proPlan.price}
+                </div>
+                <p className="text-xs text-slate-300 mt-2">{t.pricing.proPlan.desc}</p>
+              </div>
+
+              <ul className="space-y-2.5 pt-4 border-t border-white/10 text-xs text-slate-200">
+                {t.pricing.proPlan.features.map((feat, idx) => (
+                  <li key={idx} className="flex items-start gap-2">
+                    <CheckCircle className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
+                    <span className="font-medium">{feat}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <a
+              href="/dashboard"
+              className="w-full py-3 rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-extrabold text-xs sm:text-sm shadow-lg shadow-indigo-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all text-center block cursor-pointer"
+            >
+              {t.pricing.proPlan.cta}
+            </a>
+          </div>
+        </div>
+
+        {/* ENCADRÉ EXPLICATIF TRANSPARENCE QUOTA */}
+        <div className="p-4 sm:p-5 rounded-2xl bg-slate-900/60 border border-white/10 text-left space-y-1.5 max-w-4xl mx-auto">
+          <div className="flex items-center gap-2 font-bold text-amber-300 text-xs sm:text-sm">
+            <span>{t.pricing.faqNoteTitle}</span>
+          </div>
+          <p className="text-xs text-slate-400 leading-relaxed">
+            {t.pricing.faqNoteBody}
+          </p>
+        </div>
+      </section>
+
+      {/* 7. SECTION : TÉMOIGNAGES CLIENTS */}
       <section className="py-16 px-4 max-w-5xl mx-auto w-full space-y-8">
         <div className="text-center space-y-2">
           <span className="text-xs font-bold text-emerald-400 tracking-wider uppercase">
-            ILS FONT CONFIANCE À TUNELIVA
+            {t.testimonials.badge}
           </span>
           <h2 className="text-2xl sm:text-4xl font-black text-white">
-            Ce que disent nos vendeurs en Afrique et dans le monde
+            {t.testimonials.title}
           </h2>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-left">
-          {TESTIMONIALS.map((t, idx) => (
+          {t.testimonials.items.map((item, idx) => (
             <div
               key={idx}
               className="p-6 rounded-3xl bg-slate-900/60 border border-white/10 flex flex-col justify-between space-y-4 shadow-lg"
             >
               <div className="space-y-2">
                 <div className="flex text-amber-400">
-                  {[...Array(t.rating)].map((_, i) => (
+                  {[...Array(item.rating)].map((_, i) => (
                     <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
                   ))}
                 </div>
                 <p className="text-xs sm:text-sm text-slate-300 italic leading-relaxed">
-                  "{t.text}"
+                  "{item.text}"
                 </p>
               </div>
 
               <div className="border-t border-white/10 pt-3">
-                <div className="font-bold text-sm text-white">{t.name}</div>
-                <div className="text-[11px] text-slate-400">{t.role}</div>
+                <div className="font-bold text-sm text-white">{item.name}</div>
+                <div className="text-[11px] text-slate-400">{item.role}</div>
               </div>
             </div>
           ))}
         </div>
       </section>
 
-      {/* 7. FOOTER */}
+      {/* 8. FOOTER */}
       <footer className="border-t border-white/10 py-10 px-6 text-center text-xs text-slate-400 space-y-2">
         <div className="flex items-center justify-center gap-2 font-bold text-slate-200">
-          <span>Tuneliva</span>
-          <span>•</span>
-          <span>Afrique</span>
-          <span>•</span>
-          <span>Diaspora</span>
-          <span>•</span>
-          <span>International</span>
+          <span>{t.footer.regions}</span>
         </div>
-        <p>© {new Date().getFullYear()} Tuneliva. Tous droits réservés. Propulsé pour la performance et la liberté financière.</p>
+        <p>© {new Date().getFullYear()} {t.footer.copyright}</p>
       </footer>
     </div>
   );
