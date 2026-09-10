@@ -13,5 +13,8 @@ export function createAdminClient() {
       autoRefreshToken: false,
       persistSession: false,
     },
+    realtime: {
+      transport: (class DummyWS {} as any),
+    },
   });
 }

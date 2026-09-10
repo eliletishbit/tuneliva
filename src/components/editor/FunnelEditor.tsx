@@ -4225,6 +4225,83 @@ export function FunnelEditor({
                       );
                     })()}
                   </div>
+
+                  {/* REDIRECTION VERS CHECKOUT EXTERNE (CHARIOW, SELAR, STRIPE, ETC.) */}
+                  <div className="space-y-3 pt-4 border-t border-white/10">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-[11px] font-bold text-amber-300 uppercase tracking-wider">
+                        🔗 Passerelle &amp; Checkout Externe
+                      </label>
+                      <span className="text-[9px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 font-bold border border-amber-500/20">
+                        Selar / Chariow / Stripe
+                      </span>
+                    </div>
+
+                    <p className="text-[10px] text-slate-400 leading-relaxed">
+                      Si vous utilisez déjà Selar, Chariow, Paystack, Shopify ou Stripe pour encaisser vos clients, activez la redirection automatique en 1 clic :
+                    </p>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setFunnelData((prev) => ({
+                            ...prev,
+                            redirectActionType: "online_checkout",
+                          }))
+                        }
+                        className={`p-2.5 rounded-xl border text-left cursor-pointer transition-all ${
+                          funnelData.redirectActionType !== "external_url"
+                            ? "border-emerald-500 bg-emerald-500/15 text-white shadow-sm"
+                            : "border-white/10 bg-slate-950 text-slate-400 hover:text-white"
+                        }`}
+                      >
+                        <span className="font-bold text-xs block">🛍️ Tuneliva Natif</span>
+                        <span className="text-[9px] text-slate-400 block">COD & Mobile Money</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setFunnelData((prev) => ({
+                            ...prev,
+                            redirectActionType: "external_url",
+                          }))
+                        }
+                        className={`p-2.5 rounded-xl border text-left cursor-pointer transition-all ${
+                          funnelData.redirectActionType === "external_url"
+                            ? "border-amber-500 bg-amber-500/15 text-white shadow-sm"
+                            : "border-white/10 bg-slate-950 text-slate-400 hover:text-white"
+                        }`}
+                      >
+                        <span className="font-bold text-xs block">🔗 Checkout Externe</span>
+                        <span className="text-[9px] text-slate-400 block">Selar, Chariow, etc.</span>
+                      </button>
+                    </div>
+
+                    {funnelData.redirectActionType === "external_url" && (
+                      <div className="space-y-1.5 p-3 rounded-2xl bg-slate-950 border border-amber-500/30">
+                        <span className="block text-[10px] font-bold text-amber-300">
+                          Lien URL de votre Checkout Externe *
+                        </span>
+                        <input
+                          type="url"
+                          value={funnelData.externalRedirectUrl || ""}
+                          onChange={(e) =>
+                            setFunnelData((prev) => ({
+                              ...prev,
+                              externalRedirectUrl: e.target.value,
+                            }))
+                          }
+                          placeholder="https://chariow.com/checkout/... ou https://selar.co/..."
+                          className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-white/10 text-amber-300 text-xs font-mono focus:outline-none focus:border-amber-500"
+                        />
+                        <span className="text-[9px] text-slate-400 block">
+                          ⚡ Les boutons « Commander » redirigeront automatiquement vers votre page de paiement externe.
+                        </span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>

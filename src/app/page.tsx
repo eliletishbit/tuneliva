@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FunnelPageData, CurrencyCode, FunnelPageType } from "@/types/page";
 import { FunnelEditor } from "@/components/editor/FunnelEditor";
 import {
@@ -27,6 +27,7 @@ import {
   PackageCheck,
 } from "lucide-react";
 import { generateSmartFunnel } from "@/lib/ai/smart-engine";
+import { SUPPORTED_LANGUAGES, TRANSLATIONS, LanguageCode } from "@/lib/i18n/translations";
 
 const STARTER_TEMPLATES = [
   {
@@ -164,6 +165,27 @@ const TESTIMONIALS = [
 ];
 
 export default function HomePage() {
+  const [lang, setLang] = useState<LanguageCode>("fr");
+  const [showLangDropdown, setShowLangDropdown] = useState(false);
+  const t = TRANSLATIONS[lang] || TRANSLATIONS.fr;
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("tuneliva_lang") as LanguageCode;
+      if (saved && TRANSLATIONS[saved]) {
+        setLang(saved);
+      }
+    } catch {}
+  }, []);
+
+  const handleSelectLang = (code: LanguageCode) => {
+    setLang(code);
+    setShowLangDropdown(false);
+    try {
+      localStorage.setItem("tuneliva_lang", code);
+    } catch {}
+  };
+
   const [prompt, setPrompt] = useState("");
   const [currency, setCurrency] = useState<CurrencyCode>("XOF");
   const [pageType, setPageType] = useState<FunnelPageType>("sales");
@@ -310,7 +332,7 @@ export default function HomePage() {
               Tuneliva
             </span>
             <span className="text-[10px] text-slate-400 block -mt-1 font-medium">
-              Donnez vie à vos tunnels de vente
+              {t.header.tagline}
             </span>
           </div>
         </div>
@@ -318,7 +340,44 @@ export default function HomePage() {
         <div className="flex items-center gap-2 text-xs">
           <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold">
             <Globe2 className="w-3.5 h-3.5" />
-            <span>Afrique • Diaspora • International</span>
+            <span>{t.header.regions}</span>
+          </div>
+
+                    {/* SÉLECTEUR DE LANGUE MULTILINGUE */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setShowLangDropdown(!showLangDropdown)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-white/10 hover:border-indigo-500/50 text-white text-xs font-bold transition-all shadow-sm cursor-pointer"
+              title="Changer la langue / Change language"
+            >
+              <span className="text-sm">{SUPPORTED_LANGUAGES.find((l) => l.code === lang)?.flag || "🌐"}</span>
+              <span className="uppercase text-[11px]">{lang}</span>
+              <ChevronRight className={`w-3 h-3 text-slate-400 transition-transform ${showLangDropdown ? "rotate-90" : ""}`} />
+            </button>
+
+            {showLangDropdown && (
+              <div className="absolute right-0 mt-2 w-40 rounded-2xl bg-slate-900/95 border border-white/15 shadow-2xl backdrop-blur-xl p-1.5 z-50 space-y-0.5">
+                {SUPPORTED_LANGUAGES.map((l) => (
+                  <button
+                    key={l.code}
+                    type="button"
+                    onClick={() => handleSelectLang(l.code)}
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      lang === l.code
+                        ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
+                        : "text-slate-300 hover:bg-white/10 hover:text-white"
+                    }`}
+                  >
+                    <span className="flex items-center gap-2">
+                      <span className="text-base">{l.flag}</span>
+                      <span>{l.name}</span>
+                    </span>
+                    {lang === l.code && <Check className="w-3.5 h-3.5 text-white" />}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           <a
@@ -333,7 +392,7 @@ export default function HomePage() {
             className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-900 border border-white/10 hover:border-emerald-500/50 text-white text-xs font-bold transition-all shadow-sm cursor-pointer"
           >
             <PackageCheck className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Mes Commandes</span>
+            <span>{t.header.myOrders}</span>
           </a>
         </div>
       </header>
@@ -343,13 +402,13 @@ export default function HomePage() {
         <div className="space-y-4 max-w-3xl mx-auto">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-indigo-500/10 via-amber-500/10 to-emerald-500/10 text-indigo-300 border border-white/10 shadow-inner">
             <Sparkles className="w-3.5 h-3.5 text-yellow-300 animate-pulse" />
-            <span>Pour l'Afrique, la Diaspora et les Vendeurs Internationaux</span>
+            <span>{t.hero.badge}</span>
           </div>
 
           <h1 className="text-3xl sm:text-6xl font-black tracking-tight leading-tight sm:leading-tight">
-            Donnez vie à vos tunnels &amp; pages de conversion{" "}
+            {t.hero.titlePart1}
             <span className="bg-gradient-to-r from-indigo-400 via-amber-300 to-emerald-400 bg-clip-text text-transparent">
-              en 10 secondes
+              {t.hero.titleHighlight}
             </span>
           </h1>
 
@@ -392,7 +451,7 @@ export default function HomePage() {
 
             <textarea
               rows={3}
-              placeholder="Décrivez votre projet (ex: Masterclass Stratégie & IA 2026 avec pass Standard et VIP, ou Lancement application mobile fintech avec liste d'attente, ou Formation Produits Digitaux...)"
+              placeholder={t.hero.promptPlaceholder}
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               className="w-full p-3 bg-transparent text-white placeholder-slate-500 text-sm focus:outline-none resize-none"
@@ -419,12 +478,12 @@ export default function HomePage() {
                 {isLoading ? (
                   <>
                     <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                    <span>Création du tunnel...</span>
+                    <span>{t.hero.generatingBtn}</span>
                   </>
                 ) : (
                   <>
                     <Sparkles className="w-4 h-4 text-yellow-300" />
-                    <span>Générer ma Page de Vente</span>
+                    <span>{t.hero.generateBtn}</span>
                   </>
                 )}
               </button>

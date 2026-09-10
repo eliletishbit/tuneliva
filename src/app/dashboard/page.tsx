@@ -33,6 +33,7 @@ import {
   Wallet,
   CreditCard,
   Building,
+  Globe,
 } from "lucide-react";
 
 export default function MerchantDashboard() {
@@ -77,6 +78,72 @@ export default function MerchantDashboard() {
       console.error("Erreur chargement dashboard:", e);
     } finally {
       setLoading(false);
+    }
+  };
+
+    // DOMAINES PERSONNALISÉS
+  const [showDomainModal, setShowDomainModal] = useState(false);
+  const [domains, setDomains] = useState<any[]>([]);
+  const [domainInput, setDomainInput] = useState("");
+  const [domainSlugInput, setDomainSlugInput] = useState("");
+  const [domainSaving, setDomainSaving] = useState(false);
+  const [domainMsg, setDomainMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  const fetchDomains = async () => {
+    try {
+      const res = await fetch("/api/domains");
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success) setDomains(json.domains || []);
+      }
+    } catch (e) {
+      console.warn("Erreur fetch domains:", e);
+    }
+  };
+
+  const handleAddDomain = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!domainInput.trim() || !domainSlugInput) {
+      setDomainMsg({ type: "error", text: "Veuillez renseigner un domaine et choisir un tunnel." });
+      return;
+    }
+    setDomainSaving(true);
+    setDomainMsg(null);
+    try {
+      const res = await fetch("/api/domains", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ domain: domainInput.trim(), funnelSlug: domainSlugInput }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setDomainMsg({
+          type: "success",
+          text: json.isVerified
+            ? `Domaine "${json.domain.domain}" vérifié et actif !`
+            : `Domaine "${json.domain.domain}" enregistré. Veuillez configurer le CNAME dans votre zone DNS.`,
+        });
+        setDomainInput("");
+        fetchDomains();
+      } else {
+        setDomainMsg({ type: "error", text: json.error || "Erreur enregistrement" });
+      }
+    } catch (err: any) {
+      setDomainMsg({ type: "error", text: err.message });
+    } finally {
+      setDomainSaving(false);
+    }
+  };
+
+  const handleDeleteDomainRecord = async (domain: string) => {
+    if (!confirm(`Déconnecter le domaine "${domain}" ?`)) return;
+    try {
+      const res = await fetch(`/api/domains?domain=${encodeURIComponent(domain)}`, { method: "DELETE" });
+      if (res.ok) {
+        setDomains((prev) => prev.filter((d) => d.domain !== domain));
+      }
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -1219,6 +1286,184 @@ export default function MerchantDashboard() {
             </div>
           </div>
         )}
+        {/* MODAL GESTION DES NOMS DE DOMAINE PERSONNALISÉS */}
+        {showDomainModal && (
+          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+            <div className="bg-slate-900 border border-white/10 rounded-3xl max-w-xl w-full p-6 space-y-6 shadow-2xl my-8">
+              <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-indigo-500/20 border border-indigo-500/40 flex items-center justify-center text-indigo-400">
+                    <Globe className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-black text-base text-white">
+                      Noms de Domaine Personnalisés
+                    </h3>
+                    <p className="text-xs text-slate-400">
+                      Branchez votre propre domaine professionnel sur vos tunnels
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowDomainModal(false)}
+                  className="p-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {domainMsg && (
+                <div
+                  className={`p-3.5 rounded-xl text-xs flex items-center gap-2 ${
+                    domainMsg.type === "success"
+                      ? "bg-emerald-500/15 border border-emerald-500/30 text-emerald-300"
+                      : "bg-rose-500/15 border border-rose-500/30 text-rose-300"
+                  }`}
+                >
+                  {domainMsg.type === "success" ? (
+                    <CheckCircle2 className="w-4 h-4 shrink-0" />
+                  ) : (
+                    <X className="w-4 h-4 shrink-0" />
+                  )}
+                  <span>{domainMsg.text}</span>
+                </div>
+              )}
+
+              {/* Instructions DNS */}
+              <div className="p-4 rounded-2xl bg-slate-950/80 border border-white/5 space-y-2 text-xs">
+                <span className="font-bold text-amber-300 uppercase text-[10px] tracking-wider block">
+                  ⚙️ Configuration DNS requise chez votre hébergeur (OVH, GoDaddy, Namecheap...) :
+                </span>
+                <div className="grid grid-cols-3 gap-2 p-2.5 rounded-xl bg-slate-900 border border-white/5 font-mono text-[11px]">
+                  <div>
+                    <span className="text-slate-400 block text-[9px]">TYPE</span>
+                    <span className="text-white font-bold">CNAME</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[9px]">NOM / HÔTE</span>
+                    <span className="text-white font-bold">boutique (ou @)</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[9px]">CIBLE / VALEUR</span>
+                    <span className="text-indigo-400 font-bold">cname.vercel-dns.com</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Formulaire ajout domaine */}
+              <form onSubmit={handleAddDomain} className="space-y-4 text-left">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-300 uppercase block">
+                      Votre Domaine
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={domainInput}
+                      onChange={(e) => setDomainInput(e.target.value)}
+                      placeholder="Ex: promo.maboutique.com"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-white/10 text-white text-xs font-mono focus:border-indigo-500 focus:outline-none"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-300 uppercase block">
+                      Associer au Tunnel
+                    </label>
+                    <select
+                      value={domainSlugInput}
+                      onChange={(e) => setDomainSlugInput(e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-white/10 text-white text-xs focus:border-indigo-500 focus:outline-none"
+                    >
+                      {funnels.map((f) => (
+                        <option key={f.slug} value={f.slug}>
+                          {f.projectName} (/p/{f.slug})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={domainSaving || funnels.length === 0}
+                  className="w-full py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-black flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/30 transition-all cursor-pointer disabled:opacity-50"
+                >
+                  {domainSaving ? (
+                    <span>Vérification &amp; Enregistrement...</span>
+                  ) : (
+                    <>
+                      <Plus className="w-4 h-4" />
+                      <span>Connecter ce Domaine</span>
+                    </>
+                  )}
+                </button>
+              </form>
+
+              {/* Domaines connectés */}
+              <div className="space-y-2 pt-2 border-t border-white/10">
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                  Domaines Actifs ({domains.length})
+                </span>
+
+                {domains.length === 0 ? (
+                  <p className="text-xs text-slate-400 py-3 text-center">
+                    Aucun domaine personnalisé connecté pour l'instant.
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {domains.map((d) => (
+                      <div
+                        key={d.domain}
+                        className="p-3 rounded-2xl bg-slate-950 border border-white/10 flex items-center justify-between gap-3 text-xs"
+                      >
+                        <div className="space-y-0.5">
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-white font-mono">{d.domain}</span>
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${
+                                d.status === "verified"
+                                  ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                                  : "bg-amber-500/20 text-amber-400 border border-amber-500/30"
+                              }`}
+                            >
+                              {d.status === "verified" ? "✅ Actif" : "⏳ DNS en attente"}
+                            </span>
+                          </div>
+                          <span className="text-[10px] text-slate-400 block font-mono">
+                            Pointe vers : /p/{d.funnelSlug}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <a
+                            href={`https://${d.domain}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white cursor-pointer"
+                            title="Visiter"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" />
+                          </a>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteDomainRecord(d.domain)}
+                            className="p-1.5 rounded-lg bg-slate-900 hover:bg-rose-950/60 text-slate-400 hover:text-rose-400 cursor-pointer"
+                            title="Déconnecter"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
       </main>
     </div>
   );

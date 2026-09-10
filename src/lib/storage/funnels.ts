@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import { FunnelPageData } from "@/types/page";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getDomainMapping } from "@/lib/storage/domains";
 
 const DATA_DIR = path.join(process.cwd(), ".data");
 const FUNNELS_FILE = path.join(DATA_DIR, "funnels.json");
@@ -40,8 +41,67 @@ function ensureDataDir() {
 }
 
 // ==============================================================================
-// 1. GESTION DES TUNNELS (SUPABASE POSTGRESQL + LOCAL FALLBACK)
+// 1. GESTION DES TUNNELS (SUPABASE POSTGRESQL + SUPABASE STORAGE + LOCAL FALLBACK)
 // ==============================================================================
+
+const STORAGE_BUCKET = "product-images";
+const STORAGE_FUNNEL_DIR = "data/funnels";
+const STORAGE_ALL_FILE = "data/all-funnels.json";
+
+async function saveFunnelToStorage(funnel: FunnelPageData): Promise<void> {
+  try {
+    const supabase = createAdminClient();
+    const jsonStr = JSON.stringify(funnel);
+    await supabase.storage
+      .from(STORAGE_BUCKET)
+      .upload(`${STORAGE_FUNNEL_DIR}/${funnel.slug}.json`, jsonStr, {
+        contentType: "application/json",
+        upsert: true,
+      });
+
+    // Mise à jour de l'index global des tunnels dans Supabase Storage
+    try {
+      const existingAll = await getAllFunnelsFromStorage();
+      const updatedList = existingAll.filter((f) => f.slug !== funnel.slug);
+      updatedList.unshift(funnel);
+      await supabase.storage
+        .from(STORAGE_BUCKET)
+        .upload(STORAGE_ALL_FILE, JSON.stringify(updatedList), {
+          contentType: "application/json",
+          upsert: true,
+        });
+    } catch {}
+  } catch (err) {
+    console.warn("Erreur sauvegarde cloud Supabase Storage:", err);
+  }
+}
+
+async function getFunnelFromStorage(slug: string): Promise<FunnelPageData | null> {
+  try {
+    const supabase = createAdminClient();
+    const res = await supabase.storage
+      .from(STORAGE_BUCKET)
+      .download(`${STORAGE_FUNNEL_DIR}/${slug}.json`);
+    if (!res.error && res.data) {
+      const text = await res.data.text();
+      return JSON.parse(text);
+    }
+  } catch {}
+  return null;
+}
+
+async function getAllFunnelsFromStorage(userId?: string): Promise<FunnelPageData[]> {
+  try {
+    const supabase = createAdminClient();
+    const res = await supabase.storage.from(STORAGE_BUCKET).download(STORAGE_ALL_FILE);
+    if (!res.error && res.data) {
+      const text = await res.data.text();
+      const list: FunnelPageData[] = JSON.parse(text);
+      return userId ? list.filter((f) => f.userId === userId) : list;
+    }
+  } catch {}
+  return [];
+}
 
 export async function getAllFunnels(userId?: string): Promise<FunnelPageData[]> {
   try {
@@ -56,7 +116,7 @@ export async function getAllFunnels(userId?: string): Promise<FunnelPageData[]> 
     }
 
     const { data, error } = await query;
-    if (!error && data) {
+    if (!error && data && data.length > 0) {
       return data.map((row) => ({
         ...row.data,
         id: row.id,
@@ -67,13 +127,21 @@ export async function getAllFunnels(userId?: string): Promise<FunnelPageData[]> 
       }));
     }
     if (error) {
-      console.warn("Supabase getAllFunnels error:", error);
+      console.warn("Supabase getAllFunnels PostgreSQL notice:", error.message);
     }
   } catch (e) {
-    console.warn("Supabase non disponible pour getAllFunnels, bascule locale:", e);
+    console.warn("Supabase non disponible pour getAllFunnels, bascule cloud storage:", e);
   }
 
-  // Fallback Fichier Local (uniquement si Supabase inaccessible)
+  // 2. Fallback Cloud Supabase Storage (haute disponibilité sans erreur de permissions)
+  try {
+    const fromCloud = await getAllFunnelsFromStorage(userId);
+    if (fromCloud && fromCloud.length > 0) {
+      return fromCloud;
+    }
+  } catch {}
+
+  // 3. Fallback Fichier Local (uniquement si local ou dev)
   ensureDataDir();
   if (!fs.existsSync(FUNNELS_FILE)) return [];
   try {
@@ -86,6 +154,7 @@ export async function getAllFunnels(userId?: string): Promise<FunnelPageData[]> 
 }
 
 export async function getFunnelBySlug(slug: string): Promise<FunnelPageData | null> {
+  // 1. Essai Supabase PostgreSQL
   try {
     const supabase = createAdminClient();
     const { data, error } = await supabase
@@ -105,18 +174,39 @@ export async function getFunnelBySlug(slug: string): Promise<FunnelPageData | nu
       };
     }
   } catch (e) {
-    console.warn(`Supabase getFunnelBySlug (${slug}) fallback:`, e);
+    console.warn(`Supabase getFunnelBySlug (${slug}) PostgreSQL notice:`, e);
   }
 
-  // Fallback Local
+  // 2. Essai Supabase Storage Cloud (persistant et garanti sans permission denied)
+  try {
+    const fromStorage = await getFunnelFromStorage(slug);
+    if (fromStorage) {
+      return fromStorage;
+    }
+  } catch (e) {
+    console.warn(`Storage getFunnelFromStorage (${slug}) notice:`, e);
+  }
+
+  // 3. Fallback Local
   try {
     ensureDataDir();
     if (fs.existsSync(FUNNELS_FILE)) {
       const raw = fs.readFileSync(FUNNELS_FILE, "utf-8");
       const list: FunnelPageData[] = JSON.parse(raw);
-      return list.find((f) => f.slug === slug) || null;
+      const found = list.find((f) => f.slug === slug);
+      if (found) return found;
     }
   } catch {}
+
+  // 4. Vérification si le slug est un Nom de Domaine Personnalisé (ex: boutique.com)
+  try {
+    const mapping = await getDomainMapping();
+    const cleanKey = slug.toLowerCase().trim();
+    if (mapping[cleanKey] && mapping[cleanKey] !== slug) {
+      return await getFunnelBySlug(mapping[cleanKey]);
+    }
+  } catch {}
+
   return null;
 }
 
@@ -168,10 +258,13 @@ export async function saveFunnel(
       updatedFunnel.id = data.id;
     }
   } catch (e) {
-    console.warn("Erreur sauvegarde Supabase, persistance locale de secours:", e);
+    console.warn("Erreur sauvegarde Supabase PostgreSQL (tentative cloud storage):", e);
   }
 
-  // 2. Mise à jour de la mémoire cache locale de secours
+  // 2. Sauvegarde dans Supabase Storage (indestructible, accessible par toutes les lambdas Vercel)
+  await saveFunnelToStorage(updatedFunnel);
+
+  // 3. Mise à jour du cache fichier local
   try {
     ensureDataDir();
     let funnels: FunnelPageData[] = [];

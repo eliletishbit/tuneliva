@@ -364,6 +364,14 @@ export function FunnelRenderer({
   }, []);
 
   const scrollToNextOrOffer = () => {
+    // Si redirection vers checkout externe configurée (Selar, Chariow, Stripe, etc.)
+    if (data.redirectActionType === "external_url" && data.externalRedirectUrl) {
+      if (typeof window !== "undefined") {
+        window.open(data.externalRedirectUrl, "_blank", "noopener,noreferrer");
+        return;
+      }
+    }
+
     const orderEl = document.getElementById("commander") || document.getElementById("offre");
     if (orderEl) {
       orderEl.scrollIntoView({ behavior: "smooth" });

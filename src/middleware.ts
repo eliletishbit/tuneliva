@@ -17,6 +17,27 @@ export async function middleware(request: NextRequest) {
     });
   }
 
+  const host = request.headers.get("host")?.toLowerCase() || "";
+  const isDefaultDomain =
+    host.includes("tuneliva") ||
+    host.includes("localhost") ||
+    host.includes("127.0.0.1") ||
+    host.includes("ngrok") ||
+    host.includes("vercel.app");
+
+  // Routage transparent des Noms de Domaine Personnalisés (Custom Domains)
+  if (
+    !isDefaultDomain &&
+    !pathname.startsWith("/api") &&
+    !pathname.startsWith("/_next") &&
+    !pathname.startsWith("/p/")
+  ) {
+    const cleanHost = host.split(":")[0];
+    const rewriteUrl = request.nextUrl.clone();
+    rewriteUrl.pathname = `/p/${cleanHost}${pathname === "/" ? "" : pathname}`;
+    return NextResponse.rewrite(rewriteUrl);
+  }
+
   let response = NextResponse.next({
     request: {
       headers: request.headers,
