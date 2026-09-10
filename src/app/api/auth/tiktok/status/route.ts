@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import { loadTikTokAuth, saveTikTokAuth } from "@/lib/tiktok/auth";
+import { loadTikTokAuth, syncTikTokAuthWithSupabase, persistTikTokAuthToSupabase } from "@/lib/tiktok/auth";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const auth = loadTikTokAuth();
+    const auth = await syncTikTokAuthWithSupabase();
     return NextResponse.json({
       success: true,
       isConnected: auth.isConnected,
@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     const { clientKey, clientSecret, disconnect } = body;
 
     if (disconnect) {
-      saveTikTokAuth({
+      await persistTikTokAuthToSupabase({
         accessToken: undefined,
         refreshToken: undefined,
         openId: undefined,
@@ -42,7 +42,7 @@ export async function POST(request: Request) {
       );
     }
 
-    saveTikTokAuth({
+    await persistTikTokAuthToSupabase({
       clientKey: clientKey.trim(),
       clientSecret: clientSecret.trim(),
     });
@@ -55,3 +55,4 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }
 }
+

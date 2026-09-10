@@ -471,6 +471,24 @@ SON: ${post.musicTrack}`;
         {/* Détails de configuration & Copie des URLs TikTok Portal */}
         {!authStatus.isConnected && (
           <div className="mt-6 pt-6 border-t border-slate-800/80 space-y-4">
+            {/* Boîte d'aide Mode Sandbox */}
+            <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-200 text-xs space-y-1.5">
+              <div className="font-bold flex items-center gap-1.5 text-amber-300">
+                <span>⚠️ Important pour le Mode Sandbox TikTok :</span>
+              </div>
+              <ul className="list-disc list-inside space-y-1 text-[11px] text-amber-200/90 leading-relaxed">
+                <li>
+                  <strong>Ajouter votre compte comme Testeur :</strong> Sur le portail TikTok Developer &gt; Votre App Sandbox &gt; onglet <em>Sandbox Testers</em> &gt; ajoutez votre nom d&apos;utilisateur TikTok.
+                </li>
+                <li>
+                  <strong>Accepter l&apos;invitation sur votre téléphone :</strong> Ouvrez votre application TikTok mobile &gt; Boîte de réception &gt; Notifications système &gt; Acceptez l&apos;invitation de développeur.
+                </li>
+                <li>
+                  <strong>URL de redirection officielle :</strong> Assurez-vous que <code className="bg-slate-900 px-1.5 py-0.5 rounded text-amber-300 font-mono">https://tuneliva.vercel.app/api/auth/tiktok/callback</code> est bien enregistrée dans votre portail TikTok.
+                </li>
+              </ul>
+            </div>
+
             <div className="text-xs font-bold text-slate-300 flex items-center gap-2">
               <KeyRound className="w-4 h-4 text-amber-400" />
               <span>Paramètres requis sur votre portail TikTok Developer :</span>

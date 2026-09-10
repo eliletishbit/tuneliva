@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { loadTikTokAuth } from "@/lib/tiktok/auth";
+import { loadTikTokAuth, syncTikTokAuthWithSupabase } from "@/lib/tiktok/auth";
 import { loadTikTokPosts, saveTikTokPosts } from "@/lib/tiktok/generator";
 
 export const dynamic = "force-dynamic";
@@ -9,7 +9,7 @@ export async function POST(request: Request) {
     const body = await request.json().catch(() => ({}));
     const { postId } = body;
 
-    const auth = loadTikTokAuth();
+    const auth = await syncTikTokAuthWithSupabase();
     if (!auth.isConnected || !auth.accessToken) {
       return NextResponse.json(
         {

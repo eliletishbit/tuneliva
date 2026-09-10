@@ -37,6 +37,8 @@ function ensureDataDirSafe() {
   }
 }
 
+import { createAdminClient } from "@/lib/supabase/admin";
+
 export function loadTikTokAuth(): TikTokAuthData {
   if (inMemoryAuth) {
     return inMemoryAuth;
@@ -47,9 +49,14 @@ export function loadTikTokAuth(): TikTokAuthData {
     if (fs.existsSync(AUTH_FILE)) {
       const raw = fs.readFileSync(AUTH_FILE, "utf8");
       const parsed = JSON.parse(raw);
-      const auth = {
-        clientKey: process.env.TIKTOK_CLIENT_KEY || parsed.clientKey || DEFAULT_CLIENT_KEY,
-        clientSecret: process.env.TIKTOK_CLIENT_SECRET || parsed.clientSecret || DEFAULT_CLIENT_SECRET,
+      let clientKey = process.env.TIKTOK_CLIENT_KEY || parsed.clientKey || DEFAULT_CLIENT_KEY;
+      let clientSecret = process.env.TIKTOK_CLIENT_SECRET || parsed.clientSecret || DEFAULT_CLIENT_SECRET;
+      if (clientKey === "awjjic52borhauze") clientKey = DEFAULT_CLIENT_KEY;
+      if (clientSecret === "jVcqi9QKN7JUWiW9n8MCavpMfXEvrH2a") clientSecret = DEFAULT_CLIENT_SECRET;
+
+      const auth: TikTokAuthData = {
+        clientKey,
+        clientSecret,
         accessToken: parsed.accessToken,
         refreshToken: parsed.refreshToken,
         openId: parsed.openId,
@@ -93,6 +100,42 @@ export function saveTikTokAuth(data: Partial<TikTokAuthData>): void {
   }
 }
 
+export async function syncTikTokAuthWithSupabase(): Promise<TikTokAuthData> {
+  try {
+    const supabase = createAdminClient();
+    const { data, error } = await supabase.storage
+      .from("product-images")
+      .download("data/tiktok_auth.json");
+    if (!error && data) {
+      const text = await data.text();
+      const parsed = JSON.parse(text);
+      if (parsed && (parsed.accessToken || parsed.clientKey)) {
+        saveTikTokAuth(parsed);
+        return loadTikTokAuth();
+      }
+    }
+  } catch (e) {
+    // ignore
+  }
+  return loadTikTokAuth();
+}
+
+export async function persistTikTokAuthToSupabase(data: Partial<TikTokAuthData>): Promise<void> {
+  saveTikTokAuth(data);
+  try {
+    const supabase = createAdminClient();
+    const current = loadTikTokAuth();
+    await supabase.storage
+      .from("product-images")
+      .upload("data/tiktok_auth.json", JSON.stringify(current, null, 2), {
+        upsert: true,
+        contentType: "application/json",
+      });
+  } catch (e) {
+    console.error("Erreur persistence Supabase TikTok Auth:", e);
+  }
+}
+
 export function getTikTokRedirectUri(): string {
   if (process.env.TIKTOK_REDIRECT_URI) {
     return process.env.TIKTOK_REDIRECT_URI;
@@ -102,3 +145,4 @@ export function getTikTokRedirectUri(): string {
   }
   return "https://tuneliva.vercel.app/api/auth/tiktok/callback";
 }
+
