@@ -1,4 +1,13 @@
 {
   "clientKey": "sbawbo999rklwxzw3v",
-  "clientSecret": "mkUNcS7l7NzTsm2Yp769dUlSB34UMfLQ"
+  "clientSecret": "mkUNcS7l7NzTsm2Yp769dUlSB34UMfLQ",
+  "accessToken": "act.fohX8sLKAAUdwcefmdEqADCDKKzZfSc92h3hzm5dwgHuGzJaw63BluKoBVdm!4933.e1",
+  "refreshToken": "rft.teB0BLOqAkYJ2XnMM1yFkII8CXXDU40nltuN7c3ToA3LKcEJBR4DubcxYmT4!4894.e1",
+  "openId": "-000gVrL2d8hwotT3M-noZXShKElUdpo-XUB",
+  "scope": "video.upload,user.info.basic,video.publish",
+  "expiresAt": 1789143600000,
+  "connectedAt": "2026-09-10T15:20:00.000Z",
+  "creatorUsername": "@createur.tiktok",
+  "creatorAvatar": "",
+  "isConnected": true
 }

@@ -63,13 +63,19 @@ export async function GET(request: Request) {
     const tokenJson = await res.json();
     console.log("[TikTok Token Exchange Response]:", JSON.stringify(tokenJson));
 
-    if (tokenJson.data && tokenJson.data.access_token) {
-      let creatorUsername = "@tuneliva.officiel";
+    const accessToken = tokenJson.access_token || tokenJson.data?.access_token;
+    const refreshToken = tokenJson.refresh_token || tokenJson.data?.refresh_token;
+    const openId = tokenJson.open_id || tokenJson.data?.open_id;
+    const scope = tokenJson.scope || tokenJson.data?.scope;
+    const expiresIn = tokenJson.expires_in || tokenJson.data?.expires_in || 86400;
+
+    if (accessToken) {
+      let creatorUsername = "@createur.tiktok";
       let creatorAvatar = "";
 
       try {
         const userRes = await fetch("https://open.tiktokapis.com/v2/user/info/?fields=open_id,union_id,avatar_url,display_name,username", {
-          headers: { Authorization: `Bearer ${tokenJson.data.access_token}` }
+          headers: { Authorization: `Bearer ${accessToken}` }
         });
         const userJson = await userRes.json();
         if (userJson.data?.user) {
@@ -81,11 +87,11 @@ export async function GET(request: Request) {
       }
 
       await persistTikTokAuthToSupabase({
-        accessToken: tokenJson.data.access_token,
-        refreshToken: tokenJson.data.refresh_token,
-        openId: tokenJson.data.open_id,
-        scope: tokenJson.data.scope,
-        expiresAt: Date.now() + (tokenJson.data.expires_in || 86400) * 1000,
+        accessToken,
+        refreshToken,
+        openId,
+        scope,
+        expiresAt: Date.now() + expiresIn * 1000,
         connectedAt: new Date().toISOString(),
         creatorUsername,
         creatorAvatar,
