@@ -11,12 +11,14 @@ export async function GET(request: Request) {
     const customRedirect = searchParams.get("redirect_uri");
     const rawRedirectUri = customRedirect || getTikTokRedirectUri();
     const redirectUri = encodeURIComponent(rawRedirectUri);
-    const scope = encodeURIComponent("user.info.basic,video.upload,video.publish");
+    const requestedScope = searchParams.get("scope") || "user.info.basic,video.upload,video.publish";
+    const scope = encodeURIComponent(requestedScope);
 
-    // Stocke l'URL de redirection exacte dans le state pour garantir 100% de concordance lors de l'échange de token
+    // Stocke l'URL de redirection exacte et le scope dans le state pour garantir 100% de concordance lors de l'échange de token
     const statePayload = {
       csrf: Math.random().toString(36).substring(2, 15),
       redirect_uri: rawRedirectUri,
+      scope: requestedScope,
     };
     const state = Buffer.from(JSON.stringify(statePayload)).toString("base64url");
 

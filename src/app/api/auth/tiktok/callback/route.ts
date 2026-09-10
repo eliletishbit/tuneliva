@@ -94,17 +94,25 @@ export async function GET(request: Request) {
 
       return NextResponse.redirect(`${redirectTarget}?tab=tiktok&connected=true`);
     } else {
-      let errMsg = "Échec de l'échange de token TikTok";
+      let errMsg = "";
       if (tokenJson.error_description) {
         errMsg = `${tokenJson.error || "Erreur"}: ${tokenJson.error_description}`;
       } else if (typeof tokenJson.error === "string") {
-        errMsg = tokenJson.error;
+        errMsg = `${tokenJson.error}${tokenJson.message ? `: ${tokenJson.message}` : ""}`;
       } else if (tokenJson.error?.message) {
         errMsg = `${tokenJson.error.code || "Erreur"}: ${tokenJson.error.message}`;
+      } else if (tokenJson.error?.code) {
+        errMsg = `Code erreur TikTok: ${tokenJson.error.code}`;
       } else if (tokenJson.data?.description) {
         errMsg = `Erreur ${tokenJson.data.error_code || ""}: ${tokenJson.data.description}`;
-      } else if (tokenJson.message && tokenJson.message !== "error") {
+      } else if (tokenJson.message) {
         errMsg = tokenJson.message;
+      } else {
+        errMsg = JSON.stringify(tokenJson);
+      }
+
+      if (!errMsg || errMsg === "{}" || errMsg === "error") {
+        errMsg = `Échec de l'échange (HTTP ${res.status}): ${JSON.stringify(tokenJson)}`;
       }
 
       if (tokenJson.log_id) {

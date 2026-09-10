@@ -126,11 +126,13 @@ export function TikTokManager() {
           type: "success",
           message: "Félicitations ! Votre compte TikTok est officiellement connecté et prêt pour la publication automatique.",
         });
+        window.history.replaceState({}, document.title, window.location.pathname + "?tab=tiktok");
       } else if (params.get("error")) {
         setAuthNotification({
           type: "error",
           message: decodeURIComponent(params.get("error") || "Erreur lors de la connexion TikTok"),
         });
+        window.history.replaceState({}, document.title, window.location.pathname + "?tab=tiktok");
       }
     }
   }, []);
@@ -451,17 +453,17 @@ SON: ${post.musicTrack}`;
                 <a
                   href="/api/auth/tiktok/login"
                   className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-gradient-to-r from-rose-500 via-pink-600 to-indigo-600 hover:from-rose-400 hover:to-indigo-500 text-white font-black text-xs shadow-xl shadow-rose-500/25 transition-all transform hover:scale-[1.02] active:scale-[0.98]"
-                  title="Utilise l'URL de rappel officielle : /api/auth/tiktok/callback"
+                  title="Demande les permissions complètes : info profil et publication directe de vidéos"
                 >
                   <Smartphone className="w-4 h-4" />
-                  <span>🔗 Connecter TikTok (Callback Officiel)</span>
+                  <span>🔗 Connecter TikTok (Complet : Profil + Vidéos)</span>
                 </a>
                 <a
-                  href="/api/auth/tiktok/login?redirect_uri=https%3A%2F%2Ftuneliva.vercel.app%2Fhq-master-9821"
+                  href="/api/auth/tiktok/login?scope=user.info.basic"
                   className="inline-flex items-center justify-center gap-1.5 px-3 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold text-[11px] border border-slate-700 transition-all"
-                  title="Si vous aviez configuré /hq-master-9821 sur le portail TikTok"
+                  title="À utiliser si votre app Sandbox n'a pas encore validé les permissions vidéo"
                 >
-                  <span>Si configuré avec /hq-master-9821</span>
+                  <span>Connexion Basique (user.info.basic)</span>
                 </a>
               </div>
             )}
