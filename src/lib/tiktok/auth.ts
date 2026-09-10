@@ -15,8 +15,8 @@ export interface TikTokAuthData {
   isConnected: boolean;
 }
 
-const DEFAULT_CLIENT_KEY = "awjjic52borhauze";
-const DEFAULT_CLIENT_SECRET = "jVcqi9QKN7JUWiW9n8MCavpMfXEvrH2a";
+const DEFAULT_CLIENT_KEY = "sbawbo999rklwxzw3v";
+const DEFAULT_CLIENT_SECRET = "mkUNcS7l7NzTsm2Yp769dUlSB34UMfLQ";
 
 import os from "os";
 

@@ -20,8 +20,8 @@ export async function GET(request: Request) {
 
   try {
     const auth = loadTikTokAuth();
-    const clientKey = auth.clientKey || "awjjic52borhauze";
-    const clientSecret = auth.clientSecret || "jVcqi9QKN7JUWiW9n8MCavpMfXEvrH2a";
+    const clientKey = auth.clientKey || "sbawbo999rklwxzw3v";
+    const clientSecret = auth.clientSecret || "mkUNcS7l7NzTsm2Yp769dUlSB34UMfLQ";
     const primaryRedirect = getTikTokRedirectUri();
     const secondaryRedirect = `${baseUrl}/hq-master-9821`;
 

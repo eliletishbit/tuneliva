@@ -7,7 +7,7 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const auth = loadTikTokAuth();
-    const clientKey = searchParams.get("client_key") || auth.clientKey || "awjjic52borhauze";
+    const clientKey = searchParams.get("client_key") || auth.clientKey || "sbawbo999rklwxzw3v";
     const customRedirect = searchParams.get("redirect_uri");
     const redirectUri = encodeURIComponent(customRedirect || getTikTokRedirectUri());
     const scope = encodeURIComponent("user.info.basic,video.upload,video.publish");
